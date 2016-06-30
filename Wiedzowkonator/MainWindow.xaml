@@ -5,8 +5,17 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Wiedzowkonator"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
+        Title="Wiedzówkonator 2k16" Height="320" Width="520">
     <Grid>
-        
+        <Canvas x:Name="canvas1" HorizontalAlignment="Left" Height="290" VerticalAlignment="Top" Width="512"/>
+        <Image x:Name="image" HorizontalAlignment="Left" Height="290" VerticalAlignment="Top" Width="512"/>
+        <Button x:Name="StartButton" Content="Rozpocznij wiedzówkę!" VerticalAlignment="Center" HorizontalAlignment="Center" Width="150" Click="StartClick"/>
+        <TextBox x:Name="nameFisrtParticipant" HorizontalAlignment="Left" Height="23" Margin="29,40,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+        <TextBlock x:Name="pointsFirstParticipant" HorizontalAlignment="Left" Margin="72,68,0,0" TextWrapping="Wrap" VerticalAlignment="Top" TextAlignment="Center" Width="33" Height="19" Text="0,0"/>
+        <Button x:Name="plusFirstParticipant" Content="+" HorizontalAlignment="Left" Margin="45,18,0,0" VerticalAlignment="Top" Width="33" Click="plusFirstParticipant_Click"/>
+        <Button x:Name="minutFirstParticipant" Content="-" HorizontalAlignment="Left" Margin="98,18,0,0" VerticalAlignment="Top" Width="33" Click="minutFirstParticipant_Click"/>
+
+        <!-- Quiz participants script -->
+
     </Grid>
 </Window>

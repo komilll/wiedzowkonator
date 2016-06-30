@@ -1,1 +1,14 @@
 c:\users\kamil\documents\visual studio 2015\Projects\Wiedzowkonator\Wiedzowkonator\bin\Debug\Wiedzowkonator.exe.config
+C:\Users\Kamil\Documents\Visual Studio 2015\Projects\Wiedzowkonator\Wiedzowkonator\bin\Debug\Wiedzowkonator.exe
+C:\Users\Kamil\Documents\Visual Studio 2015\Projects\Wiedzowkonator\Wiedzowkonator\bin\Debug\Wiedzowkonator.pdb
+C:\Users\Kamil\Documents\Visual Studio 2015\Projects\Wiedzowkonator\Wiedzowkonator\obj\Debug\Wiedzowkonator.csprojResolveAssemblyReference.cache
+C:\Users\Kamil\Documents\Visual Studio 2015\Projects\Wiedzowkonator\Wiedzowkonator\obj\Debug\MainWindow.g.cs
+C:\Users\Kamil\Documents\Visual Studio 2015\Projects\Wiedzowkonator\Wiedzowkonator\obj\Debug\App.g.cs
+C:\Users\Kamil\Documents\Visual Studio 2015\Projects\Wiedzowkonator\Wiedzowkonator\obj\Debug\Wiedzowkonator_MarkupCompile.cache
+C:\Users\Kamil\Documents\Visual Studio 2015\Projects\Wiedzowkonator\Wiedzowkonator\obj\Debug\Wiedzowkonator_MarkupCompile.lref
+C:\Users\Kamil\Documents\Visual Studio 2015\Projects\Wiedzowkonator\Wiedzowkonator\obj\Debug\MainWindow.baml
+C:\Users\Kamil\Documents\Visual Studio 2015\Projects\Wiedzowkonator\Wiedzowkonator\obj\Debug\Wiedzowkonator.g.resources
+C:\Users\Kamil\Documents\Visual Studio 2015\Projects\Wiedzowkonator\Wiedzowkonator\obj\Debug\Wiedzowkonator.Properties.Resources.resources
+C:\Users\Kamil\Documents\Visual Studio 2015\Projects\Wiedzowkonator\Wiedzowkonator\obj\Debug\Wiedzowkonator.csproj.GenerateResource.Cache
+C:\Users\Kamil\Documents\Visual Studio 2015\Projects\Wiedzowkonator\Wiedzowkonator\obj\Debug\Wiedzowkonator.exe
+C:\Users\Kamil\Documents\Visual Studio 2015\Projects\Wiedzowkonator\Wiedzowkonator\obj\Debug\Wiedzowkonator.pdb

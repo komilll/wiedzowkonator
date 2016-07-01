@@ -26,9 +26,9 @@ namespace Wiedzowkonator
         public Image[] screenshots;
         public bool screenshotQuizStarted;
         public string path = "E:/screeny/";
-        // BitmapImage bitmapImage = new BitmapImage(new Uri("E:/screeny/1.jpg", UriKind.Absolute));
-        // BitmapImage bitmapImage2 = new BitmapImage(new Uri("E:/screeny/2.jpg", UriKind.Absolute));
         BitmapImage[] bitmapImage;
+        int lastScreenshotIndex;
+
 
         public MainWindow()
         {
@@ -38,6 +38,7 @@ namespace Wiedzowkonator
 
         public void Start()
         {
+            Application.Current.MainWindow.WindowState = WindowState.Maximized;
             canvasBorder.BorderThickness = new Thickness(2.5f);
             bitmapImage = new BitmapImage[Directory.GetFiles(path).Length]; //Initializing BitmapImage with amount of images as its size
             screenshots = new Image[bitmapImage.Length]; //Array length is same as BitmapImage
@@ -82,6 +83,10 @@ namespace Wiedzowkonator
 
                 if (!string.IsNullOrWhiteSpace(questionNumberBox.Text) && Math.Sign(int.Parse(questionNumberBox.Text)) == 1)
                 {
+                    int currentScreenshot = lastScreenshotIndex = int.Parse(questionNumberBox.Text);
+                    canvasScreenshotQuiz.Width = screenshots[currentScreenshot].Width;
+                    canvasScreenshotQuiz.Height = screenshots[currentScreenshot].Height;
+
                     canvasScreenshotQuiz.Children.Add(screenshots[int.Parse(questionNumberBox.Text)]);
                     questionNumberBox.Text = "";
                 }
@@ -140,6 +145,12 @@ namespace Wiedzowkonator
                 pointsFirstParticipant.Text = curPoints.ToString() + ",0";
             else
                 pointsFirstParticipant.Text = curPoints.ToString();
+        }
+
+        private void confirmPoints_Click(object sender, RoutedEventArgs e)
+        {
+            StartClick(null, null);
+
         }
     }
 }

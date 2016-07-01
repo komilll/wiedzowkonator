@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.IO;
 
 namespace Wiedzowkonator
 {
@@ -22,10 +23,12 @@ namespace Wiedzowkonator
 
     public partial class MainWindow : Window
     {
-        public Image[] screenshots = new Image[2];
+        public Image[] screenshots;
         public bool screenshotQuizStarted;
-        BitmapImage bitmapImage = new BitmapImage(new Uri("E:/screeny/1.jpg", UriKind.Absolute));
-        BitmapImage bitmapImage2 = new BitmapImage(new Uri("E:/screeny/2.jpg", UriKind.Absolute));
+        public string path = "E:/screeny/";
+        // BitmapImage bitmapImage = new BitmapImage(new Uri("E:/screeny/1.jpg", UriKind.Absolute));
+        // BitmapImage bitmapImage2 = new BitmapImage(new Uri("E:/screeny/2.jpg", UriKind.Absolute));
+        BitmapImage[] bitmapImage;
 
         public MainWindow()
         {
@@ -35,25 +38,51 @@ namespace Wiedzowkonator
 
         public void Start()
         {
+            bitmapImage = new BitmapImage[Directory.GetFiles(path).Length]; //Initializing BitmapImage with amount of images as its size
+            screenshots = new Image[bitmapImage.Length]; //Array length is same as BitmapImage
+
+            string[] fileNames = Directory.GetFiles(path);
+            for (int i = 0; i < fileNames.Length; i++)
+            {
+                MessageBox.Show(fileNames[i]);
+                bitmapImage[i] = new BitmapImage(new Uri(fileNames[i], UriKind.Absolute));
+                screenshots[i] = new Image();
+                screenshots[i].Source = bitmapImage[i];
+                screenshots[i].Width = bitmapImage[i].Width;
+                screenshots[i].Height = bitmapImage[i].Height;
+            }
+
+            /*
             screenshots[0] = new Image();
-            screenshots[0].Source = bitmapImage;
-            screenshots[0].Width = bitmapImage.Width;
-            screenshots[0].Height = bitmapImage.Height;
+            screenshots[0].Source = bitmapImage[0];
+            screenshots[0].Width = bitmapImage[0].Width;
+            screenshots[0].Height = bitmapImage[0].Height;
             canvas1.Children.Add(screenshots[0]);
 
             screenshots[1] = new Image();
-            screenshots[1].Source = bitmapImage2;
-            screenshots[1].Width = bitmapImage2.Width;
-            screenshots[1].Height = bitmapImage2.Height;
+            screenshots[1].Source = bitmapImage[1];
+            screenshots[1].Width = bitmapImage[1].Width;
+            screenshots[1].Height = bitmapImage[1].Height;
             canvas1.Children.Add(screenshots[1]);
+            */
         }
 
         private void StartClick(object sender, RoutedEventArgs e)
         {
-            screenshotQuizStarted = true;
-            image = screenshots[1];
+            if (screenshotQuizStarted == false)
+                screenshotQuizStarted = true;
+            else
+                screenshotQuizStarted = false;
 
-            canvas1.Children.Remove(screenshots[1]);
+            if (screenshotQuizStarted)
+            {
+                canvas1.Children.Add(screenshots[int.Parse(questionNumberBox.Text)]);
+                questionNumberBox.Text = "";
+            }
+            else
+            {
+                canvas1.Children.Clear();
+            }
             //StartButton.Width = 0;
 
             if (plusFirstParticipant.Width == 0)

@@ -7,7 +7,9 @@
         mc:Ignorable="d"
         Title="Wiedzówkonator 2k16" Height="320" Width="520">
     <Grid>
-        <Canvas x:Name="canvas1" HorizontalAlignment="Left" Height="290" VerticalAlignment="Top" Width="512"/>
+        <Border x:Name="canvasBorder" BorderBrush="Black">
+            <Canvas x:Name="canvasScreenshotQuiz" HorizontalAlignment="Left" Height="290" VerticalAlignment="Top" Width="512"/>
+        </Border>
         <Image x:Name="image" HorizontalAlignment="Left" Height="290" VerticalAlignment="Top" Width="512"/>
         <Button x:Name="StartButton" Content="Rozpocznij wiedzówkę!" VerticalAlignment="Center" HorizontalAlignment="Center" Width="150" Click="StartClick"/>
 

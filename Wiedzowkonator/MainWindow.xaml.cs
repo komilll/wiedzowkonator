@@ -14,6 +14,12 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Windows.Forms;
+using System.Runtime.Serialization.Formatters.Binary;
+//
+using Application = System.Windows.Application;
+using MessageBox = System.Windows.Forms.MessageBox;
+using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 
 namespace Wiedzowkonator
 {
@@ -21,9 +27,16 @@ namespace Wiedzowkonator
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     /// 
+    [Serializable]
+    public class SerializationData
+    {
+        public Image[] screenshots_;
+        public BitmapImage[] bitmapImage_;
+    }
 
     public partial class MainWindow : Window
     {
+        SerializationData serializationData = new SerializationData();
         public Image[] screenshots;
         public bool screenshotQuizStarted;
         public string path = "E:/screeny/";
@@ -38,7 +51,7 @@ namespace Wiedzowkonator
         public MainWindow()
         {
             InitializeComponent();
-            Start();
+            //Start();
         }
 
         public void Start()
@@ -209,17 +222,67 @@ namespace Wiedzowkonator
         /********************* Managing menu tabs ************************/
         private void Open(object sender, RoutedEventArgs e)
         {
+            OpenFileDialog fileDialog = new OpenFileDialog();
+            fileDialog.Multiselect = true;
 
+            if (fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                string[] path = fileDialog.FileNames;
+                //Initialize new array sizes depending of screenshot numbers
+                bitmapImage = new BitmapImage[path.Length];
+                screenshots = new Image[bitmapImage.Length];
+                int index = 0; //Index of each screenshot
+                foreach (string screen in path)
+                {
+                    bitmapImage[index] = new BitmapImage(new Uri(screen, UriKind.Absolute));
+                    screenshots[index] = new Image();
+                    screenshots[index].Source = bitmapImage[index];
+                    screenshots[index].Width = bitmapImage[index].Width;
+                    screenshots[index].Height = bitmapImage[index].Height;
+
+                    index++;
+                }
+            }
         }
 
         private void Save(object sender, RoutedEventArgs e)
         {
+            SaveFileDialog fileDialog = new SaveFileDialog();
+            if (fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                string path = fileDialog.FileName;
 
+                BinaryFormatter bf = new BinaryFormatter();
+                FileStream stream = File.Create(path + ".anime");
+
+                SerializationData data = new SerializationData();
+
+                data.bitmapImage_ = bitmapImage;
+                data.screenshots_ = screenshots;
+                bf.Serialize(stream, serializationData);
+                stream.Close();
+            }
         }
 
         private void Load(object sender, RoutedEventArgs e)
         {
+            OpenFileDialog fileDialog = new OpenFileDialog();
+            if (fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                string path = fileDialog.FileName;
 
+                BinaryFormatter bf = new BinaryFormatter();
+                FileStream stream = File.Open(path, FileMode.Open);
+
+                SerializationData data = (SerializationData)bf.Deserialize(stream);
+                //Initializing arrays with imported data length and assigning new values
+                bitmapImage = new BitmapImage[data.bitmapImage_.Length];
+                screenshots = new Image[data.screenshots_.Length];
+                screenshots = data.screenshots_;
+                bitmapImage = data.bitmapImage_;
+
+                stream.Close();
+            }
         }
     }
 }

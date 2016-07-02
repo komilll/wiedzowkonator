@@ -13,6 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace Wiedzowkonator
 {
@@ -28,6 +29,10 @@ namespace Wiedzowkonator
         public string path = "E:/screeny/";
         BitmapImage[] bitmapImage;
         int lastScreenshotIndex;
+        int screenshotsCompleted;
+        enum quizState { choosingQuestion, answeringQuestion, givingPoints };
+        quizState curQuizState;
+
 
 
         public MainWindow()
@@ -43,6 +48,12 @@ namespace Wiedzowkonator
             bitmapImage = new BitmapImage[Directory.GetFiles(path).Length]; //Initializing BitmapImage with amount of images as its size
             screenshots = new Image[bitmapImage.Length]; //Array length is same as BitmapImage
 
+            plusFirstParticipant.Width = 0;
+            minutFirstParticipant.Width = 0;
+            nameFisrtParticipant.Width = 0;
+            pointsFirstParticipant.Width = 0;
+            confirmPoints.Width = 0;
+
             string[] fileNames = Directory.GetFiles(path);
             for (int i = 0; i < fileNames.Length; i++)
             {
@@ -53,23 +64,9 @@ namespace Wiedzowkonator
                 screenshots[i].Width = bitmapImage[i].Width;
                 screenshots[i].Height = bitmapImage[i].Height;
             }
-
-            /*
-            screenshots[0] = new Image();
-            screenshots[0].Source = bitmapImage[0];
-            screenshots[0].Width = bitmapImage[0].Width;
-            screenshots[0].Height = bitmapImage[0].Height;
-            canvas1.Children.Add(screenshots[0]);
-
-            screenshots[1] = new Image();
-            screenshots[1].Source = bitmapImage[1];
-            screenshots[1].Width = bitmapImage[1].Width;
-            screenshots[1].Height = bitmapImage[1].Height;
-            canvas1.Children.Add(screenshots[1]);
-            */
         }
 
-        private void StartClick(object sender, RoutedEventArgs e)
+        private void StartClick(object sender, RoutedEventArgs e) //Main method that contains showing screenshots
         {
             bool nonBuggedEntry = true; //Checking if there was any error when passing question number
 
@@ -80,19 +77,25 @@ namespace Wiedzowkonator
 
             if (screenshotQuizStarted)
             {
+                //Variable needed to check if input text is number; It's only used to "if" statement
+                int tryingParse; 
+                bool isNumeric = int.TryParse(questionNumberBox.Text, out tryingParse);
+                if (isNumeric)
+                    isNumeric = Math.Sign(int.Parse(questionNumberBox.Text)) == 1;
 
-                if (!string.IsNullOrWhiteSpace(questionNumberBox.Text) && Math.Sign(int.Parse(questionNumberBox.Text)) == 1)
+                if (!string.IsNullOrWhiteSpace(questionNumberBox.Text) && isNumeric && int.Parse(questionNumberBox.Text) <= screenshots.Length - screenshotsCompleted)
                 {
-                    int currentScreenshot = lastScreenshotIndex = int.Parse(questionNumberBox.Text);
+                    //Substracting 1 to let user writting down from "1 to x" instead of "0 to x"
+                    int currentScreenshot = lastScreenshotIndex = int.Parse(questionNumberBox.Text) - 1;
                     canvasScreenshotQuiz.Width = screenshots[currentScreenshot].Width;
                     canvasScreenshotQuiz.Height = screenshots[currentScreenshot].Height;
 
-                    canvasScreenshotQuiz.Children.Add(screenshots[int.Parse(questionNumberBox.Text)]);
+                    canvasScreenshotQuiz.Children.Add(screenshots[currentScreenshot]);
                     questionNumberBox.Text = "";
                 }
                 else
                 {
-                    MessageBox.Show("Wybierz liczby od 1 do " + screenshots.Length);
+                    MessageBox.Show("Wybierz liczby od 1 do " + (screenshots.Length - screenshotsCompleted));
                     questionNumberBox.Text = "";
                     if (screenshotQuizStarted == false)
                         screenshotQuizStarted = true;
@@ -110,23 +113,42 @@ namespace Wiedzowkonator
 
             if (nonBuggedEntry) //If no error occured
             {
-                if (plusFirstParticipant.Width == 0)
-                {
-                    plusFirstParticipant.Width = 33;
-                    minutFirstParticipant.Width = 33;
-                    nameFisrtParticipant.Width = 120;
-                    pointsFirstParticipant.Width = 33;
-                }
-                else
-                {
-                    plusFirstParticipant.Width = 0;
-                    minutFirstParticipant.Width = 0;
-                    nameFisrtParticipant.Width = 0;
-                    pointsFirstParticipant.Width = 0;
-                }
+                ShowingHUD();
             }
         }
 
+        void ShowingHUD()
+        {
+            if (plusFirstParticipant.Width == 0 && curQuizState == quizState.givingPoints)
+            {
+                plusFirstParticipant.Width = 33;
+                minutFirstParticipant.Width = 33;
+                nameFisrtParticipant.Width = 120;
+                pointsFirstParticipant.Width = 33;
+                confirmPoints.Width = 75;
+            }
+            else
+            {
+                plusFirstParticipant.Width = 0;
+                minutFirstParticipant.Width = 0;
+                nameFisrtParticipant.Width = 0;
+                pointsFirstParticipant.Width = 0;
+                confirmPoints.Width = 0;
+            }
+
+            if (questionNumberBox.Width == 0 && curQuizState == quizState.choosingQuestion)
+            {
+                questionNumberBox.Width = 132;
+                StartButton.Width = 150;
+            }
+            else
+            {
+                questionNumberBox.Width = 0;
+                StartButton.Width = 0;
+            }
+        }
+
+        /********************** Button/mouse pressed scripts ********************/
         private void plusFirstParticipant_Click(object sender, RoutedEventArgs e)
         {
             float curPoints = float.Parse(pointsFirstParticipant.Text);
@@ -149,7 +171,54 @@ namespace Wiedzowkonator
 
         private void confirmPoints_Click(object sender, RoutedEventArgs e)
         {
-            StartClick(null, null);
+            curQuizState = quizState.choosingQuestion;
+            ShowingHUD();
+            screenshots[lastScreenshotIndex] = null;
+            screenshotsCompleted++;
+            for (int i = lastScreenshotIndex; i < screenshots.Length - 1; i++)
+            {
+                screenshots[i] = screenshots[i + 1];
+            }
+
+            if (screenshots.Length == screenshotsCompleted)
+            {
+                screenshots[lastScreenshotIndex] = null;
+                MessageBox.Show("KONIEC WIEDZÓWKI!");
+            }
+        }
+
+        private void questionNumberBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            //Starting quiz through pressing "Enter" key instead of clicking "Start Button"
+            if (e.Key == Key.Enter)
+            {
+                curQuizState = quizState.answeringQuestion;
+                StartClick(null, null);
+            }
+        }
+
+        private void SkippingScreenshot(object sender, MouseButtonEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                curQuizState = quizState.givingPoints;
+                StartClick(null, null);
+            }
+        }
+
+        /********************* Managing menu tabs ************************/
+        private void Open(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void Save(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void Load(object sender, RoutedEventArgs e)
+        {
 
         }
     }

@@ -7,8 +7,19 @@
         mc:Ignorable="d"
         Title="Wiedzówkonator 2k16" Height="320" Width="520">
     <Grid>
+        <DockPanel Height="20"  VerticalAlignment="Top">
+            <Menu DockPanel.Dock="Top">
+                <MenuItem Header="_Plik">
+                    <MenuItem Header="_Otwórz" Click="Open"/>
+                    <MenuItem Header="_Zapisz" Click="Save"/>
+                    <MenuItem Header="_Wczytaj" Click="Load"/>
+                </MenuItem>
+
+            </Menu>
+        </DockPanel>
+        
         <Border x:Name="canvasBorder" BorderBrush="Black">
-            <Canvas x:Name="canvasScreenshotQuiz" HorizontalAlignment="Center" Height="290" VerticalAlignment="Center" Width="512"/>
+            <Canvas x:Name="canvasScreenshotQuiz" HorizontalAlignment="Center" Height="290" VerticalAlignment="Center" Width="512" MouseDown="SkippingScreenshot"/>
         </Border>
         <Button x:Name="StartButton" Content="Rozpocznij wiedzówkę!" VerticalAlignment="Center" HorizontalAlignment="Center" Width="150" Click="StartClick"/>
 
@@ -21,7 +32,7 @@
         <Button x:Name="plusFirstParticipant" Content="+" HorizontalAlignment="Left" Margin="45,18,0,0" VerticalAlignment="Top" Width="33" Click="plusFirstParticipant_Click"/>
         <Button x:Name="minutFirstParticipant" Content="-" HorizontalAlignment="Left" Margin="98,18,0,0" VerticalAlignment="Top" Width="33" Click="minutFirstParticipant_Click"/>
         <TextBox x:Name="questionNumberBox" HorizontalAlignment="Center" Height="23" TextWrapping="Wrap" 
-                 VerticalAlignment="Center" Width="132" Margin="193,161,187,106" TextAlignment="Center"/>
+                 VerticalAlignment="Center" Width="132" Margin="193,161,187,106" TextAlignment="Center" KeyDown="questionNumberBox_KeyDown"/>
 
     </Grid>
 </Window>

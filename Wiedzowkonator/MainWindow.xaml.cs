@@ -50,34 +50,37 @@ namespace Wiedzowkonator
         BitmapImage[] bitmapImage; //Images that will be written into "screenshots" variable
         public string[] nameOfScreenshots; //Name of all screenshots - it is used to check which one was already shown
         public bool screenshotQuizStarted; //Checking if quiz has started - switching between choosing and answering phase
-        int lastScreenshotIndex;
-        int screenshotsCompleted;
-        static string userName = Environment.UserName;
-        string quickSavePath = "C:/Users/" + userName + "/AppData/LocalLow/Wiedzowkonator/";
-        string screenshotsLocalizationPath;
+        int lastScreenshotIndex; //Getting index of last shown screenshot in case if user want to see it once again
+        int screenshotsCompleted; //If user already answered this screenshot it won't be shown again
+        static string userName = Environment.UserName; //Name of user logged on Windows account
+        string quickSavePath = "C:/Users/" + userName + "/AppData/LocalLow/Wiedzowkonator/"; //Choosing directory path
+        string screenshotsLocalizationPath; //Localizition of directory which contains screenshots
 
-
+        //Enum type that shows which state of quiz is currently in progress
         enum quizState { choosingQuestion, answeringQuestion, givingPoints };
         quizState curQuizState;
 
+        enum answerType { noAnswer, fileNameAnswer, customAnswer };
+        answerType curAnswerType;
 
-
+        /* END OF VARIABLES */
         public MainWindow()
         {
-            InitializeComponent();
-            Start();
+            InitializeComponent(); //Opening window
+            Start(); //Initializing window's properties like width, sizes etc.
         }
 
         public void Start()
         {
-            if (!Directory.Exists(quickSavePath))
+            if (!Directory.Exists(quickSavePath)) //If directory for quicksave doesn't exists, one is made
             {
                 Directory.CreateDirectory(quickSavePath);
             }
 
-            Application.Current.MainWindow.WindowState = WindowState.Maximized;
+            Application.Current.MainWindow.WindowState = WindowState.Maximized; //Starting fullscreen
             canvasBorder.BorderThickness = new Thickness(2.5f);
 
+            //Setting all unused currently controls off (not really switching off, rather making them "disappear" for a moment)
             plusFirstParticipant.Width = 0;
             minutFirstParticipant.Width = 0;
             nameFirstParticipant.Width = 0;
@@ -85,6 +88,8 @@ namespace Wiedzowkonator
             confirmPoints.Width = 0;
             StartButton.Width = 0;
             questionNumberBox.Width = 0;
+            goBack.Width = 0;
+            correctAnswer.Width = 0;
         }
 
         private void StartClick(object sender, RoutedEventArgs e) //Main method that contains showing screenshots
@@ -96,14 +101,14 @@ namespace Wiedzowkonator
             else
                 screenshotQuizStarted = false;
 
-            if (screenshotQuizStarted)
+            if (screenshotQuizStarted) //"True" entry chooses and shows image on canvas
             {
                 //Variable needed to check if input text is number; It's only used to "if" statement
                 int tryingParse; 
                 bool isNumeric = int.TryParse(questionNumberBox.Text, out tryingParse);
                 if (isNumeric)
                     isNumeric = Math.Sign(int.Parse(questionNumberBox.Text)) == 1;
-
+                //Correctly written number
                 if (!string.IsNullOrWhiteSpace(questionNumberBox.Text) && isNumeric && int.Parse(questionNumberBox.Text) <= screenshots.Length - screenshotsCompleted)
                 {
                     //Substracting 1 to let user writting down from "1 to x" instead of "0 to x"
@@ -114,7 +119,7 @@ namespace Wiedzowkonator
                     canvasScreenshotQuiz.Children.Add(screenshots[currentScreenshot]);
                     questionNumberBox.Text = "";
                 }
-                else
+                else //Uncorrectly written number
                 {
                     MessageBox.Show("Wybierz liczby od 1 do " + (screenshots.Length - screenshotsCompleted));
                     questionNumberBox.Text = "";
@@ -128,9 +133,8 @@ namespace Wiedzowkonator
             }
             else
             {
-                canvasScreenshotQuiz.Children.Clear();
+                canvasScreenshotQuiz.Children.Clear(); //Clearing canvas after user's mouse/enter press
             }
-            //StartButton.Width = 0;
 
             if (nonBuggedEntry) //If no error occured
             {
@@ -140,6 +144,7 @@ namespace Wiedzowkonator
 
         void ShowingHUD()
         {
+            //In giving points phase, all controls that allows to give participants points are being shown
             if (plusFirstParticipant.Width == 0 && curQuizState == quizState.givingPoints)
             {
                 plusFirstParticipant.Width = 33;
@@ -147,16 +152,20 @@ namespace Wiedzowkonator
                 nameFirstParticipant.Width = 120;
                 pointsFirstParticipant.Width = 33;
                 confirmPoints.Width = 75;
+                goBack.Width = 75;
+                correctAnswer.Width = 200;
             }
-            else
+            else //Leaving this phase
             {
                 plusFirstParticipant.Width = 0;
                 minutFirstParticipant.Width = 0;
                 nameFirstParticipant.Width = 0;
                 pointsFirstParticipant.Width = 0;
                 confirmPoints.Width = 0;
+                goBack.Width = 0;
+                correctAnswer.Width = 0;
             }
-
+            //If user is choosing new question, only "start button" and box to write down number are enabled
             if (questionNumberBox.Width == 0 && curQuizState == quizState.choosingQuestion)
             {
                 questionNumberBox.Width = 132;
@@ -170,7 +179,7 @@ namespace Wiedzowkonator
         }
 
         /********************** Button/mouse pressed scripts ********************/
-        private void plusFirstParticipant_Click(object sender, RoutedEventArgs e)
+        private void plusFirstParticipant_Click(object sender, RoutedEventArgs e) //Increasing 1st participant points
         {
             float curPoints = float.Parse(pointsFirstParticipant.Text);
             curPoints++;
@@ -180,7 +189,7 @@ namespace Wiedzowkonator
                 pointsFirstParticipant.Text = curPoints.ToString();
         }
 
-        private void minutFirstParticipant_Click(object sender, RoutedEventArgs e)
+        private void minutFirstParticipant_Click(object sender, RoutedEventArgs e) //Decreasing 1st participant points
         {
             float curPoints = float.Parse(pointsFirstParticipant.Text);
             curPoints--;
@@ -189,7 +198,7 @@ namespace Wiedzowkonator
             else
                 pointsFirstParticipant.Text = curPoints.ToString();
         }
-
+        //If user is done, then he leaves giving points phase and go back to choosing question
         private void confirmPoints_Click(object sender, RoutedEventArgs e)
         {
             curQuizState = quizState.choosingQuestion;
@@ -208,13 +217,44 @@ namespace Wiedzowkonator
                 screenshots[lastScreenshotIndex] = null;
                 MessageBox.Show("KONIEC WIEDZÓWKI!");
             }
-            QuickSave();
+            QuickSave(); //If everything went good, current state is being save and if power is off or program crashes, user can load his last save
+        }
+
+        private void ReloadLastQuiz_Yes(object sender, RoutedEventArgs e) //Question on start
+        {
+            QuickLoad();
+            ReloadButton_No.Width = 0;
+            ReloadButton_Yes.Width = 0;
+            ReloadTextBlock.Width = 0;
+            StartButton.Width = 150;
+            questionNumberBox.Width = 132;
+        }
+
+        private void ReloadLastQuiz_No(object sender, RoutedEventArgs e) //Question on start
+        {
+            ReloadButton_No.Width = 0;
+            ReloadButton_Yes.Width = 0;
+            ReloadTextBlock.Width = 0;
+            StartButton.Width = 150;
+            questionNumberBox.Width = 132;
+        }
+
+        private void goBack_Click(object sender, RoutedEventArgs e) //Showing again screenshot before giving points
+        {
+            curQuizState = quizState.answeringQuestion;
+            ShowingHUD();
+            if (screenshotQuizStarted == false)
+                screenshotQuizStarted = true;
+            else
+                screenshotQuizStarted = false;
+
+            canvasScreenshotQuiz.Children.Add(screenshots[lastScreenshotIndex]);
         }
 
         private void questionNumberBox_KeyDown(object sender, KeyEventArgs e)
         {
             //Starting quiz through pressing "Enter" key instead of clicking "Start Button"
-            if (e.Key == Key.Enter)
+            if (e.Key == Key.Enter && curQuizState == quizState.choosingQuestion)
             {
                 curQuizState = quizState.answeringQuestion;
                 StartClick(null, null);
@@ -223,15 +263,30 @@ namespace Wiedzowkonator
 
         private void SkippingScreenshot(object sender, MouseButtonEventArgs e)
         {
+            //Leaving answering question phase and skipping screenshot by >>pressing left mouse button<<
             if (e.LeftButton == MouseButtonState.Pressed)
             {
                 curQuizState = quizState.givingPoints;
                 StartClick(null, null);
+
+                if (curAnswerType == answerType.noAnswer)
+                {
+                    correctAnswer.Text = "";
+                }
+                else if (curAnswerType == answerType.fileNameAnswer)
+                {
+                    FileInfo file = new FileInfo(bitmapImage[lastScreenshotIndex].UriSource.LocalPath);
+                    correctAnswer.Text = "Poprawna odpowiedź: " + file.Name.Replace(file.Extension, "");
+                }
+                else if (curAnswerType == answerType.customAnswer)
+                {
+                    //TODO - custom answer system
+                }
             }
         }
 
         /********************* Managing menu tabs ************************/
-        private void Open(object sender, RoutedEventArgs e)
+        private void Open(object sender, RoutedEventArgs e) //Importing new screenshots
         {
             OpenFileDialog fileDialog = new OpenFileDialog();
             fileDialog.Multiselect = true;
@@ -258,7 +313,7 @@ namespace Wiedzowkonator
                 }
             }
         }
-
+        //Saving current state to file in chosen location
         private void Save(object sender, RoutedEventArgs e)
         {           
             SaveFileDialog fileDialog = new SaveFileDialog();
@@ -303,7 +358,7 @@ namespace Wiedzowkonator
                 }
             }*/
         }
-
+        //Loading state of quiz from .anime file
         private void Load(object sender, RoutedEventArgs e)
         {           
             OpenFileDialog fileDialog = new OpenFileDialog();
@@ -386,7 +441,7 @@ namespace Wiedzowkonator
                 }*/      
         }
 
-        private void QuickSave()
+        private void QuickSave() //Saving after all confirmed answer
         {
             string path = quickSavePath + "quickSave-" + DateTime.Now.ToString("dd/MM/yyyy HH_mm");
 
@@ -404,7 +459,7 @@ namespace Wiedzowkonator
             stream.Close();
         }
 
-        private void QuickLoad()
+        private void QuickLoad() //Loading at the start of quiz
         {
             //Loading data containing deeper information and values of variables
             DirectoryInfo directory = new DirectoryInfo(quickSavePath);
@@ -476,25 +531,6 @@ namespace Wiedzowkonator
                     }
                 }
             }
-        }
-
-        private void ReloadLastQuiz_Yes(object sender, RoutedEventArgs e)
-        {
-            QuickLoad();
-            ReloadButton_No.Width = 0;
-            ReloadButton_Yes.Width = 0;
-            ReloadTextBlock.Width = 0;
-            StartButton.Width = 150;
-            questionNumberBox.Width = 132;
-        }
-
-        private void ReloadLastQuiz_No(object sender, RoutedEventArgs e)
-        {
-            ReloadButton_No.Width = 0;
-            ReloadButton_Yes.Width = 0;
-            ReloadTextBlock.Width = 0;
-            StartButton.Width = 150;
-            questionNumberBox.Width = 132;
         }
     }
 }

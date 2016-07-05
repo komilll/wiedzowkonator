@@ -26,14 +26,16 @@
                  VerticalAlignment="Center" Width="132" Margin="193,161,187,106" TextAlignment="Center" KeyDown="questionNumberBox_KeyDown"/>
         <!-- Quiz participants script -->
             <!-- Points confirm button -->
-        <Button x:Name="confirmPoints" Content="Potwierdź" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="216,18,0,0" Click="confirmPoints_Click"/>
+        <Button x:Name="confirmPoints" Content="Potwierdź" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="181,18,0,0" Click="confirmPoints_Click"/>
+        <Button x:Name="goBack" Content="Cofnij" HorizontalAlignment="Left" Margin="264,18,0,0" VerticalAlignment="Top" Width="75" Click="goBack_Click"/>
+        <TextBlock x:Name="correctAnswer" HorizontalAlignment="Center" Margin="0, 98,0,0" TextWrapping="Wrap" Text="Nie ustawiono odpowiedzi dla tego pytania" VerticalAlignment="Top"/>
 
         <TextBox x:Name="nameFirstParticipant" HorizontalAlignment="Left" Height="23" Margin="29,40,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
         <TextBlock x:Name="pointsFirstParticipant" HorizontalAlignment="Left" Margin="72,68,0,0" TextWrapping="Wrap" VerticalAlignment="Top" TextAlignment="Center" Width="33" Height="19" Text="0,0"/>
         <Button x:Name="plusFirstParticipant" Content="+" HorizontalAlignment="Left" Margin="45,18,0,0" VerticalAlignment="Top" Width="33" Click="plusFirstParticipant_Click"/>
         <Button x:Name="minutFirstParticipant" Content="-" HorizontalAlignment="Left" Margin="98,18,0,0" VerticalAlignment="Top" Width="33" Click="minutFirstParticipant_Click"/>
 
-        
+        <!-- Loading last quiz from quick save -->
         <TextBlock x:Name="ReloadTextBlock" Text="Czy chcesz wczytać ostatnią wiedzówkę?" Width="200" Height="50" TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Center"/>
         <Button x:Name="ReloadButton_Yes" Content="Tak" Click="ReloadLastQuiz_Yes" Height="25" Width="50" Margin="196,165,266,100"/>
         <Button x:Name="ReloadButton_No" Content="Nie" Click="ReloadLastQuiz_No" Height="25" Width="50" Margin="264,165,198,100"/>

@@ -11,3 +11,4 @@ C:\Users\Kamil\Documents\Visual Studio 2015\Projects\Wiedzowkonator\Wiedzowkonat
 C:\Users\Kamil\Documents\Visual Studio 2015\Projects\Wiedzowkonator\Wiedzowkonator\obj\Debug\Wiedzowkonator.csproj.GenerateResource.Cache
 C:\Users\Kamil\Documents\Visual Studio 2015\Projects\Wiedzowkonator\Wiedzowkonator\obj\Debug\Wiedzowkonator.exe
 C:\Users\Kamil\Documents\Visual Studio 2015\Projects\Wiedzowkonator\Wiedzowkonator\obj\Debug\Wiedzowkonator.pdb
+C:\Users\Kamil\Documents\Visual Studio 2015\Projects\Wiedzowkonator\Wiedzowkonator\obj\Debug\Wiedzowkonator.csprojResolveAssemblyReference.cache

@@ -90,6 +90,9 @@ namespace Wiedzowkonator
             questionNumberBox.Width = 0;
             goBack.Width = 0;
             correctAnswer.Width = 0;
+            noAnswerButton.Width = 0;
+            fileNameAnswerButton.Width = 0;
+            customAnswerButton.Width = 0;
         }
 
         private void StartClick(object sender, RoutedEventArgs e) //Main method that contains showing screenshots
@@ -210,6 +213,7 @@ namespace Wiedzowkonator
             for (int i = lastScreenshotIndex; i < screenshots.Length - 1; i++)
             {
                 screenshots[i] = screenshots[i + 1];
+                bitmapImage[i] = bitmapImage[i + 1];
             }
 
             if (screenshots.Length == screenshotsCompleted)
@@ -311,6 +315,24 @@ namespace Wiedzowkonator
 
                     index++;
                 }
+                Random random = new Random();
+                List<int> indexes = new List<int>();
+                for (int i = 0; i < screenshots.Length; i++)
+                {
+                    indexes.Add(i);
+                }
+                for (int i = 0; i < screenshots.Length; i++)
+                {
+                    int toDelete = random.Next(0, indexes.Count);
+                    int toPass = indexes[toDelete];
+                    screenshots[toPass] = screenshots[i];
+                    bitmapImage[toPass] = bitmapImage[i];
+                    indexes.RemoveAt(toDelete);
+                }
+
+                noAnswerButton.Width = 800;
+                fileNameAnswerButton.Width = 800;
+                customAnswerButton.Width = 800;
             }
         }
         //Saving current state to file in chosen location
@@ -395,6 +417,7 @@ namespace Wiedzowkonator
                             for (int k = lastScreenshotIndex; k < screenshots.Length - 1; k++)
                             {
                                 screenshots[k] = screenshots[k + 1];
+                                bitmapImage[k] = bitmapImage[k + 1];
                             }
                         }
                     }
@@ -521,16 +544,37 @@ namespace Wiedzowkonator
                     if (serializationData.answeredScreenshots[i] == nameOfScreenshots[j])
                     {
                         //MessageBox.Show("i = " + i + "; j = " + j);
+                        //MessageBox.Show(nameOfScreenshots[j]);
                         screenshotsCompleted++;
-                        screenshots[i] = null;
+                        //screenshots[i] = null;
 
                         for (int k = lastScreenshotIndex; k < screenshots.Length - 1; k++)
                         {
                             screenshots[k] = screenshots[k + 1];
+                            bitmapImage[k] = bitmapImage[k + 1];
                         }
                     }
                 }
             }
+        }
+
+        /* Importing new quizes */
+        private void customAnswerButton_Click(object sender, RoutedEventArgs e)
+        {
+            curAnswerType = answerType.customAnswer;
+            customAnswerButton.Width = fileNameAnswerButton.Width = noAnswerButton.Width = 0;
+        }
+
+        private void fileNameAnswerButton_Click(object sender, RoutedEventArgs e)
+        {
+            curAnswerType = answerType.fileNameAnswer;
+            customAnswerButton.Width = fileNameAnswerButton.Width = noAnswerButton.Width = 0;
+        }
+
+        private void noAnswerButton_Click(object sender, RoutedEventArgs e)
+        {
+            curAnswerType = answerType.noAnswer;
+            customAnswerButton.Width = fileNameAnswerButton.Width = noAnswerButton.Width = 0;
         }
     }
 }

@@ -39,5 +39,14 @@
         <TextBlock x:Name="ReloadTextBlock" Text="Czy chcesz wczytać ostatnią wiedzówkę?" Width="200" Height="50" TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Center"/>
         <Button x:Name="ReloadButton_Yes" Content="Tak" Click="ReloadLastQuiz_Yes" Height="25" Width="50" Margin="196,165,266,100"/>
         <Button x:Name="ReloadButton_No" Content="Nie" Click="ReloadLastQuiz_No" Height="25" Width="50" Margin="264,165,198,100"/>
+
+        <!-- Importing new quiz -->
+        <Button x:Name="noAnswerButton" Content="1. Nie importuj odpowiedzi do pytań (po zakończonym pytaniu nie będą wyświetlały się poprawne odpowiedzi)" 
+                HorizontalAlignment="Left" Margin="141,120,0,0" VerticalAlignment="Top" Width="800" Click="noAnswerButton_Click"/>
+        <Button x:Name="fileNameAnswerButton" Content="2. Odpowiedzią na pytanie jest nazwa pliku ze screenshotem"
+                HorizontalAlignment="Left" Margin="141,150,0,0" VerticalAlignment="Top" Width="800" Click="fileNameAnswerButton_Click"/>
+        <Button x:Name="customAnswerButton" Content="3. Sam ustawię odpowiedzi dla każdego z pytań" 
+                HorizontalAlignment="Left" Margin="141,180,0,0" VerticalAlignment="Top" Width="800" Click="customAnswerButton_Click"/>
+        
     </Grid>
 </Window>

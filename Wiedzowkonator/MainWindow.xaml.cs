@@ -40,6 +40,9 @@ namespace Wiedzowkonator
         public string[] points = new string[1]; //Number of participant points
         public string[] participants = new string[1]; //Name of participants
         public string _screenshotsLocalizationPath; //Path to quiz files (screenshot, music, text questions etc.)
+        public enum answerType { noAnswer, fileNameAnswer, customAnswer };
+        public answerType curAnswerType;
+        public string[] _correctAnswers;
     }
 
     public partial class MainWindow : Window
@@ -55,6 +58,8 @@ namespace Wiedzowkonator
         static string userName = Environment.UserName; //Name of user logged on Windows account
         string quickSavePath = "C:/Users/" + userName + "/AppData/LocalLow/Wiedzowkonator/"; //Choosing directory path
         string screenshotsLocalizationPath; //Localizition of directory which contains screenshots
+        int customAnswerIndex; //Index that increases after pressing "next"; Help with managing custom answers
+        string[] correctAnswers; //Array with all correct answers for quiz screenshots
 
         //Enum type that shows which state of quiz is currently in progress
         enum quizState { choosingQuestion, answeringQuestion, givingPoints };
@@ -285,6 +290,7 @@ namespace Wiedzowkonator
                 else if (curAnswerType == answerType.customAnswer)
                 {
                     //TODO - custom answer system
+                    correctAnswer.Text = correctAnswers[lastScreenshotIndex];
                 }
             }
         }
@@ -303,14 +309,17 @@ namespace Wiedzowkonator
                 screenshots = new Image[bitmapImage.Length];
                 nameOfScreenshots = new string[bitmapImage.Length];
                 screenshotsLocalizationPath = Directory.GetParent(path[0]).ToString(); //Getting directory where screenshots are stored
+                //Temporary image and bitmapImage arrays. They're used to pass screenshots when randomizing questions
+                Image[] screenshotsToPass = new Image[bitmapImage.Length];
+                BitmapImage[] bitmapImageToPass = new BitmapImage[bitmapImage.Length];
                 int index = 0; //Index of each screenshot
                 foreach (string screen in path)
                 {
-                    bitmapImage[index] = new BitmapImage(new Uri(screen, UriKind.Absolute));
-                    screenshots[index] = new Image();
-                    screenshots[index].Source = bitmapImage[index];
-                    screenshots[index].Width = bitmapImage[index].Width;
-                    screenshots[index].Height = bitmapImage[index].Height;
+                    bitmapImage[index] = bitmapImageToPass[index] = new BitmapImage(new Uri(screen, UriKind.Absolute));
+                    screenshots[index] = screenshotsToPass[index] = new Image();
+                    screenshots[index].Source = screenshotsToPass[index].Source = bitmapImage[index];
+                    screenshots[index].Width = screenshotsToPass[index].Width = bitmapImage[index].Width;
+                    screenshots[index].Height = screenshotsToPass[index].Height = bitmapImage[index].Height;
                     nameOfScreenshots[index] = screen;
 
                     index++;
@@ -321,12 +330,13 @@ namespace Wiedzowkonator
                 {
                     indexes.Add(i);
                 }
+
                 for (int i = 0; i < screenshots.Length; i++)
                 {
                     int toDelete = random.Next(0, indexes.Count);
                     int toPass = indexes[toDelete];
-                    screenshots[toPass] = screenshots[i];
-                    bitmapImage[toPass] = bitmapImage[i];
+                    screenshots[toPass] = screenshotsToPass[i];
+                    bitmapImage[toPass] = bitmapImageToPass[i];
                     indexes.RemoveAt(toDelete);
                 }
 
@@ -352,6 +362,8 @@ namespace Wiedzowkonator
                 data.points[0] = pointsFirstParticipant.Text;
                 data.participants[0] = nameFirstParticipant.Text;
                 data._screenshotsLocalizationPath = screenshotsLocalizationPath;
+                data.curAnswerType = serializationData.curAnswerType;
+                data._correctAnswers = correctAnswers;
 
                 bf.Serialize(stream, data);
                 stream.Close();
@@ -396,6 +408,9 @@ namespace Wiedzowkonator
                 nameFirstParticipant.Text = data.participants[0];
                 pointsFirstParticipant.Text = data.points[0];
                 screenshotsLocalizationPath = data._screenshotsLocalizationPath;
+                curAnswerType = (answerType)data.curAnswerType;
+                correctAnswers = data._correctAnswers;
+
                 //Initializing arrays with imported data length and assigning new values
                 /*
                 bitmapImage = new BitmapImage[data.bitmapImage_.Length];
@@ -477,6 +492,8 @@ namespace Wiedzowkonator
             data.points[0] = pointsFirstParticipant.Text;
             data.participants[0] = nameFirstParticipant.Text;
             data._screenshotsLocalizationPath = screenshotsLocalizationPath;
+            data.curAnswerType = serializationData.curAnswerType;
+            data._correctAnswers = correctAnswers;
 
             bf.Serialize(stream, data);
             stream.Close();
@@ -499,7 +516,9 @@ namespace Wiedzowkonator
             nameFirstParticipant.Text = data.participants[0];
             pointsFirstParticipant.Text = data.points[0];
             screenshotsLocalizationPath = data._screenshotsLocalizationPath;
-
+            curAnswerType = (answerType)data.curAnswerType;
+            correctAnswers = data._correctAnswers;
+            MessageBox.Show(curAnswerType.ToString());
             stream.Close();
             //Loading screenshots from directory where they should be
             DirectoryInfo directoryWithScreenshots = new DirectoryInfo(screenshotsLocalizationPath);
@@ -548,7 +567,7 @@ namespace Wiedzowkonator
                         screenshotsCompleted++;
                         //screenshots[i] = null;
 
-                        for (int k = lastScreenshotIndex; k < screenshots.Length - 1; k++)
+                        for (int k = j; k < screenshots.Length - 1; k++)
                         {
                             screenshots[k] = screenshots[k + 1];
                             bitmapImage[k] = bitmapImage[k + 1];
@@ -561,20 +580,106 @@ namespace Wiedzowkonator
         /* Importing new quizes */
         private void customAnswerButton_Click(object sender, RoutedEventArgs e)
         {
+            correctAnswers = new string[bitmapImage.Length];
             curAnswerType = answerType.customAnswer;
+            serializationData.curAnswerType = SerializationData.answerType.customAnswer;
             customAnswerButton.Width = fileNameAnswerButton.Width = noAnswerButton.Width = 0;
+            customAnswerIndex = 0; //Initializing index position with 0
+            canvasScreenshotQuiz.Width = screenshots[customAnswerIndex].Width;
+            canvasScreenshotQuiz.Height = screenshots[customAnswerIndex].Height;
+            canvasScreenshotQuiz.Children.Add(screenshots[customAnswerIndex]); //Adding first screenshot to canvas
         }
 
         private void fileNameAnswerButton_Click(object sender, RoutedEventArgs e)
         {
             curAnswerType = answerType.fileNameAnswer;
+            serializationData.curAnswerType = SerializationData.answerType.fileNameAnswer;
             customAnswerButton.Width = fileNameAnswerButton.Width = noAnswerButton.Width = 0;
+            QuizHUDAfterImporting(true);
         }
 
         private void noAnswerButton_Click(object sender, RoutedEventArgs e)
         {
             curAnswerType = answerType.noAnswer;
+            serializationData.curAnswerType = SerializationData.answerType.noAnswer;
             customAnswerButton.Width = fileNameAnswerButton.Width = noAnswerButton.Width = 0;
+            QuizHUDAfterImporting(true);
+        }
+
+        private void addingCustomAnswers(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                correctAnswers[customAnswerIndex] = customAnswerAdding.Text;
+                customAnswerIndex++;
+                if (customAnswerIndex < screenshots.Length)
+                {
+                    MessageBox.Show(customAnswerIndex.ToString());
+                    canvasScreenshotQuiz.Children.Clear();
+                    canvasScreenshotQuiz.Width = screenshots[customAnswerIndex].Width;
+                    canvasScreenshotQuiz.Height = screenshots[customAnswerIndex].Height;
+                    canvasScreenshotQuiz.Children.Add(screenshots[customAnswerIndex]);
+                }
+                else
+                {
+                    canvasScreenshotQuiz.Children.Clear();
+                    QuizHUDAfterImporting(true);
+                }
+            }
+        }
+
+        private void customAnswerConfirm_Click(object sender, RoutedEventArgs e)
+        {
+            correctAnswers[customAnswerIndex] = customAnswerAdding.Text;
+            customAnswerIndex++;
+            if (customAnswerIndex < screenshots.Length)
+            {
+                MessageBox.Show(customAnswerIndex.ToString());
+                canvasScreenshotQuiz.Children.Clear();
+                canvasScreenshotQuiz.Width = screenshots[customAnswerIndex].Width;
+                canvasScreenshotQuiz.Height = screenshots[customAnswerIndex].Height;
+                canvasScreenshotQuiz.Children.Add(screenshots[customAnswerIndex]);
+            }
+            else
+            {
+                canvasScreenshotQuiz.Children.Clear();
+                QuizHUDAfterImporting(true);
+            }
+        }
+
+        private void customAnswerBack_Click(object sender, RoutedEventArgs e)
+        {
+            customAnswerIndex--;
+            if (customAnswerIndex < screenshots.Length)
+            {
+                MessageBox.Show(customAnswerIndex.ToString());
+                canvasScreenshotQuiz.Children.Clear();
+                canvasScreenshotQuiz.Width = screenshots[customAnswerIndex].Width;
+                canvasScreenshotQuiz.Height = screenshots[customAnswerIndex].Height;
+                canvasScreenshotQuiz.Children.Add(screenshots[customAnswerIndex]);
+            }
+            else
+            {
+                canvasScreenshotQuiz.Children.Clear();
+                QuizHUDAfterImporting(true);
+            }
+        }
+
+        void QuizHUDAfterImporting(bool show)
+        {
+            if (show)
+            {
+                questionNumberBox.Width = 132;
+                StartButton.Width = 150;
+                customAnswerAdding.Width = 0;
+                customAnswerConfirm.Width = 0;
+                customAnswerBack.Width = 0;
+            }
+            else
+            {
+                StartButton.Width = 0;
+                questionNumberBox.Width = 0;
+            }
         }
     }
 }

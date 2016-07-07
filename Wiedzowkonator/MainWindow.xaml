@@ -47,6 +47,12 @@
                 HorizontalAlignment="Left" Margin="141,150,0,0" VerticalAlignment="Top" Width="800" Click="fileNameAnswerButton_Click"/>
         <Button x:Name="customAnswerButton" Content="3. Sam ustawię odpowiedzi dla każdego z pytań" 
                 HorizontalAlignment="Left" Margin="141,180,0,0" VerticalAlignment="Top" Width="800" Click="customAnswerButton_Click"/>
-        
+        <TextBox x:Name="customAnswerAdding" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120" Margin="193,221,0,0" KeyDown="addingCustomAnswers"/>
+        <Button x:Name="customAnswerConfirm" Content="Dalej" 
+                HorizontalAlignment="Left" Margin="171,249,0,0" VerticalAlignment="Top" Width="75" Click="customAnswerConfirm_Click"/>
+        <Button x:Name="customAnswerBack" Content="Cofnij" 
+                HorizontalAlignment="Left" Margin="264,249,0,0" VerticalAlignment="Top" Width="75" Click="customAnswerBack_Click"/>
+
+
     </Grid>
 </Window>

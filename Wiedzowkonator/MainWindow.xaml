@@ -13,6 +13,7 @@
                     <MenuItem Header="_Otwórz" Click="Open"/>
                     <MenuItem Header="_Zapisz" Click="Save"/>
                     <MenuItem Header="_Wczytaj" Click="Load"/>
+                    <MenuItem Header="_Usuń Końcówki" Click="DeleteEndings"/>
                 </MenuItem>
 
             </Menu>

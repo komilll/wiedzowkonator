@@ -42,7 +42,6 @@ namespace Wiedzowkonator
         public string _screenshotsLocalizationPath; //Path to quiz files (screenshot, music, text questions etc.)
         public enum answerType { noAnswer, fileNameAnswer, customAnswer };
         public answerType curAnswerType;
-        public string[] _correctAnswers;
     }
 
     public partial class MainWindow : Window
@@ -59,8 +58,7 @@ namespace Wiedzowkonator
         string quickSavePath = "C:/Users/" + userName + "/AppData/LocalLow/Wiedzowkonator/"; //Choosing directory path
         string screenshotsLocalizationPath; //Localizition of directory which contains screenshots
         int customAnswerIndex; //Index that increases after pressing "next"; Help with managing custom answers
-        string[] correctAnswers; //Array with all correct answers for quiz screenshots
-
+        //string[] correctAnswers;
         //Enum type that shows which state of quiz is currently in progress
         enum quizState { choosingQuestion, answeringQuestion, givingPoints };
         quizState curQuizState;
@@ -84,7 +82,7 @@ namespace Wiedzowkonator
 
             Application.Current.MainWindow.WindowState = WindowState.Maximized; //Starting fullscreen
             canvasBorder.BorderThickness = new Thickness(2.5f);
-
+            DeletingScreeshots();
             //Setting all unused currently controls off (not really switching off, rather making them "disappear" for a moment)
             plusFirstParticipant.Width = 0;
             minutFirstParticipant.Width = 0;
@@ -285,12 +283,24 @@ namespace Wiedzowkonator
                 else if (curAnswerType == answerType.fileNameAnswer)
                 {
                     FileInfo file = new FileInfo(bitmapImage[lastScreenshotIndex].UriSource.LocalPath);
-                    correctAnswer.Text = "Poprawna odpowiedź: " + file.Name.Replace(file.Extension, "");
+                    if (file.Name.Contains("@correct_answer_")) //If file has "correct_answer" in name, but user want use other checking answers method
+                    {
+                        string[] correctAnswerToPass = file.Name.Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
+                        correctAnswer.Text = "Poprawna odpowiedź: " + correctAnswerToPass[0];
+                    }
+                    else //When file is untouched
+                        correctAnswer.Text = "Poprawna odpowiedź: " + file.Name.Replace(file.Extension, "");
                 }
                 else if (curAnswerType == answerType.customAnswer)
                 {
                     //TODO - custom answer system
-                    correctAnswer.Text = correctAnswers[lastScreenshotIndex];
+                    FileInfo pathInfo = new FileInfo(bitmapImage[lastScreenshotIndex].UriSource.LocalPath);
+                    string path = pathInfo.Name.Replace(pathInfo.Extension, "");
+                    if (path.Contains("@correct_answer_"))
+                    {
+                        string[] correctAnswerToPass = path.Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
+                        correctAnswer.Text = "Poprawna odpowiedź: " + correctAnswerToPass[1];
+                    }
                 }
             }
         }
@@ -298,6 +308,7 @@ namespace Wiedzowkonator
         /********************* Managing menu tabs ************************/
         private void Open(object sender, RoutedEventArgs e) //Importing new screenshots
         {
+
             OpenFileDialog fileDialog = new OpenFileDialog();
             fileDialog.Multiselect = true;
             
@@ -363,7 +374,6 @@ namespace Wiedzowkonator
                 data.participants[0] = nameFirstParticipant.Text;
                 data._screenshotsLocalizationPath = screenshotsLocalizationPath;
                 data.curAnswerType = serializationData.curAnswerType;
-                data._correctAnswers = correctAnswers;
 
                 bf.Serialize(stream, data);
                 stream.Close();
@@ -409,7 +419,6 @@ namespace Wiedzowkonator
                 pointsFirstParticipant.Text = data.points[0];
                 screenshotsLocalizationPath = data._screenshotsLocalizationPath;
                 curAnswerType = (answerType)data.curAnswerType;
-                correctAnswers = data._correctAnswers;
 
                 //Initializing arrays with imported data length and assigning new values
                 /*
@@ -479,6 +488,29 @@ namespace Wiedzowkonator
                 }*/      
         }
 
+        private void DeleteEndings(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog fileDialog = new OpenFileDialog();
+            fileDialog.Multiselect = true;
+
+            if (fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                string[] paths = fileDialog.FileNames;
+                string[] pathParts = new string[2];
+                string readyPath;
+                for (int i = 0; i < paths.Length; i++)
+                {
+                    readyPath = "";
+                    FileInfo info = new FileInfo(paths[i]);
+                    pathParts = paths[i].Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
+                    readyPath = pathParts[0] + info.Extension;
+
+                    if (readyPath != "")
+                        File.Move(paths[i], readyPath);
+                }
+            }
+        }
+
         private void QuickSave() //Saving after all confirmed answer
         {
             string path = quickSavePath + "quickSave-" + DateTime.Now.ToString("dd/MM/yyyy HH_mm");
@@ -493,7 +525,6 @@ namespace Wiedzowkonator
             data.participants[0] = nameFirstParticipant.Text;
             data._screenshotsLocalizationPath = screenshotsLocalizationPath;
             data.curAnswerType = serializationData.curAnswerType;
-            data._correctAnswers = correctAnswers;
 
             bf.Serialize(stream, data);
             stream.Close();
@@ -517,7 +548,7 @@ namespace Wiedzowkonator
             pointsFirstParticipant.Text = data.points[0];
             screenshotsLocalizationPath = data._screenshotsLocalizationPath;
             curAnswerType = (answerType)data.curAnswerType;
-            correctAnswers = data._correctAnswers;
+
             MessageBox.Show(curAnswerType.ToString());
             stream.Close();
             //Loading screenshots from directory where they should be
@@ -580,7 +611,6 @@ namespace Wiedzowkonator
         /* Importing new quizes */
         private void customAnswerButton_Click(object sender, RoutedEventArgs e)
         {
-            correctAnswers = new string[bitmapImage.Length];
             curAnswerType = answerType.customAnswer;
             serializationData.curAnswerType = SerializationData.answerType.customAnswer;
             customAnswerButton.Width = fileNameAnswerButton.Width = noAnswerButton.Width = 0;
@@ -588,6 +618,17 @@ namespace Wiedzowkonator
             canvasScreenshotQuiz.Width = screenshots[customAnswerIndex].Width;
             canvasScreenshotQuiz.Height = screenshots[customAnswerIndex].Height;
             canvasScreenshotQuiz.Children.Add(screenshots[customAnswerIndex]); //Adding first screenshot to canvas
+
+            FileInfo file = new FileInfo(bitmapImage[0].UriSource.LocalPath);
+            if (file.Name.Contains("@correct_answer_"))
+            {
+                string fileName = file.Name.Replace(file.Extension, "");
+                string[] correctAnswerToPass = fileName.Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
+                customAnswerAdding.Text = correctAnswerToPass[1];
+            }
+
+            File.Create(quickSavePath + "toDelete.txt");
+            MessageBox.Show(quickSavePath + "toDelete.txt");
         }
 
         private void fileNameAnswerButton_Click(object sender, RoutedEventArgs e)
@@ -610,7 +651,20 @@ namespace Wiedzowkonator
         {
             if (e.Key == Key.Enter)
             {
-                correctAnswers[customAnswerIndex] = customAnswerAdding.Text;
+                FileInfo infoToPass = new FileInfo(bitmapImage[customAnswerIndex].UriSource.LocalPath);
+                string newPath = infoToPass.FullName.Replace(infoToPass.Extension, "")
+                            + "@correct_answer_" + customAnswerAdding.Text + infoToPass.Extension;
+                File.Copy(infoToPass.FullName, newPath);
+
+                bitmapImage[customAnswerIndex] = new BitmapImage(new Uri(newPath, UriKind.Absolute));
+                screenshots[customAnswerIndex] = new Image();
+                screenshots[customAnswerIndex].Source = bitmapImage[customAnswerIndex];
+                screenshots[customAnswerIndex].Width = bitmapImage[customAnswerIndex].Width;
+                screenshots[customAnswerIndex].Height = bitmapImage[customAnswerIndex].Height;
+
+                using (StreamWriter sw = File.AppendText(quickSavePath + "toDelete.txt"))
+                    sw.WriteLine(infoToPass.FullName);
+
                 customAnswerIndex++;
                 if (customAnswerIndex < screenshots.Length)
                 {
@@ -630,15 +684,24 @@ namespace Wiedzowkonator
 
         private void customAnswerConfirm_Click(object sender, RoutedEventArgs e)
         {
-            correctAnswers[customAnswerIndex] = customAnswerAdding.Text;
+            //correctAnswers[customAnswerIndex] = customAnswerAdding.Text;
+            customAnswerAdding.Text = "";
             customAnswerIndex++;
             if (customAnswerIndex < screenshots.Length)
             {
-                MessageBox.Show(customAnswerIndex.ToString());
+                //MessageBox.Show(customAnswerIndex.ToString());
                 canvasScreenshotQuiz.Children.Clear();
                 canvasScreenshotQuiz.Width = screenshots[customAnswerIndex].Width;
                 canvasScreenshotQuiz.Height = screenshots[customAnswerIndex].Height;
                 canvasScreenshotQuiz.Children.Add(screenshots[customAnswerIndex]);
+
+                FileInfo file = new FileInfo(bitmapImage[customAnswerIndex].UriSource.LocalPath);
+                if (file.Name.Contains("@correct_answer_"))
+                {
+                    string fileName = file.Name.Replace(file.Extension, "");
+                    string[] correctAnswerToPass = fileName.Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
+                    customAnswerAdding.Text = correctAnswerToPass[1];
+                }
             }
             else
             {
@@ -679,6 +742,28 @@ namespace Wiedzowkonator
             {
                 StartButton.Width = 0;
                 questionNumberBox.Width = 0;
+            }
+        }
+
+        void DeletingScreeshots()
+        {
+            if (File.Exists(quickSavePath + "toDelete.txt"))
+            {
+                using (StreamReader sr = File.OpenText(quickSavePath + "toDelete.txt"))
+                {
+                    string text = sr.ReadToEnd();
+                    string[] lines = text.Split('\r');
+                    foreach (string s in lines)
+                    {
+                        string toDelete = s.Replace("\\", "/");
+                        toDelete = toDelete.Trim();
+                        MessageBox.Show(toDelete);
+                        if (File.Exists(toDelete))
+                            File.Delete(toDelete); //Deleting each file
+                    }
+                }
+
+                File.Delete(quickSavePath + "toDelete.txt"); //Deleting file with data
             }
         }
     }

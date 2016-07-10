@@ -60,7 +60,7 @@ namespace Wiedzowkonator
         int customAnswerIndex; //Index that increases after pressing "next"; Help with managing custom answers
         //string[] correctAnswers;
         //Enum type that shows which state of quiz is currently in progress
-        enum quizState { choosingQuestion, answeringQuestion, givingPoints };
+        enum quizState { customizingQuestions, choosingQuestion, answeringQuestion, givingPoints };
         quizState curQuizState;
 
         enum answerType { noAnswer, fileNameAnswer, customAnswer };
@@ -210,7 +210,10 @@ namespace Wiedzowkonator
             curQuizState = quizState.choosingQuestion;
             ShowingHUD();
             screenshots[lastScreenshotIndex] = null;
-            serializationData.answeredScreenshots.Add(nameOfScreenshots[lastScreenshotIndex]); //Adding name of completed question
+            FileInfo info = new FileInfo(bitmapImage[lastScreenshotIndex].UriSource.LocalPath);
+            string[] nameToPass = info.FullName.Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
+            serializationData.answeredScreenshots.Add(nameToPass[0] + info.Extension); //Adding name of completed question
+            MessageBox.Show(nameToPass[0] + info.Extension);
 
             screenshotsCompleted++;
             for (int i = lastScreenshotIndex; i < screenshots.Length - 1; i++)
@@ -585,6 +588,10 @@ namespace Wiedzowkonator
                 screenshots[k].Width = bitmapImage[k].Width;
                 screenshots[k].Height = bitmapImage[k].Height;
                 nameOfScreenshots[k] = files[k];
+
+                string[] correctNameOfScreenshot = nameOfScreenshots[k].Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
+                FileInfo info = new FileInfo(nameOfScreenshots[k]);
+                nameOfScreenshots[k] = correctNameOfScreenshot[0] + info.Extension;
             }
 
             for (int i = 0; i < serializationData.answeredScreenshots.Count; i++)
@@ -594,7 +601,7 @@ namespace Wiedzowkonator
                     if (serializationData.answeredScreenshots[i] == nameOfScreenshots[j])
                     {
                         //MessageBox.Show("i = " + i + "; j = " + j);
-                        //MessageBox.Show(nameOfScreenshots[j]);
+                        MessageBox.Show(nameOfScreenshots[j]);
                         screenshotsCompleted++;
                         //screenshots[i] = null;
 
@@ -627,7 +634,7 @@ namespace Wiedzowkonator
                 customAnswerAdding.Text = correctAnswerToPass[1];
             }
 
-            File.Create(quickSavePath + "toDelete.txt");
+            File.Create(quickSavePath + "toDelete.txt").Close();
             MessageBox.Show(quickSavePath + "toDelete.txt");
         }
 
@@ -637,6 +644,7 @@ namespace Wiedzowkonator
             serializationData.curAnswerType = SerializationData.answerType.fileNameAnswer;
             customAnswerButton.Width = fileNameAnswerButton.Width = noAnswerButton.Width = 0;
             QuizHUDAfterImporting(true);
+            curQuizState = quizState.choosingQuestion;
         }
 
         private void noAnswerButton_Click(object sender, RoutedEventArgs e)
@@ -645,68 +653,74 @@ namespace Wiedzowkonator
             serializationData.curAnswerType = SerializationData.answerType.noAnswer;
             customAnswerButton.Width = fileNameAnswerButton.Width = noAnswerButton.Width = 0;
             QuizHUDAfterImporting(true);
+            curQuizState = quizState.choosingQuestion;
         }
 
         private void addingCustomAnswers(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Enter)
+            if (curQuizState == quizState.customizingQuestions && e.Key == Key.Enter)
+                customAnswerConfirm_Click(null, null);
+        }
+
+        private void customAnswerConfirm_Click(object sender, RoutedEventArgs e)
+        {
+            if (curQuizState == quizState.customizingQuestions)
+                customAnswerAdding_Button_or_Enter();
+        }
+
+        void customAnswerAdding_Button_or_Enter()
+        {
+            if (curQuizState == quizState.customizingQuestions)
             {
+                if (customAnswerAdding.Text == "")
+                    MessageBox.Show("Uwaga! Zostawiasz pustą odpowiedź.");
                 FileInfo infoToPass = new FileInfo(bitmapImage[customAnswerIndex].UriSource.LocalPath);
-                string newPath = infoToPass.FullName.Replace(infoToPass.Extension, "")
-                            + "@correct_answer_" + customAnswerAdding.Text + infoToPass.Extension;
-                File.Copy(infoToPass.FullName, newPath);
+                string newPath;
+                if (!infoToPass.Name.Contains("@correct_answer_")) //When file doesn't contain correct answer in its name
+                {
+                    newPath = infoToPass.FullName.Replace(infoToPass.Extension, "")
+                                + "@correct_answer_" + customAnswerAdding.Text + infoToPass.Extension;
+                }
+                else
+                {
+                    string[] pathPart = infoToPass.FullName.Split(new[] { "@correct_answer_" }, StringSplitOptions.None);;
+                    newPath = pathPart[0] + "@correct_answer_" + customAnswerAdding.Text + infoToPass.Extension;
+                }
+                if (!File.Exists(newPath))
+                {
+                    File.Copy(infoToPass.FullName, newPath);
 
-                bitmapImage[customAnswerIndex] = new BitmapImage(new Uri(newPath, UriKind.Absolute));
-                screenshots[customAnswerIndex] = new Image();
-                screenshots[customAnswerIndex].Source = bitmapImage[customAnswerIndex];
-                screenshots[customAnswerIndex].Width = bitmapImage[customAnswerIndex].Width;
-                screenshots[customAnswerIndex].Height = bitmapImage[customAnswerIndex].Height;
+                    bitmapImage[customAnswerIndex] = new BitmapImage(new Uri(newPath, UriKind.Absolute));
+                    screenshots[customAnswerIndex] = new Image();
+                    screenshots[customAnswerIndex].Source = bitmapImage[customAnswerIndex];
+                    screenshots[customAnswerIndex].Width = bitmapImage[customAnswerIndex].Width;
+                    screenshots[customAnswerIndex].Height = bitmapImage[customAnswerIndex].Height;
 
-                using (StreamWriter sw = File.AppendText(quickSavePath + "toDelete.txt"))
-                    sw.WriteLine(infoToPass.FullName);
-
+                    using (StreamWriter sw = File.AppendText(quickSavePath + "toDelete.txt"))
+                        sw.WriteLine(infoToPass.FullName);
+                }
                 customAnswerIndex++;
                 if (customAnswerIndex < screenshots.Length)
                 {
-                    MessageBox.Show(customAnswerIndex.ToString());
                     canvasScreenshotQuiz.Children.Clear();
                     canvasScreenshotQuiz.Width = screenshots[customAnswerIndex].Width;
                     canvasScreenshotQuiz.Height = screenshots[customAnswerIndex].Height;
                     canvasScreenshotQuiz.Children.Add(screenshots[customAnswerIndex]);
+                    customAnswerAdding.Text = "";
+                    infoToPass = new FileInfo(bitmapImage[customAnswerIndex].UriSource.LocalPath);
+                    if (infoToPass.Name.Contains("@correct_answer_"))
+                    {
+                        string fileName = infoToPass.Name.Replace(infoToPass.Extension, "");
+                        string[] correctAnswerToPass = fileName.Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
+                        customAnswerAdding.Text = correctAnswerToPass[1];
+                    }
                 }
                 else
                 {
                     canvasScreenshotQuiz.Children.Clear();
                     QuizHUDAfterImporting(true);
+                    curQuizState = quizState.choosingQuestion;
                 }
-            }
-        }
-
-        private void customAnswerConfirm_Click(object sender, RoutedEventArgs e)
-        {
-            //correctAnswers[customAnswerIndex] = customAnswerAdding.Text;
-            customAnswerAdding.Text = "";
-            customAnswerIndex++;
-            if (customAnswerIndex < screenshots.Length)
-            {
-                //MessageBox.Show(customAnswerIndex.ToString());
-                canvasScreenshotQuiz.Children.Clear();
-                canvasScreenshotQuiz.Width = screenshots[customAnswerIndex].Width;
-                canvasScreenshotQuiz.Height = screenshots[customAnswerIndex].Height;
-                canvasScreenshotQuiz.Children.Add(screenshots[customAnswerIndex]);
-
-                FileInfo file = new FileInfo(bitmapImage[customAnswerIndex].UriSource.LocalPath);
-                if (file.Name.Contains("@correct_answer_"))
-                {
-                    string fileName = file.Name.Replace(file.Extension, "");
-                    string[] correctAnswerToPass = fileName.Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
-                    customAnswerAdding.Text = correctAnswerToPass[1];
-                }
-            }
-            else
-            {
-                canvasScreenshotQuiz.Children.Clear();
-                QuizHUDAfterImporting(true);
             }
         }
 
@@ -715,16 +729,10 @@ namespace Wiedzowkonator
             customAnswerIndex--;
             if (customAnswerIndex < screenshots.Length)
             {
-                MessageBox.Show(customAnswerIndex.ToString());
                 canvasScreenshotQuiz.Children.Clear();
                 canvasScreenshotQuiz.Width = screenshots[customAnswerIndex].Width;
                 canvasScreenshotQuiz.Height = screenshots[customAnswerIndex].Height;
                 canvasScreenshotQuiz.Children.Add(screenshots[customAnswerIndex]);
-            }
-            else
-            {
-                canvasScreenshotQuiz.Children.Clear();
-                QuizHUDAfterImporting(true);
             }
         }
 
@@ -757,7 +765,6 @@ namespace Wiedzowkonator
                     {
                         string toDelete = s.Replace("\\", "/");
                         toDelete = toDelete.Trim();
-                        MessageBox.Show(toDelete);
                         if (File.Exists(toDelete))
                             File.Delete(toDelete); //Deleting each file
                     }

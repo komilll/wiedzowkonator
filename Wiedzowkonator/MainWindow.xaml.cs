@@ -46,7 +46,7 @@ namespace Wiedzowkonator
 
     public partial class MainWindow : Window
     {
-        //TODO - add going back to last screenshot button
+        /*** Screenshot quiz variables ***/
         SerializationData serializationData = new SerializationData(); //Variable class
         public Image[] screenshots; //Screenshots that will be shown on canvas
         BitmapImage[] bitmapImage; //Images that will be written into "screenshots" variable
@@ -58,7 +58,10 @@ namespace Wiedzowkonator
         string quickSavePath = "C:/Users/" + userName + "/AppData/LocalLow/Wiedzowkonator/"; //Choosing directory path
         string screenshotsLocalizationPath; //Localizition of directory which contains screenshots
         int customAnswerIndex; //Index that increases after pressing "next"; Help with managing custom answers
-        //string[] correctAnswers;
+        /*** ___________________________ ***/
+        /*** Text quiz variables ***/
+        public string[] textQuestions;
+
         //Enum type that shows which state of quiz is currently in progress
         enum quizState { customizingQuestions, choosingQuestion, answeringQuestion, givingPoints };
         quizState curQuizState;
@@ -66,6 +69,9 @@ namespace Wiedzowkonator
         enum answerType { noAnswer, fileNameAnswer, customAnswer };
         answerType curAnswerType;
 
+        enum quizType { screenshot, text, music, mixed };
+        quizType curQuizType;
+        
         /* END OF VARIABLES */
         public MainWindow()
         {
@@ -117,13 +123,20 @@ namespace Wiedzowkonator
                 //Correctly written number
                 if (!string.IsNullOrWhiteSpace(questionNumberBox.Text) && isNumeric && int.Parse(questionNumberBox.Text) <= screenshots.Length - screenshotsCompleted)
                 {
-                    //Substracting 1 to let user writting down from "1 to x" instead of "0 to x"
-                    int currentScreenshot = lastScreenshotIndex = int.Parse(questionNumberBox.Text) - 1;
-                    canvasScreenshotQuiz.Width = screenshots[currentScreenshot].Width;
-                    canvasScreenshotQuiz.Height = screenshots[currentScreenshot].Height;
+                    if (curQuizType == quizType.screenshot)
+                    {
+                        //Substracting 1 to let user writting down from "1 to x" instead of "0 to x"
+                        int currentScreenshot = lastScreenshotIndex = int.Parse(questionNumberBox.Text) - 1;
+                        canvasScreenshotQuiz.Width = screenshots[currentScreenshot].Width;
+                        canvasScreenshotQuiz.Height = screenshots[currentScreenshot].Height;
 
-                    canvasScreenshotQuiz.Children.Add(screenshots[currentScreenshot]);
-                    questionNumberBox.Text = "";
+                        canvasScreenshotQuiz.Children.Add(screenshots[currentScreenshot]);
+                        questionNumberBox.Text = "";
+                    }
+                    else if (curQuizType == quizType.text)
+                    {
+
+                    }
                 }
                 else //Uncorrectly written number
                 {
@@ -296,7 +309,6 @@ namespace Wiedzowkonator
                 }
                 else if (curAnswerType == answerType.customAnswer)
                 {
-                    //TODO - custom answer system
                     FileInfo pathInfo = new FileInfo(bitmapImage[lastScreenshotIndex].UriSource.LocalPath);
                     string path = pathInfo.Name.Replace(pathInfo.Extension, "");
                     if (path.Contains("@correct_answer_"))
@@ -375,35 +387,12 @@ namespace Wiedzowkonator
                 data.answeredScreenshots = serializationData.answeredScreenshots;
                 data.points[0] = pointsFirstParticipant.Text;
                 data.participants[0] = nameFirstParticipant.Text;
-                data._screenshotsLocalizationPath = screenshotsLocalizationPath;
-                data.curAnswerType = serializationData.curAnswerType;
+                data._screenshotsLocalizationPath = screenshotsLocalizationPath;;
+                data.curAnswerType = serializationData.curAnswerType = (SerializationData.answerType)curAnswerType;
 
                 bf.Serialize(stream, data);
                 stream.Close();
             }
-            /*
-            SaveFileDialog fileDialog = new SaveFileDialog();
-            if (fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-            {
-                string path = fileDialog.FileName;
-                using (MemoryStream ms = new MemoryStream())
-                {
-                    BitmapImage __bitmapImage = new BitmapImage();
-                    __bitmapImage = bitmapImage[0];
-                    
-                    PngBitmapEncoder encoder = new PngBitmapEncoder();
-                    encoder.Frames.Add(BitmapFrame.Create(__bitmapImage));
-                    encoder.Save(ms);
-
-                    using (FileStream file = new FileStream(path + ".bin", FileMode.Create, System.IO.FileAccess.Write))
-                    {
-                        byte[] bytes = new byte[ms.Length];
-                        ms.Read(bytes, 0, (int)ms.Length);
-                        file.Write(bytes, 0, bytes.Length);
-                        ms.Close();
-                    }
-                }
-            }*/
         }
         //Loading state of quiz from .anime file
         private void Load(object sender, RoutedEventArgs e)
@@ -422,15 +411,46 @@ namespace Wiedzowkonator
                 pointsFirstParticipant.Text = data.points[0];
                 screenshotsLocalizationPath = data._screenshotsLocalizationPath;
                 curAnswerType = (answerType)data.curAnswerType;
-
-                //Initializing arrays with imported data length and assigning new values
-                /*
-                bitmapImage = new BitmapImage[data.bitmapImage_.Length];
-                screenshots = new Image[data.screenshots_.Length];
-                screenshots = data.screenshots_;
-                bitmapImage = data.bitmapImage_;*/
-
+                MessageBox.Show(curAnswerType.ToString());
                 stream.Close();
+                DirectoryInfo directoryWithScreenshots = new DirectoryInfo(screenshotsLocalizationPath);
+                //MessageBox.Show(directoryWithScreenshots.ToString());
+                string[] files = new string[directoryWithScreenshots.GetFiles().Length];
+                int index = 0;
+                int numberOfSkippedFiles = 0;
+                string dataFile;
+
+                foreach (FileInfo file in directoryWithScreenshots.GetFiles())
+                {
+                    files[index] = file.FullName;
+                    if (file.Extension == ".anime")
+                    {
+                        numberOfSkippedFiles++; //It'll be used in "for" loop to set number of loops
+                                                //Not increasing index
+                        dataFile = file.FullName;
+                    }
+                    else
+                    {
+                        index++;
+                    }
+                }
+
+                bitmapImage = new BitmapImage[directoryWithScreenshots.GetFiles().Length - numberOfSkippedFiles];
+                screenshots = new Image[bitmapImage.Length];
+                nameOfScreenshots = new string[bitmapImage.Length];
+                for (int k = 0; k < directoryWithScreenshots.GetFiles().Length - numberOfSkippedFiles; k++)
+                {
+                    bitmapImage[k] = new BitmapImage(new Uri(files[k], UriKind.Absolute));
+                    screenshots[k] = new Image();
+                    screenshots[k].Source = bitmapImage[k];
+                    screenshots[k].Width = bitmapImage[k].Width;
+                    screenshots[k].Height = bitmapImage[k].Height;
+                    nameOfScreenshots[k] = files[k];
+
+                    string[] correctNameOfScreenshot = nameOfScreenshots[k].Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
+                    FileInfo info = new FileInfo(nameOfScreenshots[k]);
+                    nameOfScreenshots[k] = correctNameOfScreenshot[0] + info.Extension;
+                }
 
                 for (int i = 0; i < serializationData.answeredScreenshots.Count; i++)
                 {
@@ -438,10 +458,12 @@ namespace Wiedzowkonator
                     {
                         if (serializationData.answeredScreenshots[i] == nameOfScreenshots[j])
                         {
+                            //MessageBox.Show("i = " + i + "; j = " + j);
+                            MessageBox.Show(nameOfScreenshots[j]);
                             screenshotsCompleted++;
-                            screenshots[i] = null;
+                            //screenshots[i] = null;
 
-                            for (int k = lastScreenshotIndex; k < screenshots.Length - 1; k++)
+                            for (int k = j; k < screenshots.Length - 1; k++)
                             {
                                 screenshots[k] = screenshots[k + 1];
                                 bitmapImage[k] = bitmapImage[k + 1];
@@ -450,45 +472,6 @@ namespace Wiedzowkonator
                     }
                 }
             }            
-                /*
-                string path = fileDialog.FileName;
-                using (MemoryStream ms = new MemoryStream())
-                {
-                    using (FileStream file = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
-                    {
-                        byte[] bytes = new byte[file.Length];
-                        file.Read(bytes, 0, (int)file.Length);
-                        ms.Write(bytes, 0, (int)file.Length);
-
-                        //PngBitmapDecoder decoder = new PngBitmapDecoder(ms, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
-                        /*
-                        BitmapImage[] __bitmapImage = new BitmapImage[6];
-                        BitmapFrame[] bitmapFrame = new BitmapFrame[6];
-
-                        Stream imageStreamSource = new FileStream("E:/screeny/1.png", FileMode.Open, FileAccess.Read, FileShare.Read);
-                        PngBitmapDecoder decoder = new PngBitmapDecoder(file, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
-                        BitmapSource bitmapSource = decoder.Frames[0];
-
-                        Image image = new Image();
-                        image.Source = bitmapSource;
-                        image.Width = bitmapSource.Width;
-                        image.Height = bitmapSource.Height;
-
-                        canvasScreenshotQuiz.Children.Add(image);   */
-                        /*
-                        BitmapImage bitmap = new BitmapImage();
-
-
-                        Image image = new Image();
-                        image.Source = bitmap;
-                        image.Width = bitmap.Width;
-                        image.Height = bitmap.Height;
-
-                        canvasScreenshotQuiz.Children.Add(image);
-                        if (canvasScreenshotQuiz.Children.Count > 0)
-                            MessageBox.Show(image.Width.ToString() + "x" + image.Height.ToString() + "\n" + image.Source.ToString());
-                    }
-                }*/      
         }
 
         private void DeleteEndings(object sender, RoutedEventArgs e)
@@ -527,7 +510,7 @@ namespace Wiedzowkonator
             data.points[0] = pointsFirstParticipant.Text;
             data.participants[0] = nameFirstParticipant.Text;
             data._screenshotsLocalizationPath = screenshotsLocalizationPath;
-            data.curAnswerType = serializationData.curAnswerType;
+            data.curAnswerType = serializationData.curAnswerType = (SerializationData.answerType)curAnswerType;
 
             bf.Serialize(stream, data);
             stream.Close();

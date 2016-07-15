@@ -25,6 +25,9 @@
         <Button x:Name="StartButton" Content="Rozpocznij wiedzówkę!" VerticalAlignment="Center" HorizontalAlignment="Center" Width="150" Click="StartClick"/>
         <TextBox x:Name="questionNumberBox" HorizontalAlignment="Center" Height="23" TextWrapping="Wrap" 
                  VerticalAlignment="Center" Width="132" Margin="193,161,187,106" TextAlignment="Center" KeyDown="questionNumberBox_KeyDown"/>
+        <TextBlock x:Name="questionText" HorizontalAlignment="Center" Height="auto" TextWrapping="Wrap" 
+                 VerticalAlignment="Center" Width="250" Margin="193,161,187,106" TextAlignment="Center" KeyDown="questionNumberBox_KeyDown"/>
+        <Button x:Name="SkipQuestion" Content="Pokaż odpowiedź" VerticalAlignment="Center" HorizontalAlignment="Center" Width="150" Click="SkipQuestion_Click" Margin="181,199,181,69"/>
         <!-- Quiz participants script -->
             <!-- Points confirm button -->
         <Button x:Name="confirmPoints" Content="Potwierdź" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="181,18,0,0" Click="confirmPoints_Click"/>

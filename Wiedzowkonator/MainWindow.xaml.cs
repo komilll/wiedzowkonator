@@ -44,6 +44,17 @@ namespace Wiedzowkonator
         public answerType curAnswerType;
     }
 
+    [Serializable]
+    public class SerializationDataText
+    {
+        public List<string> answeredQuestions = new List<string>(); //List of which screenshots were already shown
+        public string[] points = new string[1]; //Number of participant points
+        public string[] participants = new string[1]; //Name of participants
+        public string txtFileLocalization; //Path to quiz files (screenshot, music, text questions etc.)
+        public enum answerType { noAnswer, fileNameAnswer, customAnswer };
+        public answerType curAnswerType;
+    }
+
     public partial class MainWindow : Window
     {
         /*** Screenshot quiz variables ***/
@@ -61,6 +72,10 @@ namespace Wiedzowkonator
         /*** ___________________________ ***/
         /*** Text quiz variables ***/
         public string[] textQuestions;
+        string[] textTitles;
+        string[] textAnswers;
+        int lastQuestionIndex;
+        int textQuestionsCompleted;
 
         //Enum type that shows which state of quiz is currently in progress
         enum quizState { customizingQuestions, choosingQuestion, answeringQuestion, givingPoints };
@@ -85,7 +100,7 @@ namespace Wiedzowkonator
             {
                 Directory.CreateDirectory(quickSavePath);
             }
-
+            curQuizType = quizType.text;
             Application.Current.MainWindow.WindowState = WindowState.Maximized; //Starting fullscreen
             canvasBorder.BorderThickness = new Thickness(2.5f);
             DeletingScreeshots();
@@ -102,6 +117,7 @@ namespace Wiedzowkonator
             noAnswerButton.Width = 0;
             fileNameAnswerButton.Width = 0;
             customAnswerButton.Width = 0;
+            questionText.Width = 0;
         }
 
         private void StartClick(object sender, RoutedEventArgs e) //Main method that contains showing screenshots
@@ -116,12 +132,17 @@ namespace Wiedzowkonator
             if (screenshotQuizStarted) //"True" entry chooses and shows image on canvas
             {
                 //Variable needed to check if input text is number; It's only used to "if" statement
-                int tryingParse; 
+                int tryingParse;
+                int questionLength = 0; //Variable to check the biggest number of question for different types of quiz
                 bool isNumeric = int.TryParse(questionNumberBox.Text, out tryingParse);
                 if (isNumeric)
                     isNumeric = Math.Sign(int.Parse(questionNumberBox.Text)) == 1;
                 //Correctly written number
-                if (!string.IsNullOrWhiteSpace(questionNumberBox.Text) && isNumeric && int.Parse(questionNumberBox.Text) <= screenshots.Length - screenshotsCompleted)
+                if (curQuizType == quizType.screenshot)
+                    questionLength = screenshots.Length - screenshotsCompleted;
+                else if (curQuizType == quizType.text)
+                    questionLength = textQuestions.Length;
+                if (!string.IsNullOrWhiteSpace(questionNumberBox.Text) && isNumeric && int.Parse(questionNumberBox.Text) <= questionLength)
                 {
                     if (curQuizType == quizType.screenshot)
                     {
@@ -131,16 +152,23 @@ namespace Wiedzowkonator
                         canvasScreenshotQuiz.Height = screenshots[currentScreenshot].Height;
 
                         canvasScreenshotQuiz.Children.Add(screenshots[currentScreenshot]);
-                        questionNumberBox.Text = "";
                     }
                     else if (curQuizType == quizType.text)
                     {
-
+                        int currentQuestion = lastQuestionIndex = int.Parse(questionNumberBox.Text) - 1;
+                        questionText.Text = textQuestions[currentQuestion];
+                        //MessageBox.Show(textQuestions[currentQuestion] + " Number: " + currentQuestion.ToString());
+                        questionText.Width = 250; //Showing textblock with question when answering the question
+                        //TODO - ogarnąć odrzucanie wykonanych pytań (textQuestionsCompleted) oraz liczby temu towarzyszące
                     }
+                    questionNumberBox.Text = "";
                 }
                 else //Uncorrectly written number
                 {
-                    MessageBox.Show("Wybierz liczby od 1 do " + (screenshots.Length - screenshotsCompleted));
+                    if (curQuizType == quizType.screenshot)
+                        MessageBox.Show("Wybierz liczby od 1 do " + (screenshots.Length - screenshotsCompleted));
+                    else if (curQuizType == quizType.text)
+                        MessageBox.Show("Wybierz liczby od 1 do " + (textQuestions.Length - textQuestionsCompleted));
                     questionNumberBox.Text = "";
                     if (screenshotQuizStarted == false)
                         screenshotQuizStarted = true;
@@ -153,6 +181,7 @@ namespace Wiedzowkonator
             else
             {
                 canvasScreenshotQuiz.Children.Clear(); //Clearing canvas after user's mouse/enter press
+                questionText.Text = "";
             }
 
             if (nonBuggedEntry) //If no error occured
@@ -173,6 +202,7 @@ namespace Wiedzowkonator
                 confirmPoints.Width = 75;
                 goBack.Width = 75;
                 correctAnswer.Width = 200;
+                if (curQuizType == quizType.text) questionText.Width = 0; //Hiding textblock with question
             }
             else //Leaving this phase
             {
@@ -222,23 +252,44 @@ namespace Wiedzowkonator
         {
             curQuizState = quizState.choosingQuestion;
             ShowingHUD();
-            screenshots[lastScreenshotIndex] = null;
-            FileInfo info = new FileInfo(bitmapImage[lastScreenshotIndex].UriSource.LocalPath);
-            string[] nameToPass = info.FullName.Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
-            serializationData.answeredScreenshots.Add(nameToPass[0] + info.Extension); //Adding name of completed question
-            MessageBox.Show(nameToPass[0] + info.Extension);
-
-            screenshotsCompleted++;
-            for (int i = lastScreenshotIndex; i < screenshots.Length - 1; i++)
-            {
-                screenshots[i] = screenshots[i + 1];
-                bitmapImage[i] = bitmapImage[i + 1];
-            }
-
-            if (screenshots.Length == screenshotsCompleted)
+            if (curQuizType == quizType.screenshot)
             {
                 screenshots[lastScreenshotIndex] = null;
-                MessageBox.Show("KONIEC WIEDZÓWKI!");
+                FileInfo info = new FileInfo(bitmapImage[lastScreenshotIndex].UriSource.LocalPath);
+                string[] nameToPass = info.FullName.Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
+                serializationData.answeredScreenshots.Add(nameToPass[0] + info.Extension); //Adding name of completed question
+                MessageBox.Show(nameToPass[0] + info.Extension);
+
+                screenshotsCompleted++;
+                for (int i = lastScreenshotIndex; i < screenshots.Length - 1; i++)
+                {
+                    screenshots[i] = screenshots[i + 1];
+                    bitmapImage[i] = bitmapImage[i + 1];
+                }
+
+                if (screenshots.Length == screenshotsCompleted)
+                {
+                    screenshots[lastScreenshotIndex] = null;
+                    MessageBox.Show("KONIEC WIEDZÓWKI!");
+                }
+            }
+            else if (curQuizType == quizType.text)
+            {
+                //Setting every three values to null for last index
+                textQuestions[lastQuestionIndex] = null; textAnswers[lastQuestionIndex] = null; textTitles[lastQuestionIndex] = null;
+                textQuestionsCompleted++;
+                for (int i = lastQuestionIndex; i < textQuestions.Length - 1; i++)
+                {
+                    textQuestions[i] = textQuestions[i + 1];
+                    textAnswers[i] = textAnswers[i + 1];
+                    textTitles[i] = textTitles[i + 1];
+                }
+                if (textQuestions.Length == textQuestionsCompleted)
+                {
+                    textQuestions[lastQuestionIndex] = null; textAnswers[lastQuestionIndex] = null; textTitles[lastQuestionIndex] = null;
+                    MessageBox.Show("KONIEC WIEDZÓWKI!");
+                }
+
             }
             QuickSave(); //If everything went good, current state is being save and if power is off or program crashes, user can load his last save
         }
@@ -270,8 +321,13 @@ namespace Wiedzowkonator
                 screenshotQuizStarted = true;
             else
                 screenshotQuizStarted = false;
-
-            canvasScreenshotQuiz.Children.Add(screenshots[lastScreenshotIndex]);
+            if (curQuizType == quizType.screenshot)
+                canvasScreenshotQuiz.Children.Add(screenshots[lastScreenshotIndex]);
+            else if (curQuizType == quizType.text)
+            {
+                questionText.Width = 250;
+                questionText.Text = textQuestions[lastQuestionIndex];
+            }
         }
 
         private void questionNumberBox_KeyDown(object sender, KeyEventArgs e)
@@ -320,57 +376,112 @@ namespace Wiedzowkonator
             }
         }
 
+
+        private void SkipQuestion_Click(object sender, RoutedEventArgs e)
+        {
+            curQuizState = quizState.givingPoints;
+            StartClick(null, null);
+            correctAnswer.Text = textAnswers[lastQuestionIndex];
+        }
+
+        #region Open, Save, Load
         /********************* Managing menu tabs ************************/
+        //TODO -- saving, loading, quick saving, quick loading text questions
         private void Open(object sender, RoutedEventArgs e) //Importing new screenshots
         {
 
             OpenFileDialog fileDialog = new OpenFileDialog();
-            fileDialog.Multiselect = true;
-            
-            if (fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            if (curQuizType == quizType.screenshot)
             {
-                string[] path = fileDialog.FileNames;
-                //Initialize new array sizes depending of screenshot numbers
-                bitmapImage = new BitmapImage[path.Length];
-                screenshots = new Image[bitmapImage.Length];
-                nameOfScreenshots = new string[bitmapImage.Length];
-                screenshotsLocalizationPath = Directory.GetParent(path[0]).ToString(); //Getting directory where screenshots are stored
-                //Temporary image and bitmapImage arrays. They're used to pass screenshots when randomizing questions
-                Image[] screenshotsToPass = new Image[bitmapImage.Length];
-                BitmapImage[] bitmapImageToPass = new BitmapImage[bitmapImage.Length];
-                int index = 0; //Index of each screenshot
-                foreach (string screen in path)
-                {
-                    bitmapImage[index] = bitmapImageToPass[index] = new BitmapImage(new Uri(screen, UriKind.Absolute));
-                    screenshots[index] = screenshotsToPass[index] = new Image();
-                    screenshots[index].Source = screenshotsToPass[index].Source = bitmapImage[index];
-                    screenshots[index].Width = screenshotsToPass[index].Width = bitmapImage[index].Width;
-                    screenshots[index].Height = screenshotsToPass[index].Height = bitmapImage[index].Height;
-                    nameOfScreenshots[index] = screen;
+                fileDialog.Multiselect = true;
 
-                    index++;
-                }
-                Random random = new Random();
-                List<int> indexes = new List<int>();
-                for (int i = 0; i < screenshots.Length; i++)
+                if (fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
-                    indexes.Add(i);
-                }
+                    string[] path = fileDialog.FileNames;
+                    //Initialize new array sizes depending of screenshot numbers
+                    bitmapImage = new BitmapImage[path.Length];
+                    screenshots = new Image[bitmapImage.Length];
+                    nameOfScreenshots = new string[bitmapImage.Length];
+                    screenshotsLocalizationPath = Directory.GetParent(path[0]).ToString(); //Getting directory where screenshots are stored
+                                                                                           //Temporary image and bitmapImage arrays. They're used to pass screenshots when randomizing questions
+                    Image[] screenshotsToPass = new Image[bitmapImage.Length];
+                    BitmapImage[] bitmapImageToPass = new BitmapImage[bitmapImage.Length];
+                    int index = 0; //Index of each screenshot
+                    foreach (string screen in path)
+                    {
+                        bitmapImage[index] = bitmapImageToPass[index] = new BitmapImage(new Uri(screen, UriKind.Absolute));
+                        screenshots[index] = screenshotsToPass[index] = new Image();
+                        screenshots[index].Source = screenshotsToPass[index].Source = bitmapImage[index];
+                        screenshots[index].Width = screenshotsToPass[index].Width = bitmapImage[index].Width;
+                        screenshots[index].Height = screenshotsToPass[index].Height = bitmapImage[index].Height;
+                        nameOfScreenshots[index] = screen;
 
-                for (int i = 0; i < screenshots.Length; i++)
+                        index++;
+                    }
+                    Random random = new Random();
+                    List<int> indexes = new List<int>();
+                    for (int i = 0; i < screenshots.Length; i++)
+                    {
+                        indexes.Add(i);
+                    }
+
+                    for (int i = 0; i < screenshots.Length; i++)
+                    {
+                        int toDelete = random.Next(0, indexes.Count);
+                        int toPass = indexes[toDelete];
+                        screenshots[toPass] = screenshotsToPass[i];
+                        bitmapImage[toPass] = bitmapImageToPass[i];
+                        indexes.RemoveAt(toDelete);
+                    }
+
+                    noAnswerButton.Width = 800;
+                    fileNameAnswerButton.Width = 800;
+                    customAnswerButton.Width = 800;
+                }
+            }
+            else if (curQuizType == quizType.text)
+            {
+                fileDialog.Multiselect = false;
+                if (fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
-                    int toDelete = random.Next(0, indexes.Count);
-                    int toPass = indexes[toDelete];
-                    screenshots[toPass] = screenshotsToPass[i];
-                    bitmapImage[toPass] = bitmapImageToPass[i];
-                    indexes.RemoveAt(toDelete);
-                }
+                    string path = fileDialog.FileName;
+                    using (StreamReader sr = File.OpenText(path))
+                    {
+                        int currentIndex = 0;
+                        string text = sr.ReadToEnd();
+                        text = text.Trim();
+                        string[] lines = text.Split('\r');
+                        textTitles = new string[lines.Length / 2];
+                        textQuestions = new string[lines.Length / 2];
+                        textAnswers = new string[lines.Length / 2];
 
-                noAnswerButton.Width = 800;
-                fileNameAnswerButton.Width = 800;
-                customAnswerButton.Width = 800;
+                        foreach (string s in lines)
+                        {
+                            s.Trim();
+                            int count = s.Split('\"').Length - 1;
+                            if (currentIndex % 2 == 0)
+                            {
+                                if (count == 2) //If in line are exactly 2 quotation marks
+                                {
+                                    string[] textToShow = s.Split('\"'); //Splitting text to get title
+                                    textTitles[currentIndex / 2] = textToShow[1].Trim();
+                                    textQuestions[currentIndex / 2] = textToShow[2].Trim();
+                                }
+                                else //If there are more or less than 2 quotation marks
+                                {
+                                    textTitles[currentIndex / 2] = "";
+                                    textQuestions[currentIndex / 2] = s.Trim();
+                                }
+                            }
+                            else if (currentIndex % 2 == 1)
+                                textAnswers[currentIndex / 2] = s.Trim();
+                            currentIndex++;
+                        }
+                    }
+                }
             }
         }
+
         //Saving current state to file in chosen location
         private void Save(object sender, RoutedEventArgs e)
         {           
@@ -597,8 +708,9 @@ namespace Wiedzowkonator
                 }
             }
         }
-
+        #endregion
         /* Importing new quizes */
+        #region Importing new quizes (screenshots)
         private void customAnswerButton_Click(object sender, RoutedEventArgs e)
         {
             curAnswerType = answerType.customAnswer;
@@ -757,4 +869,5 @@ namespace Wiedzowkonator
             }
         }
     }
+    #endregion
 }

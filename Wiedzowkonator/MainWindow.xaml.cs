@@ -42,6 +42,8 @@ namespace Wiedzowkonator
         public string _screenshotsLocalizationPath; //Path to quiz files (screenshot, music, text questions etc.)
         public enum answerType { noAnswer, fileNameAnswer, customAnswer };
         public answerType curAnswerType;
+        public enum quizType { screenshot, text, music, mixed };
+        public quizType curQuizType;
     }
 
     [Serializable]
@@ -53,12 +55,16 @@ namespace Wiedzowkonator
         public string txtFileLocalization; //Path to quiz files (screenshot, music, text questions etc.)
         public enum answerType { noAnswer, fileNameAnswer, customAnswer };
         public answerType curAnswerType;
+        public enum quizType { screenshot, text, music, mixed };
+        public quizType curQuizType;
     }
 
     public partial class MainWindow : Window
     {
         /*** Screenshot quiz variables ***/
         SerializationData serializationData = new SerializationData(); //Variable class
+        SerializationDataText serializationText = new SerializationDataText();
+
         public Image[] screenshots; //Screenshots that will be shown on canvas
         BitmapImage[] bitmapImage; //Images that will be written into "screenshots" variable
         public string[] nameOfScreenshots; //Name of all screenshots - it is used to check which one was already shown
@@ -71,11 +77,12 @@ namespace Wiedzowkonator
         int customAnswerIndex; //Index that increases after pressing "next"; Help with managing custom answers
         /*** ___________________________ ***/
         /*** Text quiz variables ***/
-        public string[] textQuestions;
-        string[] textTitles;
-        string[] textAnswers;
-        int lastQuestionIndex;
-        int textQuestionsCompleted;
+        public string[] textQuestions; //Imported questions. It's every second line of txt file (starting from 1st line)
+        string[] textTitles; //Imported titles. It's every second line of txt file (starting from 1st line); Every title is written is quotation marks >>""<<
+        string[] textAnswers; //Imported answers; It's every second line of txt file (starting from 2nd line)
+        int lastQuestionIndex; //Last question index
+        int textQuestionsCompleted; //Checking how many questions were already shown to contestants
+        string txtFilePath; //Path to txt file from which question/titles/answers were (or will be if saved) imported
 
         //Enum type that shows which state of quiz is currently in progress
         enum quizState { customizingQuestions, choosingQuestion, answeringQuestion, givingPoints };
@@ -104,20 +111,8 @@ namespace Wiedzowkonator
             Application.Current.MainWindow.WindowState = WindowState.Maximized; //Starting fullscreen
             canvasBorder.BorderThickness = new Thickness(2.5f);
             DeletingScreeshots();
-            //Setting all unused currently controls off (not really switching off, rather making them "disappear" for a moment)
-            plusFirstParticipant.Width = 0;
-            minutFirstParticipant.Width = 0;
-            nameFirstParticipant.Width = 0;
-            pointsFirstParticipant.Width = 0;
-            confirmPoints.Width = 0;
-            StartButton.Width = 0;
-            questionNumberBox.Width = 0;
-            goBack.Width = 0;
-            correctAnswer.Width = 0;
-            noAnswerButton.Width = 0;
-            fileNameAnswerButton.Width = 0;
-            customAnswerButton.Width = 0;
-            questionText.Width = 0;
+            SwitchingOffAllFields(); //Setting all unused currently controls off (not really switching off, rather making them "disappear" for a moment)
+            ChoosingQuizType();
         }
 
         private void StartClick(object sender, RoutedEventArgs e) //Main method that contains showing screenshots
@@ -276,6 +271,7 @@ namespace Wiedzowkonator
             else if (curQuizType == quizType.text)
             {
                 //Setting every three values to null for last index
+                serializationText.answeredQuestions.Add(textQuestions[lastQuestionIndex]);
                 textQuestions[lastQuestionIndex] = null; textAnswers[lastQuestionIndex] = null; textTitles[lastQuestionIndex] = null;
                 textQuestionsCompleted++;
                 for (int i = lastQuestionIndex; i < textQuestions.Length - 1; i++)
@@ -386,15 +382,12 @@ namespace Wiedzowkonator
 
         #region Open, Save, Load
         /********************* Managing menu tabs ************************/
-        //TODO -- saving, loading, quick saving, quick loading text questions
         private void Open(object sender, RoutedEventArgs e) //Importing new screenshots
         {
-
             OpenFileDialog fileDialog = new OpenFileDialog();
+            fileDialog.Multiselect = true;
             if (curQuizType == quizType.screenshot)
             {
-                fileDialog.Multiselect = true;
-
                 if (fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
                     string[] path = fileDialog.FileNames;
@@ -441,47 +434,16 @@ namespace Wiedzowkonator
             }
             else if (curQuizType == quizType.text)
             {
-                fileDialog.Multiselect = false;
+                //fileDialog.Multiselect = false;
                 if (fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
                     string path = fileDialog.FileName;
-                    using (StreamReader sr = File.OpenText(path))
-                    {
-                        int currentIndex = 0;
-                        string text = sr.ReadToEnd();
-                        text = text.Trim();
-                        string[] lines = text.Split('\r');
-                        textTitles = new string[lines.Length / 2];
-                        textQuestions = new string[lines.Length / 2];
-                        textAnswers = new string[lines.Length / 2];
-
-                        foreach (string s in lines)
-                        {
-                            s.Trim();
-                            int count = s.Split('\"').Length - 1;
-                            if (currentIndex % 2 == 0)
-                            {
-                                if (count == 2) //If in line are exactly 2 quotation marks
-                                {
-                                    string[] textToShow = s.Split('\"'); //Splitting text to get title
-                                    textTitles[currentIndex / 2] = textToShow[1].Trim();
-                                    textQuestions[currentIndex / 2] = textToShow[2].Trim();
-                                }
-                                else //If there are more or less than 2 quotation marks
-                                {
-                                    textTitles[currentIndex / 2] = "";
-                                    textQuestions[currentIndex / 2] = s.Trim();
-                                }
-                            }
-                            else if (currentIndex % 2 == 1)
-                                textAnswers[currentIndex / 2] = s.Trim();
-                            currentIndex++;
-                        }
-                    }
+                    txtFilePath = path;
+                    OpeningTextQuiz(path);
                 }
             }
         }
-
+        //TODO -- loading, quick saving, quick loading text questions
         //Saving current state to file in chosen location
         private void Save(object sender, RoutedEventArgs e)
         {           
@@ -491,18 +453,37 @@ namespace Wiedzowkonator
                 string path = fileDialog.FileName;
 
                 BinaryFormatter bf = new BinaryFormatter();
-                FileStream stream = File.Create(path + ".anime");
+                FileStream stream; //Stream has to be closed separately because I'm using different extensions for each stream and it can't be initialized universally
+                if (curQuizType == quizType.screenshot)
+                {
+                    stream = File.Create(path + ".animescreen");
+                    SerializationData data = new SerializationData();
 
-                SerializationData data = new SerializationData();
+                    data.answeredScreenshots = serializationData.answeredScreenshots;
+                    data.points[0] = pointsFirstParticipant.Text;
+                    data.participants[0] = nameFirstParticipant.Text;
+                    data._screenshotsLocalizationPath = screenshotsLocalizationPath;
+                    data.curAnswerType = serializationData.curAnswerType = (SerializationData.answerType)curAnswerType;
+                    data.curQuizType = serializationData.curQuizType = (SerializationData.quizType)curQuizType;
 
-                data.answeredScreenshots = serializationData.answeredScreenshots;
-                data.points[0] = pointsFirstParticipant.Text;
-                data.participants[0] = nameFirstParticipant.Text;
-                data._screenshotsLocalizationPath = screenshotsLocalizationPath;;
-                data.curAnswerType = serializationData.curAnswerType = (SerializationData.answerType)curAnswerType;
+                    bf.Serialize(stream, data);
+                    stream.Close(); //Closing stream to prevent from damaging data
+                }
+                else if (curQuizType == quizType.text)
+                {
+                    stream = File.Create(path + ".animetext");
+                    SerializationDataText data = new SerializationDataText();
 
-                bf.Serialize(stream, data);
-                stream.Close();
+                    data.answeredQuestions = serializationText.answeredQuestions;
+                    data.points[0] = pointsFirstParticipant.Text;
+                    data.participants[0] = nameFirstParticipant.Text;
+                    data.txtFileLocalization = txtFilePath;
+                    data.curAnswerType = serializationText.curAnswerType = (SerializationDataText.answerType)curAnswerType;
+                    data.curQuizType = serializationText.curQuizType = (SerializationDataText.quizType)curQuizType;
+
+                    bf.Serialize(stream, data);
+                    stream.Close(); //Closing stream to prevent from damaging data
+                }
             }
         }
         //Loading state of quiz from .anime file
@@ -515,15 +496,182 @@ namespace Wiedzowkonator
 
                 BinaryFormatter bf = new BinaryFormatter();
                 FileStream stream = File.Open(path, FileMode.Open);
+                
+                if (curQuizType == quizType.screenshot)
+                {
+                    SerializationData data = (SerializationData)bf.Deserialize(stream);
+                    serializationData.answeredScreenshots = data.answeredScreenshots;
+                    nameFirstParticipant.Text = data.participants[0];
+                    pointsFirstParticipant.Text = data.points[0];
+                    screenshotsLocalizationPath = data._screenshotsLocalizationPath;
+                    curAnswerType = (answerType)data.curAnswerType;
+                    curQuizType = (quizType)data.curQuizType;
+                    MessageBox.Show(curAnswerType.ToString());
+                    DirectoryInfo directoryWithScreenshots = new DirectoryInfo(screenshotsLocalizationPath);
+                    string[] files = new string[directoryWithScreenshots.GetFiles().Length];
+                    int index = 0;
+                    int numberOfSkippedFiles = 0;
+                    string dataFile;
 
+                    foreach (FileInfo file in directoryWithScreenshots.GetFiles())
+                    {
+                        files[index] = file.FullName;
+                        if (file.Extension.Contains(".anime"))
+                        {
+                            MessageBox.Show(file.Extension);
+                            numberOfSkippedFiles++; //It'll be used in "for" loop to set number of loops
+                                                    //Not increasing index
+                            dataFile = file.FullName;
+                        }
+                        else
+                        {
+                            index++;
+                        }
+                    }
+
+                    bitmapImage = new BitmapImage[directoryWithScreenshots.GetFiles().Length - numberOfSkippedFiles];
+                    screenshots = new Image[bitmapImage.Length];
+                    nameOfScreenshots = new string[bitmapImage.Length];
+                    for (int k = 0; k < directoryWithScreenshots.GetFiles().Length - numberOfSkippedFiles; k++)
+                    {
+                        bitmapImage[k] = new BitmapImage(new Uri(files[k], UriKind.Absolute));
+                        screenshots[k] = new Image();
+                        screenshots[k].Source = bitmapImage[k];
+                        screenshots[k].Width = bitmapImage[k].Width;
+                        screenshots[k].Height = bitmapImage[k].Height;
+                        nameOfScreenshots[k] = files[k];
+
+                        string[] correctNameOfScreenshot = nameOfScreenshots[k].Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
+                        FileInfo info = new FileInfo(nameOfScreenshots[k]);
+                        nameOfScreenshots[k] = correctNameOfScreenshot[0] + info.Extension;
+                    }
+
+                    for (int i = 0; i < serializationData.answeredScreenshots.Count; i++)
+                    {
+                        for (int j = 0; j < nameOfScreenshots.Length; j++)
+                        {
+                            if (serializationData.answeredScreenshots[i] == nameOfScreenshots[j])
+                            {
+                                //MessageBox.Show("i = " + i + "; j = " + j);
+                                //MessageBox.Show(nameOfScreenshots[j]);
+                                screenshotsCompleted++;
+                                //screenshots[i] = null;
+
+                                for (int k = j; k < screenshots.Length - 1; k++)
+                                {
+                                    screenshots[k] = screenshots[k + 1];
+                                    bitmapImage[k] = bitmapImage[k + 1];
+                                }
+                            }
+                        }
+                    }
+                }
+                else if (curQuizType == quizType.text)
+                {
+                    SerializationDataText data = (SerializationDataText)bf.Deserialize(stream);
+                    serializationText.answeredQuestions = data.answeredQuestions;
+                    nameFirstParticipant.Text = data.participants[0];
+                    pointsFirstParticipant.Text = data.points[0];
+                    txtFilePath = data.txtFileLocalization;
+                    curAnswerType = (answerType)data.curAnswerType;
+                    curQuizType = (quizType)data.curQuizType;
+
+                    if (File.Exists(txtFilePath))
+                        OpeningTextQuiz(txtFilePath); //Loading new quiz from file
+                    else MessageBox.Show("Błąd importowania! Proszę zresetować program i upewnić się, że plik " + txtFilePath + " istnieje.");
+
+                    for (int i = 0; i < serializationText.answeredQuestions.Count; i++)
+                    {
+                        for (int j = 0; j < textQuestions.Length; j++)
+                        {
+                            MessageBox.Show(serializationText.answeredQuestions[i] + " :: " + textQuestions[j]);
+                            if (serializationText.answeredQuestions[i] == textQuestions[j])
+                            {
+                                MessageBox.Show(textQuestions[j]);
+                                textQuestionsCompleted++;
+                                textQuestions[i] = null; textTitles[i] = null; textAnswers[i] = null;
+                                for (int k = j; k < textQuestions.Length - 1; k++)
+                                {
+                                    textQuestions[k] = textQuestions[k + 1];
+                                    textAnswers[k] = textAnswers[k + 1];
+                                    textTitles[k] = textTitles[k + 1];
+                                }
+                            }
+                        }
+                    }
+                }
+                stream.Close(); //Closing stream to prevent from damaging data
+            }            
+        }
+
+        private void DeleteEndings(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog fileDialog = new OpenFileDialog();
+            fileDialog.Multiselect = true;
+
+            if (fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                string[] paths = fileDialog.FileNames;
+                string[] pathParts = new string[2];
+                string readyPath;
+                for (int i = 0; i < paths.Length; i++)
+                {
+                    readyPath = "";
+                    FileInfo info = new FileInfo(paths[i]);
+                    pathParts = paths[i].Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
+                    readyPath = pathParts[0] + info.Extension;
+
+                    if (readyPath != "")
+                        File.Move(paths[i], readyPath);
+                }
+            }
+        }
+
+        private void QuickSave() //Saving after all confirmed answer
+        {
+            string path = quickSavePath + "quickSave-" + DateTime.Now.ToString("dd/MM/yyyy HH_mm");
+
+            BinaryFormatter bf = new BinaryFormatter();
+            FileStream stream = File.Create(path + ".anime");
+            if (curQuizType == quizType.screenshot)
+            {
+                SerializationData data = new SerializationData();
+
+                data.answeredScreenshots = serializationData.answeredScreenshots;
+                data.points[0] = pointsFirstParticipant.Text;
+                data.participants[0] = nameFirstParticipant.Text;
+                data._screenshotsLocalizationPath = screenshotsLocalizationPath;
+                data.curAnswerType = serializationData.curAnswerType = (SerializationData.answerType)curAnswerType;
+                data.curQuizType = serializationData.curQuizType = (SerializationData.quizType)curQuizType;
+
+                bf.Serialize(stream, data);
+            }
+            stream.Close();
+        }
+
+        private void QuickLoad() //Loading at the start of quiz
+        {
+            //TODO -- Finish loading/saving when done with choosing quizType menu
+            //Loading data containing deeper information and values of variables
+            DirectoryInfo directory = new DirectoryInfo(quickSavePath);
+            string path = (from f in directory.GetFiles()
+                           orderby f.LastWriteTime descending
+                           select f).First().FullName;
+            BinaryFormatter bf = new BinaryFormatter();
+            //MessageBox.Show(path);
+            FileStream stream = File.Open(path, FileMode.Open);
+
+            if (curQuizType == quizType.screenshot)
+            {
                 SerializationData data = (SerializationData)bf.Deserialize(stream);
                 serializationData.answeredScreenshots = data.answeredScreenshots;
                 nameFirstParticipant.Text = data.participants[0];
                 pointsFirstParticipant.Text = data.points[0];
                 screenshotsLocalizationPath = data._screenshotsLocalizationPath;
                 curAnswerType = (answerType)data.curAnswerType;
+
                 MessageBox.Show(curAnswerType.ToString());
-                stream.Close();
+                //Loading screenshots from directory where they should be
                 DirectoryInfo directoryWithScreenshots = new DirectoryInfo(screenshotsLocalizationPath);
                 //MessageBox.Show(directoryWithScreenshots.ToString());
                 string[] files = new string[directoryWithScreenshots.GetFiles().Length];
@@ -582,131 +730,42 @@ namespace Wiedzowkonator
                         }
                     }
                 }
-            }            
-        }
-
-        private void DeleteEndings(object sender, RoutedEventArgs e)
-        {
-            OpenFileDialog fileDialog = new OpenFileDialog();
-            fileDialog.Multiselect = true;
-
-            if (fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-            {
-                string[] paths = fileDialog.FileNames;
-                string[] pathParts = new string[2];
-                string readyPath;
-                for (int i = 0; i < paths.Length; i++)
-                {
-                    readyPath = "";
-                    FileInfo info = new FileInfo(paths[i]);
-                    pathParts = paths[i].Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
-                    readyPath = pathParts[0] + info.Extension;
-
-                    if (readyPath != "")
-                        File.Move(paths[i], readyPath);
-                }
             }
-        }
-
-        private void QuickSave() //Saving after all confirmed answer
-        {
-            string path = quickSavePath + "quickSave-" + DateTime.Now.ToString("dd/MM/yyyy HH_mm");
-
-            BinaryFormatter bf = new BinaryFormatter();
-            FileStream stream = File.Create(path + ".anime");
-
-            SerializationData data = new SerializationData();
-
-            data.answeredScreenshots = serializationData.answeredScreenshots;
-            data.points[0] = pointsFirstParticipant.Text;
-            data.participants[0] = nameFirstParticipant.Text;
-            data._screenshotsLocalizationPath = screenshotsLocalizationPath;
-            data.curAnswerType = serializationData.curAnswerType = (SerializationData.answerType)curAnswerType;
-
-            bf.Serialize(stream, data);
-            stream.Close();
-        }
-
-        private void QuickLoad() //Loading at the start of quiz
-        {
-            //Loading data containing deeper information and values of variables
-            DirectoryInfo directory = new DirectoryInfo(quickSavePath);
-            string path = (from f in directory.GetFiles()
-                           orderby f.LastWriteTime descending
-                           select f).First().FullName;
-
-            BinaryFormatter bf = new BinaryFormatter();
-            //MessageBox.Show(path);
-            FileStream stream = File.Open(path, FileMode.Open);
-
-            SerializationData data = (SerializationData)bf.Deserialize(stream);
-            serializationData.answeredScreenshots = data.answeredScreenshots;
-            nameFirstParticipant.Text = data.participants[0];
-            pointsFirstParticipant.Text = data.points[0];
-            screenshotsLocalizationPath = data._screenshotsLocalizationPath;
-            curAnswerType = (answerType)data.curAnswerType;
-
-            MessageBox.Show(curAnswerType.ToString());
-            stream.Close();
-            //Loading screenshots from directory where they should be
-            DirectoryInfo directoryWithScreenshots = new DirectoryInfo(screenshotsLocalizationPath);
-            //MessageBox.Show(directoryWithScreenshots.ToString());
-            string[] files = new string[directoryWithScreenshots.GetFiles().Length];
-            int index = 0;
-            int numberOfSkippedFiles = 0;
-            string dataFile;
-
-            foreach (FileInfo file in directoryWithScreenshots.GetFiles())
+            else if (curQuizType == quizType.text)
             {
-                files[index] = file.FullName;
-                if (file.Extension == ".anime")
-                {
-                    numberOfSkippedFiles++; //It'll be used in "for" loop to set number of loops
-                    //Not increasing index
-                    dataFile = file.FullName;
-                }
-                else
-                {
-                    index++;
-                }
-            }
+                SerializationDataText data = (SerializationDataText)bf.Deserialize(stream);
+                serializationText.answeredQuestions = data.answeredQuestions;
+                nameFirstParticipant.Text = data.participants[0];
+                pointsFirstParticipant.Text = data.points[0];
+                txtFilePath = data.txtFileLocalization;
+                curAnswerType = (answerType)data.curAnswerType;
+                curQuizType = (quizType)data.curQuizType;
 
-            bitmapImage = new BitmapImage[directoryWithScreenshots.GetFiles().Length - numberOfSkippedFiles];
-            screenshots = new Image[bitmapImage.Length];
-            nameOfScreenshots = new string[bitmapImage.Length];
-            for (int k = 0; k < directoryWithScreenshots.GetFiles().Length - numberOfSkippedFiles; k++)
-            {
-                bitmapImage[k] = new BitmapImage(new Uri(files[k], UriKind.Absolute));
-                screenshots[k] = new Image();
-                screenshots[k].Source = bitmapImage[k];
-                screenshots[k].Width = bitmapImage[k].Width;
-                screenshots[k].Height = bitmapImage[k].Height;
-                nameOfScreenshots[k] = files[k];
+                if (File.Exists(txtFilePath))
+                    OpeningTextQuiz(txtFilePath); //Loading new quiz from file
+                else MessageBox.Show("Błąd importowania! Proszę zresetować program i upewnić się, że plik " + txtFilePath + " istnieje.");
 
-                string[] correctNameOfScreenshot = nameOfScreenshots[k].Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
-                FileInfo info = new FileInfo(nameOfScreenshots[k]);
-                nameOfScreenshots[k] = correctNameOfScreenshot[0] + info.Extension;
-            }
-
-            for (int i = 0; i < serializationData.answeredScreenshots.Count; i++)
-            {
-                for (int j = 0; j < nameOfScreenshots.Length; j++)
+                for (int i = 0; i < serializationText.answeredQuestions.Count; i++)
                 {
-                    if (serializationData.answeredScreenshots[i] == nameOfScreenshots[j])
+                    for (int j = 0; j < textQuestions.Length; j++)
                     {
-                        //MessageBox.Show("i = " + i + "; j = " + j);
-                        MessageBox.Show(nameOfScreenshots[j]);
-                        screenshotsCompleted++;
-                        //screenshots[i] = null;
-
-                        for (int k = j; k < screenshots.Length - 1; k++)
+                        MessageBox.Show(serializationText.answeredQuestions[i] + " :: " + textQuestions[j]);
+                        if (serializationText.answeredQuestions[i] == textQuestions[j])
                         {
-                            screenshots[k] = screenshots[k + 1];
-                            bitmapImage[k] = bitmapImage[k + 1];
+                            MessageBox.Show(textQuestions[j]);
+                            textQuestionsCompleted++;
+                            textQuestions[i] = null; textTitles[i] = null; textAnswers[i] = null;
+                            for (int k = j; k < textQuestions.Length - 1; k++)
+                            {
+                                textQuestions[k] = textQuestions[k + 1];
+                                textAnswers[k] = textAnswers[k + 1];
+                                textTitles[k] = textTitles[k + 1];
+                            }
                         }
                     }
                 }
             }
+            stream.Close(); //Closing stream to prevent from damaging data
         }
         #endregion
         /* Importing new quizes */
@@ -867,6 +926,105 @@ namespace Wiedzowkonator
 
                 File.Delete(quickSavePath + "toDelete.txt"); //Deleting file with data
             }
+        }
+
+        void OpeningTextQuiz(string pathToFile)
+        {
+            using (StreamReader sr = File.OpenText(pathToFile))
+            {
+                int currentIndex = 0;
+                string text = sr.ReadToEnd();
+                text = text.Trim();
+                string[] lines = text.Split('\r');
+                textTitles = new string[lines.Length / 2];
+                textQuestions = new string[lines.Length / 2];
+                textAnswers = new string[lines.Length / 2];
+
+                foreach (string s in lines)
+                {
+                    s.Trim();
+                    int count = s.Split('\"').Length - 1;
+                    if (currentIndex % 2 == 0)
+                    {
+                        if (count == 2) //If in line are exactly 2 quotation marks
+                        {
+                            string[] textToShow = s.Split('\"'); //Splitting text to get title
+                            textTitles[currentIndex / 2] = textToShow[1].Trim();
+                            textQuestions[currentIndex / 2] = textToShow[2].Trim();
+                        }
+                        else //If there are more or less than 2 quotation marks
+                        {
+                            textTitles[currentIndex / 2] = "";
+                            textQuestions[currentIndex / 2] = s.Trim();
+                        }
+                    }
+                    else if (currentIndex % 2 == 1)
+                        textAnswers[currentIndex / 2] = s.Trim();
+                    currentIndex++;
+                }
+            }
+        }
+        void SwitchingOffAllFields()
+        {
+            //Choosing type of quiz
+            textQuizButton.Width = 0;
+            screenshotQuizButton.Width = 0;
+            musicQuizButton.Width = 0;
+            mixedQuizButton.Width = 0;
+            //Choosing number of question
+            StartButton.Width = 0;
+            questionNumberBox.Width = 0;
+            //Showing question and button to proceed to its answer
+            questionText.Width = 0;
+            SkipQuestion.Width = 0;
+            //Giving points, confirming points, going back to question
+            confirmPoints.Width = 0;
+            goBack.Width = 0;
+            correctAnswer.Width = 0;
+            plusFirstParticipant.Width = 0;
+            minutFirstParticipant.Width = 0;
+            nameFirstParticipant.Width = 0;
+            pointsFirstParticipant.Width = 0;
+            //Asking user if he wants to reload last quiz
+            ReloadTextBlock.Width = 0;
+            ReloadButton_Yes.Width = 0;
+            ReloadButton_No.Width = 0;
+            //Choosing type of answer's showing
+            noAnswerButton.Width = 0;
+            fileNameAnswerButton.Width = 0;
+            customAnswerButton.Width = 0;
+            //Adding custom answers, confirming, going back to last one
+            customAnswerAdding.Width = 0;
+            customAnswerConfirm.Width = 0;
+            customAnswerBack.Width = 0;
+        }
+
+        void ChoosingQuizType()
+        {
+            textQuizButton.Width = 250;
+            screenshotQuizButton.Width = 250;
+            musicQuizButton.Width = 250;
+            mixedQuizButton.Width = 250;
+        }
+
+        void ChoosingQuizOpeningType()
+        {
+
+        }
+
+        void ChoosingQuestion()
+        {
+
+        }
+
+        void ShowingQuestion()
+        {
+
+        }
+
+        void GivingPoints_ShowingAnswers()
+        {
+
         }
     }
     #endregion

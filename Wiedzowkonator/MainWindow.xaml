@@ -20,17 +20,21 @@
         </DockPanel>
         
         <!-- STARTING -> Choosing type of quiz, importing options etc. -->
-        <Button x:Name="textQuizButton" Content="Wiedzówka z pytań" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250"/>
-        <Button x:Name="screenshotQuizButton" Content="Screenówka" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" Margin="131,164,131,104"/>
-        <Button x:Name="musicQuizButton" Content="Wiedzówka muzyczna (nie działa!)" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" Margin="131,199,131,69"/>
-        <Button x:Name="mixedQuizButton" Content="Wiedzówka mieszana (nie działa!)" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" Margin="131,228,131,40"/>
+        <Button x:Name="textQuizButton" Content="Wiedzówka z pytań" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" Click="textQuizButton_Click"/>
+        <Button x:Name="screenshotQuizButton" Content="Screenówka" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" Margin="131,164,131,104" Click="screenshotQuizButton_Click"/>
+        <Button x:Name="musicQuizButton" Content="Wiedzówka muzyczna (nie działa!)" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" Margin="131,199,131,69" Click="musicQuizButton_Click"/>
+        <Button x:Name="mixedQuizButton" Content="Wiedzówka mieszana (nie działa!)" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" Margin="131,228,131,40" Click="mixedQuizButton_Click"/>
+
+        <Button x:Name="openQuizButton" Content="Utwórz nową wiedzówkę (wybierz pliki...)" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" Click="openQuizButton_Click"/>
+        <Button x:Name="loadQuizButton" Content="Załaduj plik .anime z wybraną przez siebie wiedzówką" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" Margin="131,164,131,104" Click="loadQuizButton_Click"/>
+        <Button x:Name="quickLoadQuizButton" Content="Załaduj ostatni szybki zapis wiedzówki" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" Margin="131,199,131,69" Click="quickLoadQuizButton_Click"/>
 
         <!-- Regular quiz game options -->
         <Border x:Name="canvasBorder" BorderBrush="Black">
             <Canvas x:Name="canvasScreenshotQuiz" HorizontalAlignment="Center" Height="290" VerticalAlignment="Center" Width="512" MouseDown="SkippingScreenshot"/>
         </Border>
         <Button x:Name="StartButton" Content="Rozpocznij wiedzówkę!" VerticalAlignment="Center" HorizontalAlignment="Center" Width="150" Click="StartClick"/>
-        <TextBox x:Name="questionNumberBox" HorizontalAlignment="Center" Height="23" TextWrapping="Wrap" 
+        <TextBox x:Name="questionNumberBox" HorizontalAlignment="Center" Height="23" TextWrapping="Wrap" Focusable="True"
                  VerticalAlignment="Center" Width="132" Margin="193,161,187,106" TextAlignment="Center" KeyDown="questionNumberBox_KeyDown"/>
         <TextBlock x:Name="questionText" HorizontalAlignment="Center" Height="auto" TextWrapping="Wrap" 
                  VerticalAlignment="Center" Width="250" Margin="193,161,187,106" TextAlignment="Center" KeyDown="questionNumberBox_KeyDown"/>
@@ -39,7 +43,7 @@
             <!-- Points confirm button -->
         <Button x:Name="confirmPoints" Content="Potwierdź" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="181,18,0,0" Click="confirmPoints_Click"/>
         <Button x:Name="goBack" Content="Cofnij" HorizontalAlignment="Left" Margin="264,18,0,0" VerticalAlignment="Top" Width="75" Click="goBack_Click"/>
-        <TextBlock x:Name="correctAnswer" HorizontalAlignment="Center" Margin="0, 98,0,0" TextWrapping="Wrap" Text="Nie ustawiono odpowiedzi dla tego pytania" VerticalAlignment="Top"/>
+        <TextBlock x:Name="correctAnswer" HorizontalAlignment="Center" Margin="0, 98,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top"/>
 
         <TextBox x:Name="nameFirstParticipant" HorizontalAlignment="Left" Height="23" Margin="29,40,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
         <TextBlock x:Name="pointsFirstParticipant" HorizontalAlignment="Left" Margin="72,68,0,0" TextWrapping="Wrap" VerticalAlignment="Top" TextAlignment="Center" Width="33" Height="19" Text="0,0"/>
@@ -53,11 +57,11 @@
 
         <!-- Importing new quiz -->
         <Button x:Name="noAnswerButton" Content="1. Nie importuj odpowiedzi do pytań (po zakończonym pytaniu nie będą wyświetlały się poprawne odpowiedzi)" 
-                HorizontalAlignment="Left" Margin="141,120,0,0" VerticalAlignment="Top" Width="800" Click="noAnswerButton_Click"/>
+               HorizontalAlignment="Center" VerticalAlignment="Center" Width="800" Click="noAnswerButton_Click" Margin="-144,107,-144,161"/>
         <Button x:Name="fileNameAnswerButton" Content="2. Odpowiedzią na pytanie jest nazwa pliku ze screenshotem"
-                HorizontalAlignment="Left" Margin="141,150,0,0" VerticalAlignment="Top" Width="800" Click="fileNameAnswerButton_Click"/>
+                HorizontalAlignment="Center" VerticalAlignment="Center" Width="800" Click="fileNameAnswerButton_Click"/>
         <Button x:Name="customAnswerButton" Content="3. Sam ustawię odpowiedzi dla każdego z pytań" 
-                HorizontalAlignment="Left" Margin="141,180,0,0" VerticalAlignment="Top" Width="800" Click="customAnswerButton_Click"/>
+                 HorizontalAlignment="Center" VerticalAlignment="Center" Width="800" Click="customAnswerButton_Click" Margin="-144,161,-144,107"/>
         <TextBox x:Name="customAnswerAdding" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120" Margin="193,221,0,0" KeyDown="addingCustomAnswers"/>
         <Button x:Name="customAnswerConfirm" Content="Dalej" 
                 HorizontalAlignment="Left" Margin="171,249,0,0" VerticalAlignment="Top" Width="75" Click="customAnswerConfirm_Click"/>

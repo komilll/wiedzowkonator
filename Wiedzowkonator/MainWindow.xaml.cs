@@ -152,9 +152,7 @@ namespace Wiedzowkonator
                     {
                         int currentQuestion = lastQuestionIndex = int.Parse(questionNumberBox.Text) - 1;
                         questionText.Text = textQuestions[currentQuestion];
-                        //MessageBox.Show(textQuestions[currentQuestion] + " Number: " + currentQuestion.ToString());
-                        questionText.Width = 250; //Showing textblock with question when answering the question
-                        //TODO - ogarnąć odrzucanie wykonanych pytań (textQuestionsCompleted) oraz liczby temu towarzyszące
+                        ShowingQuestion(); //Showing question text and button to skip to answer and giving points
                     }
                     questionNumberBox.Text = "";
                 }
@@ -253,7 +251,6 @@ namespace Wiedzowkonator
                 FileInfo info = new FileInfo(bitmapImage[lastScreenshotIndex].UriSource.LocalPath);
                 string[] nameToPass = info.FullName.Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
                 serializationData.answeredScreenshots.Add(nameToPass[0] + info.Extension); //Adding name of completed question
-                MessageBox.Show(nameToPass[0] + info.Extension);
 
                 screenshotsCompleted++;
                 for (int i = lastScreenshotIndex; i < screenshots.Length - 1; i++)
@@ -288,6 +285,8 @@ namespace Wiedzowkonator
 
             }
             QuickSave(); //If everything went good, current state is being save and if power is off or program crashes, user can load his last save
+            SwitchingOffAllFields();
+            ChoosingQuestion();
         }
 
         private void ReloadLastQuiz_Yes(object sender, RoutedEventArgs e) //Question on start
@@ -378,6 +377,8 @@ namespace Wiedzowkonator
             curQuizState = quizState.givingPoints;
             StartClick(null, null);
             correctAnswer.Text = textAnswers[lastQuestionIndex];
+            SwitchingOffAllFields();
+            GivingPoints_ShowingAnswers(); //Showing answer and giving points to contestants
         }
 
         #region Open, Save, Load
@@ -435,15 +436,20 @@ namespace Wiedzowkonator
             else if (curQuizType == quizType.text)
             {
                 //fileDialog.Multiselect = false;
+                fileDialog.Filter = "TXT files (*.txt) | *.txt";
                 if (fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
                     string path = fileDialog.FileName;
-                    txtFilePath = path;
-                    OpeningTextQuiz(path);
+                    if (new FileInfo(path).Extension == ".txt")
+                    {
+                        txtFilePath = path;
+                        OpeningTextQuiz(path);
+                    }
+                    else
+                        MessageBox.Show("Proszę wybrać plik o odpowiednim rozszerzeniu (*.txt). Obecnie wybrany plik: \n" + path + " posiada niepoprawne rozszerzenie");
                 }
             }
         }
-        //TODO -- loading, quick saving, quick loading text questions
         //Saving current state to file in chosen location
         private void Save(object sender, RoutedEventArgs e)
         {           
@@ -516,9 +522,8 @@ namespace Wiedzowkonator
                     foreach (FileInfo file in directoryWithScreenshots.GetFiles())
                     {
                         files[index] = file.FullName;
-                        if (file.Extension.Contains(".anime"))
+                        if (file.Extension != ".jpg" && file.Extension != ".png" && file.Extension != ".bmp" && file.Extension != ".jpeg" && file.Extension != ".gif")
                         {
-                            MessageBox.Show(file.Extension);
                             numberOfSkippedFiles++; //It'll be used in "for" loop to set number of loops
                                                     //Not increasing index
                             dataFile = file.FullName;
@@ -552,10 +557,7 @@ namespace Wiedzowkonator
                         {
                             if (serializationData.answeredScreenshots[i] == nameOfScreenshots[j])
                             {
-                                //MessageBox.Show("i = " + i + "; j = " + j);
-                                //MessageBox.Show(nameOfScreenshots[j]);
                                 screenshotsCompleted++;
-                                //screenshots[i] = null;
 
                                 for (int k = j; k < screenshots.Length - 1; k++)
                                 {
@@ -584,10 +586,8 @@ namespace Wiedzowkonator
                     {
                         for (int j = 0; j < textQuestions.Length; j++)
                         {
-                            MessageBox.Show(serializationText.answeredQuestions[i] + " :: " + textQuestions[j]);
                             if (serializationText.answeredQuestions[i] == textQuestions[j])
-                            {
-                                MessageBox.Show(textQuestions[j]);
+                            {   
                                 textQuestionsCompleted++;
                                 textQuestions[i] = null; textTitles[i] = null; textAnswers[i] = null;
                                 for (int k = j; k < textQuestions.Length - 1; k++)
@@ -646,19 +646,31 @@ namespace Wiedzowkonator
 
                 bf.Serialize(stream, data);
             }
-            stream.Close();
+            else if (curQuizType == quizType.text)
+            {
+                stream = File.Create(path + ".animetext");
+                SerializationDataText data = new SerializationDataText();
+
+                data.answeredQuestions = serializationText.answeredQuestions;
+                data.points[0] = pointsFirstParticipant.Text;
+                data.participants[0] = nameFirstParticipant.Text;
+                data.txtFileLocalization = txtFilePath;
+                data.curAnswerType = serializationText.curAnswerType = (SerializationDataText.answerType)curAnswerType;
+                data.curQuizType = serializationText.curQuizType = (SerializationDataText.quizType)curQuizType;
+
+                bf.Serialize(stream, data);         
+            }
+            stream.Close(); //Closing stream to prevent from damaging data
         }
 
         private void QuickLoad() //Loading at the start of quiz
         {
-            //TODO -- Finish loading/saving when done with choosing quizType menu
             //Loading data containing deeper information and values of variables
             DirectoryInfo directory = new DirectoryInfo(quickSavePath);
             string path = (from f in directory.GetFiles()
                            orderby f.LastWriteTime descending
                            select f).First().FullName;
             BinaryFormatter bf = new BinaryFormatter();
-            //MessageBox.Show(path);
             FileStream stream = File.Open(path, FileMode.Open);
 
             if (curQuizType == quizType.screenshot)
@@ -673,7 +685,6 @@ namespace Wiedzowkonator
                 MessageBox.Show(curAnswerType.ToString());
                 //Loading screenshots from directory where they should be
                 DirectoryInfo directoryWithScreenshots = new DirectoryInfo(screenshotsLocalizationPath);
-                //MessageBox.Show(directoryWithScreenshots.ToString());
                 string[] files = new string[directoryWithScreenshots.GetFiles().Length];
                 int index = 0;
                 int numberOfSkippedFiles = 0;
@@ -682,7 +693,7 @@ namespace Wiedzowkonator
                 foreach (FileInfo file in directoryWithScreenshots.GetFiles())
                 {
                     files[index] = file.FullName;
-                    if (file.Extension == ".anime")
+                    if (file.Extension != ".jpg" && file.Extension != ".png" && file.Extension != ".bmp" && file.Extension != ".jpeg" && file.Extension != ".gif")
                     {
                         numberOfSkippedFiles++; //It'll be used in "for" loop to set number of loops
                                                 //Not increasing index
@@ -717,11 +728,7 @@ namespace Wiedzowkonator
                     {
                         if (serializationData.answeredScreenshots[i] == nameOfScreenshots[j])
                         {
-                            //MessageBox.Show("i = " + i + "; j = " + j);
-                            MessageBox.Show(nameOfScreenshots[j]);
                             screenshotsCompleted++;
-                            //screenshots[i] = null;
-
                             for (int k = j; k < screenshots.Length - 1; k++)
                             {
                                 screenshots[k] = screenshots[k + 1];
@@ -749,10 +756,8 @@ namespace Wiedzowkonator
                 {
                     for (int j = 0; j < textQuestions.Length; j++)
                     {
-                        MessageBox.Show(serializationText.answeredQuestions[i] + " :: " + textQuestions[j]);
                         if (serializationText.answeredQuestions[i] == textQuestions[j])
                         {
-                            MessageBox.Show(textQuestions[j]);
                             textQuestionsCompleted++;
                             textQuestions[i] = null; textTitles[i] = null; textAnswers[i] = null;
                             for (int k = j; k < textQuestions.Length - 1; k++)
@@ -789,7 +794,8 @@ namespace Wiedzowkonator
             }
 
             File.Create(quickSavePath + "toDelete.txt").Close();
-            MessageBox.Show(quickSavePath + "toDelete.txt");
+            SwitchingOffAllFields(); //Clearing all currently open fields to width = 0
+            CustomScreenshotAnswersAdding(); //Showing fields to add custom answers
         }
 
         private void fileNameAnswerButton_Click(object sender, RoutedEventArgs e)
@@ -799,6 +805,8 @@ namespace Wiedzowkonator
             customAnswerButton.Width = fileNameAnswerButton.Width = noAnswerButton.Width = 0;
             QuizHUDAfterImporting(true);
             curQuizState = quizState.choosingQuestion;
+            SwitchingOffAllFields();
+            ChoosingQuestion();
         }
 
         private void noAnswerButton_Click(object sender, RoutedEventArgs e)
@@ -808,6 +816,8 @@ namespace Wiedzowkonator
             customAnswerButton.Width = fileNameAnswerButton.Width = noAnswerButton.Width = 0;
             QuizHUDAfterImporting(true);
             curQuizState = quizState.choosingQuestion;
+            SwitchingOffAllFields();
+            ChoosingQuestion();
         }
 
         private void addingCustomAnswers(object sender, KeyEventArgs e)
@@ -874,6 +884,8 @@ namespace Wiedzowkonator
                     canvasScreenshotQuiz.Children.Clear();
                     QuizHUDAfterImporting(true);
                     curQuizState = quizState.choosingQuestion;
+                    SwitchingOffAllFields();
+                    ChoosingQuestion(); //Choosing question state after choosing all custom answers
                 }
             }
         }
@@ -964,6 +976,9 @@ namespace Wiedzowkonator
                 }
             }
         }
+
+        /***************************************** Showing/hiding all fields and managing them ************************************************************/
+
         void SwitchingOffAllFields()
         {
             //Choosing type of quiz
@@ -971,6 +986,10 @@ namespace Wiedzowkonator
             screenshotQuizButton.Width = 0;
             musicQuizButton.Width = 0;
             mixedQuizButton.Width = 0;
+            //Choosing how to import the quiz
+            openQuizButton.Width = 0;
+            loadQuizButton.Width = 0;
+            quickLoadQuizButton.Width = 0;
             //Choosing number of question
             StartButton.Width = 0;
             questionNumberBox.Width = 0;
@@ -980,12 +999,13 @@ namespace Wiedzowkonator
             //Giving points, confirming points, going back to question
             confirmPoints.Width = 0;
             goBack.Width = 0;
-            correctAnswer.Width = 0;
+            //correctAnswer.Width = 0; // --> This value is set to auto
             plusFirstParticipant.Width = 0;
             minutFirstParticipant.Width = 0;
             nameFirstParticipant.Width = 0;
             pointsFirstParticipant.Width = 0;
-            //Asking user if he wants to reload last quiz
+            //Asking user if he wants to reload last quiz 
+            //TODO -- Rather unused in current context. Will fix in the future
             ReloadTextBlock.Width = 0;
             ReloadButton_Yes.Width = 0;
             ReloadButton_No.Width = 0;
@@ -1009,22 +1029,120 @@ namespace Wiedzowkonator
 
         void ChoosingQuizOpeningType()
         {
-
+            //TODO - Ustalić wartości zależne od długości znaków w przycisku (+ ~15px)
+            openQuizButton.Width = 250;
+            loadQuizButton.Width = 250;
+            quickLoadQuizButton.Width = 250;
         }
 
         void ChoosingQuestion()
         {
-
+            StartButton.Width = 150;
+            questionNumberBox.Width = 132; //This field is focusable (XAML)
+            Keyboard.Focus(questionNumberBox);
         }
 
         void ShowingQuestion()
         {
-
+            if (curQuizType == quizType.text)
+            {
+                questionText.Width = 250;
+                SkipQuestion.Width = 150;
+            }
         }
 
         void GivingPoints_ShowingAnswers()
         {
+            //TODO -- dodać więcej uczestników oraz ogarnąć wartości procentowe
+            confirmPoints.Width = 75;
+            goBack.Width = 75;
+            //correctAnswer.Width = 0;
+            nameFirstParticipant.Width = 120;
+            pointsFirstParticipant.Width = 33;
+            plusFirstParticipant.Width = 33;
+            minutFirstParticipant.Width = 33;
+        }
 
+        void CustomScreenshotAnswers()
+        {
+            noAnswerButton.Width = 800;
+            fileNameAnswerButton.Width = 800;
+            customAnswerButton.Width = 800;
+        }
+
+        void CustomScreenshotAnswersAdding()
+        {
+            customAnswerAdding.Width = 120;
+            customAnswerConfirm.Width = 75;
+            customAnswerBack.Width = 75;
+        }
+
+        private void textQuizButton_Click(object sender, RoutedEventArgs e)
+        {
+            curQuizType = quizType.text;
+            SwitchingOffAllFields();
+            ChoosingQuizOpeningType();
+        }
+
+        private void screenshotQuizButton_Click(object sender, RoutedEventArgs e)
+        {
+            curQuizType = quizType.screenshot;
+            SwitchingOffAllFields();
+            ChoosingQuizOpeningType();
+        }
+
+        private void musicQuizButton_Click(object sender, RoutedEventArgs e)
+        {
+            curQuizType = quizType.music;
+            SwitchingOffAllFields();
+            ChoosingQuizOpeningType();
+        }
+
+        private void mixedQuizButton_Click(object sender, RoutedEventArgs e)
+        {
+            curQuizType = quizType.mixed;
+            SwitchingOffAllFields();
+            ChoosingQuizOpeningType();
+        }
+
+        private void openQuizButton_Click(object sender, RoutedEventArgs e)
+        {
+            Open(null, null);
+            if (textQuestions != null || screenshots != null)
+            {
+                if (curQuizType == quizType.screenshot)
+                {
+                    SwitchingOffAllFields();
+                    CustomScreenshotAnswers();
+                }
+                else
+                {
+                    SwitchingOffAllFields();
+                    ChoosingQuestion();
+                }
+            }
+        }
+
+        private void loadQuizButton_Click(object sender, RoutedEventArgs e)
+        {
+            Load(null, null);
+            if (textQuestions != null || screenshots != null)
+            {
+                SwitchingOffAllFields();
+                ChoosingQuestion();
+            }
+        }
+
+        private void quickLoadQuizButton_Click(object sender, RoutedEventArgs e)
+        {
+            //TODO -- sprawdzanie rodzaju importowanej wiedzówki
+            //TODO -- dodanie przycisku, który ładuje ostatnią wiedzówkę, niezależnie jakiego typu była
+            QuickLoad();
+            if (textQuestions != null || screenshots != null)
+            {
+                SwitchingOffAllFields();
+                ChoosingQuestion();
+            }
         }
     }
     #endregion

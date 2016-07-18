@@ -39,7 +39,7 @@ namespace Wiedzowkonator
         public List<string> answeredScreenshots = new List<string>(); //List of which screenshots were already shown
         public string[] points = new string[1]; //Number of participant points
         public string[] participants = new string[1]; //Name of participants
-        public string _screenshotsLocalizationPath; //Path to quiz files (screenshot, music, text questions etc.)
+        public string[] _screenshotsLocalizationPath; //Path to quiz files (screenshot, music, text questions etc.)
         public enum answerType { noAnswer, fileNameAnswer, customAnswer };
         public answerType curAnswerType;
         public enum quizType { screenshot, text, music, mixed };
@@ -73,7 +73,7 @@ namespace Wiedzowkonator
         int screenshotsCompleted; //If user already answered this screenshot it won't be shown again
         static string userName = Environment.UserName; //Name of user logged on Windows account
         string quickSavePath = "C:/Users/" + userName + "/AppData/LocalLow/Wiedzowkonator/"; //Choosing directory path
-        string screenshotsLocalizationPath; //Localizition of directory which contains screenshots
+        string[] screenshotsLocalizationPath; //Localizition of directory which contains screenshots
         int customAnswerIndex; //Index that increases after pressing "next"; Help with managing custom answers
         /*** ___________________________ ***/
         /*** Text quiz variables ***/
@@ -386,9 +386,14 @@ namespace Wiedzowkonator
         private void Open(object sender, RoutedEventArgs e) //Importing new screenshots
         {
             OpenFileDialog fileDialog = new OpenFileDialog();
-            fileDialog.Multiselect = true;
             if (curQuizType == quizType.screenshot)
             {
+                fileDialog.Multiselect = true;
+                #region fileDialog.Filter
+fileDialog.Filter =
+"Graphic Files (*.*)| *.png;*.jpg;*.jpeg;*.jpe;*.jfif;*.bmp;*.dib;*.rle;*.gif;*.tif;*.tiff|PNG Files (*.PNG)| *.png|JPEG Files (*.JPG); (*.JPEG); (*.JPE); (*JFIF)|*.jpg;*.jpeg;*.jpe;*.jfif|BMP Files (*.BMP); (*.DIB); (*.RLE)|*.bmp;*.dib;*.rle|GIF Files (*.GIF)|*.gif|TIFF Files (*.TIF); (*.TIFF)|*.tif;*.tiff";
+                #endregion
+                //fileDialog.Filter = bmpFiles;
                 if (fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
                     string[] path = fileDialog.FileNames;
@@ -396,8 +401,9 @@ namespace Wiedzowkonator
                     bitmapImage = new BitmapImage[path.Length];
                     screenshots = new Image[bitmapImage.Length];
                     nameOfScreenshots = new string[bitmapImage.Length];
-                    screenshotsLocalizationPath = Directory.GetParent(path[0]).ToString(); //Getting directory where screenshots are stored
-                                                                                           //Temporary image and bitmapImage arrays. They're used to pass screenshots when randomizing questions
+                    //screenshotsLocalizationPath = Directory.GetParent(path[0]).ToString(); //Getting directory where screenshots are stored
+                    //Temporary image and bitmapImage arrays. They're used to pass screenshots when randomizing questions
+                    screenshotsLocalizationPath = path;
                     Image[] screenshotsToPass = new Image[bitmapImage.Length];
                     BitmapImage[] bitmapImageToPass = new BitmapImage[bitmapImage.Length];
                     int index = 0; //Index of each screenshot
@@ -435,8 +441,9 @@ namespace Wiedzowkonator
             }
             else if (curQuizType == quizType.text)
             {
+                fileDialog.Multiselect = false;
                 //fileDialog.Multiselect = false;
-                fileDialog.Filter = "TXT files (*.txt) | *.txt";
+                fileDialog.Filter = "TXT Files (*.TXT) | *.txt";
                 if (fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
                     string path = fileDialog.FileName;
@@ -496,13 +503,14 @@ namespace Wiedzowkonator
         private void Load(object sender, RoutedEventArgs e)
         {           
             OpenFileDialog fileDialog = new OpenFileDialog();
+            if (curQuizType == quizType.screenshot) fileDialog.Filter = "AnimeScreenshot (*.ANIMESCREEN)| *.animescreen";
+                else if (curQuizType == quizType.text) fileDialog.Filter = "AnimeText (*.ANIMETEXT)| *.animetext";
             if (fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 string path = fileDialog.FileName;
 
                 BinaryFormatter bf = new BinaryFormatter();
-                FileStream stream = File.Open(path, FileMode.Open);
-                
+                FileStream stream = File.Open(path, FileMode.Open);            
                 if (curQuizType == quizType.screenshot)
                 {
                     SerializationData data = (SerializationData)bf.Deserialize(stream);
@@ -513,12 +521,12 @@ namespace Wiedzowkonator
                     curAnswerType = (answerType)data.curAnswerType;
                     curQuizType = (quizType)data.curQuizType;
                     MessageBox.Show(curAnswerType.ToString());
-                    DirectoryInfo directoryWithScreenshots = new DirectoryInfo(screenshotsLocalizationPath);
-                    string[] files = new string[directoryWithScreenshots.GetFiles().Length];
-                    int index = 0;
-                    int numberOfSkippedFiles = 0;
-                    string dataFile;
-
+                    //DirectoryInfo directoryWithScreenshots = new DirectoryInfo(screenshotsLocalizationPath);
+                    //[] files = new string[directoryWithScreenshots.GetFiles().Length];
+                    //int index = 0;
+                    //int numberOfSkippedFiles = 0;
+                    //string dataFile;
+                    /*
                     foreach (FileInfo file in directoryWithScreenshots.GetFiles())
                     {
                         files[index] = file.FullName;
@@ -532,12 +540,12 @@ namespace Wiedzowkonator
                         {
                             index++;
                         }
-                    }
+                    }*/
 
-                    bitmapImage = new BitmapImage[directoryWithScreenshots.GetFiles().Length - numberOfSkippedFiles];
-                    screenshots = new Image[bitmapImage.Length];
-                    nameOfScreenshots = new string[bitmapImage.Length];
-                    for (int k = 0; k < directoryWithScreenshots.GetFiles().Length - numberOfSkippedFiles; k++)
+                    //bitmapImage = new BitmapImage[directoryWithScreenshots.GetFiles().Length - numberOfSkippedFiles];
+                    //screenshots = new Image[bitmapImage.Length];
+                    //nameOfScreenshots = new string[bitmapImage.Length];
+                    /*for (int k = 0; k < directoryWithScreenshots.GetFiles().Length - numberOfSkippedFiles; k++)
                     {
                         bitmapImage[k] = new BitmapImage(new Uri(files[k], UriKind.Absolute));
                         screenshots[k] = new Image();
@@ -545,6 +553,22 @@ namespace Wiedzowkonator
                         screenshots[k].Width = bitmapImage[k].Width;
                         screenshots[k].Height = bitmapImage[k].Height;
                         nameOfScreenshots[k] = files[k];
+
+                        string[] correctNameOfScreenshot = nameOfScreenshots[k].Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
+                        FileInfo info = new FileInfo(nameOfScreenshots[k]);
+                        nameOfScreenshots[k] = correctNameOfScreenshot[0] + info.Extension;
+                    }*/
+                    bitmapImage = new BitmapImage[screenshotsLocalizationPath.Length];
+                    screenshots = new Image[bitmapImage.Length];
+                    nameOfScreenshots = new string[bitmapImage.Length];
+                    for (int k = 0; k < screenshotsLocalizationPath.Length; k++)
+                    {
+                        bitmapImage[k] = new BitmapImage(new Uri(screenshotsLocalizationPath[k], UriKind.Absolute));
+                        screenshots[k] = new Image();
+                        screenshots[k].Source = bitmapImage[k];
+                        screenshots[k].Width = bitmapImage[k].Width;
+                        screenshots[k].Height = bitmapImage[k].Height;
+                        nameOfScreenshots[k] = screenshotsLocalizationPath[k];
 
                         string[] correctNameOfScreenshot = nameOfScreenshots[k].Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
                         FileInfo info = new FileInfo(nameOfScreenshots[k]);
@@ -632,9 +656,10 @@ namespace Wiedzowkonator
             string path = quickSavePath + "quickSave-" + DateTime.Now.ToString("dd/MM/yyyy HH_mm");
 
             BinaryFormatter bf = new BinaryFormatter();
-            FileStream stream = File.Create(path + ".anime");
+            FileStream stream;
             if (curQuizType == quizType.screenshot)
             {
+                stream = File.Create(path + ".animescreen");
                 SerializationData data = new SerializationData();
 
                 data.answeredScreenshots = serializationData.answeredScreenshots;
@@ -645,6 +670,7 @@ namespace Wiedzowkonator
                 data.curQuizType = serializationData.curQuizType = (SerializationData.quizType)curQuizType;
 
                 bf.Serialize(stream, data);
+                stream.Close(); //Closing stream to prevent from damaging data
             }
             else if (curQuizType == quizType.text)
             {
@@ -658,18 +684,30 @@ namespace Wiedzowkonator
                 data.curAnswerType = serializationText.curAnswerType = (SerializationDataText.answerType)curAnswerType;
                 data.curQuizType = serializationText.curQuizType = (SerializationDataText.quizType)curQuizType;
 
-                bf.Serialize(stream, data);         
+                bf.Serialize(stream, data);
+                stream.Close(); //Closing stream to prevent from damaging data      
             }
-            stream.Close(); //Closing stream to prevent from damaging data
         }
 
         private void QuickLoad() //Loading at the start of quiz
         {
             //Loading data containing deeper information and values of variables
             DirectoryInfo directory = new DirectoryInfo(quickSavePath);
-            string path = (from f in directory.GetFiles()
+            FileInfo[] pathToCheck = directory.GetFiles();
+            List<FileInfo> extensionPaths = new List<FileInfo>();
+            for (int i = 0; i < pathToCheck.Length; i++)
+            {
+                if (curQuizType == quizType.screenshot) {
+                    if (pathToCheck[i].Extension == ".animescreen") extensionPaths.Add(pathToCheck[i]);
+                }
+                else if (curQuizType == quizType.text) {
+                    if (pathToCheck[i].Extension == ".animetext") extensionPaths.Add(pathToCheck[i]);
+                }
+            }
+            string path = (from f in extensionPaths
                            orderby f.LastWriteTime descending
                            select f).First().FullName;
+            //MessageBox.Show(path);
             BinaryFormatter bf = new BinaryFormatter();
             FileStream stream = File.Open(path, FileMode.Open);
 
@@ -684,7 +722,7 @@ namespace Wiedzowkonator
 
                 MessageBox.Show(curAnswerType.ToString());
                 //Loading screenshots from directory where they should be
-                DirectoryInfo directoryWithScreenshots = new DirectoryInfo(screenshotsLocalizationPath);
+                /*DirectoryInfo directoryWithScreenshots = new DirectoryInfo(screenshotsLocalizationPath);
                 string[] files = new string[directoryWithScreenshots.GetFiles().Length];
                 int index = 0;
                 int numberOfSkippedFiles = 0;
@@ -716,6 +754,23 @@ namespace Wiedzowkonator
                     screenshots[k].Width = bitmapImage[k].Width;
                     screenshots[k].Height = bitmapImage[k].Height;
                     nameOfScreenshots[k] = files[k];
+
+                    string[] correctNameOfScreenshot = nameOfScreenshots[k].Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
+                    FileInfo info = new FileInfo(nameOfScreenshots[k]);
+                    nameOfScreenshots[k] = correctNameOfScreenshot[0] + info.Extension;
+                }
+                */
+                bitmapImage = new BitmapImage[screenshotsLocalizationPath.Length];
+                screenshots = new Image[bitmapImage.Length];
+                nameOfScreenshots = new string[bitmapImage.Length];
+                for (int k = 0; k < screenshotsLocalizationPath.Length; k++)
+                {
+                    bitmapImage[k] = new BitmapImage(new Uri(screenshotsLocalizationPath[k], UriKind.Absolute));
+                    screenshots[k] = new Image();
+                    screenshots[k].Source = bitmapImage[k];
+                    screenshots[k].Width = bitmapImage[k].Width;
+                    screenshots[k].Height = bitmapImage[k].Height;
+                    nameOfScreenshots[k] = screenshotsLocalizationPath[k];
 
                     string[] correctNameOfScreenshot = nameOfScreenshots[k].Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
                     FileInfo info = new FileInfo(nameOfScreenshots[k]);

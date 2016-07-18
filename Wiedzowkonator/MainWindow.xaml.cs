@@ -83,6 +83,10 @@ namespace Wiedzowkonator
         int lastQuestionIndex; //Last question index
         int textQuestionsCompleted; //Checking how many questions were already shown to contestants
         string txtFilePath; //Path to txt file from which question/titles/answers were (or will be if saved) imported
+        /*** ___________________________ ***/
+        /*** Music quiz variables ***/
+        private MediaPlayer mediaPlayer = new MediaPlayer();
+        
 
         //Enum type that shows which state of quiz is currently in progress
         enum quizState { customizingQuestions, choosingQuestion, answeringQuestion, givingPoints };
@@ -1148,9 +1152,14 @@ fileDialog.Filter =
 
         private void musicQuizButton_Click(object sender, RoutedEventArgs e)
         {
-            curQuizType = quizType.music;
-            SwitchingOffAllFields();
-            ChoosingQuizOpeningType();
+            //curQuizType = quizType.music;
+            //SwitchingOffAllFields();
+            //ChoosingQuizOpeningType();
+            OpenFileDialog fileDialog = new OpenFileDialog();
+            if (fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                mediaPlayer.Open(new Uri(fileDialog.FileName));
+            }
         }
 
         private void mixedQuizButton_Click(object sender, RoutedEventArgs e)
@@ -1198,6 +1207,26 @@ fileDialog.Filter =
                 SwitchingOffAllFields();
                 ChoosingQuestion();
             }
+        }
+
+        private void playAudioButton_Click(object sender, RoutedEventArgs e)
+        {
+            mediaPlayer.Play();
+        }
+
+        private void pauseAudioButton_Click(object sender, RoutedEventArgs e)
+        {
+            mediaPlayer.Pause();
+        }
+
+        private void stopAudioButton_Click(object sender, RoutedEventArgs e)
+        {
+            mediaPlayer.Stop();
+        }
+
+        private void volumeAudioSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            mediaPlayer.Volume = e.NewValue / 10;
         }
     }
     #endregion

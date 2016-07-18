@@ -86,7 +86,7 @@ namespace Wiedzowkonator
         /*** ___________________________ ***/
         /*** Music quiz variables ***/
         private MediaPlayer mediaPlayer = new MediaPlayer();
-        
+        bool draggingProgressSlider = false; //Currently unused
 
         //Enum type that shows which state of quiz is currently in progress
         enum quizState { customizingQuestions, choosingQuestion, answeringQuestion, givingPoints };
@@ -103,6 +103,12 @@ namespace Wiedzowkonator
         {
             InitializeComponent(); //Opening window
             Start(); //Initializing window's properties like width, sizes etc.
+
+            //Variables used for making simple mp3 player for music quiz
+            System.Windows.Threading.DispatcherTimer timer = new System.Windows.Threading.DispatcherTimer();
+            timer.Interval = TimeSpan.FromSeconds(1);
+            timer.Tick += timer_Tick;
+            timer.Start();
         }
 
         public void Start()
@@ -1160,6 +1166,7 @@ fileDialog.Filter =
             {
                 mediaPlayer.Open(new Uri(fileDialog.FileName));
             }
+            SwitchingOffAllFields();
         }
 
         private void mixedQuizButton_Click(object sender, RoutedEventArgs e)
@@ -1209,8 +1216,10 @@ fileDialog.Filter =
             }
         }
 
+        /************************************** MUSIC QUIZ METHODS *******************************************/
         private void playAudioButton_Click(object sender, RoutedEventArgs e)
         {
+            mediaPlayer.Volume = volumeAudioSlider.Value / 10;
             mediaPlayer.Play();
         }
 
@@ -1227,6 +1236,21 @@ fileDialog.Filter =
         private void volumeAudioSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             mediaPlayer.Volume = e.NewValue / 10;
+        }
+
+        private void timer_Tick(object sender, EventArgs e)
+        {
+            if ((mediaPlayer.Source != null) && (mediaPlayer.NaturalDuration.HasTimeSpan))
+            {
+                progressAudioSlider.Minimum = 0;
+                progressAudioSlider.Maximum = mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds;
+                progressAudioSlider.Value = mediaPlayer.Position.TotalSeconds;
+            }
+        }
+
+        private void progressAudioSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            mediaPlayer.Position = TimeSpan.FromSeconds(progressAudioSlider.Value);
         }
     }
     #endregion

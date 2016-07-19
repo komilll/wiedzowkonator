@@ -39,20 +39,31 @@ namespace Wiedzowkonator
         public List<string> answeredScreenshots = new List<string>(); //List of which screenshots were already shown
         public string[] points = new string[1]; //Number of participant points
         public string[] participants = new string[1]; //Name of participants
-        public string[] _screenshotsLocalizationPath; //Path to quiz files (screenshot, music, text questions etc.)
+        public string[] _screenshotsLocalizationPath; //Path to quiz files (screenshot)
         public enum answerType { noAnswer, fileNameAnswer, customAnswer };
         public answerType curAnswerType;
         public enum quizType { screenshot, text, music, mixed };
         public quizType curQuizType;
     }
-
     [Serializable]
     public class SerializationDataText
     {
-        public List<string> answeredQuestions = new List<string>(); //List of which screenshots were already shown
+        public List<string> answeredQuestions = new List<string>(); //List of which text questions were already shown
         public string[] points = new string[1]; //Number of participant points
         public string[] participants = new string[1]; //Name of participants
-        public string txtFileLocalization; //Path to quiz files (screenshot, music, text questions etc.)
+        public string txtFileLocalization; //Path to quiz files (text questions)
+        public enum answerType { noAnswer, fileNameAnswer, customAnswer };
+        public answerType curAnswerType;
+        public enum quizType { screenshot, text, music, mixed };
+        public quizType curQuizType;
+    }
+    [Serializable]
+    public class SerializationDataMusic
+    {
+        public List<string> answeredQuestions = new List<string>(); //List of which music questions were already shown
+        public string[] points = new string[1]; //Number of participant points
+        public string[] participants = new string[1]; //Name of participants
+        public string[] musicFilesLocalization; //Path to quiz files (music)
         public enum answerType { noAnswer, fileNameAnswer, customAnswer };
         public answerType curAnswerType;
         public enum quizType { screenshot, text, music, mixed };
@@ -64,6 +75,7 @@ namespace Wiedzowkonator
         /*** Screenshot quiz variables ***/
         SerializationData serializationData = new SerializationData(); //Variable class
         SerializationDataText serializationText = new SerializationDataText();
+        SerializationDataMusic serializationMusic = new SerializationDataMusic();
 
         public Image[] screenshots; //Screenshots that will be shown on canvas
         BitmapImage[] bitmapImage; //Images that will be written into "screenshots" variable
@@ -86,7 +98,14 @@ namespace Wiedzowkonator
         /*** ___________________________ ***/
         /*** Music quiz variables ***/
         private MediaPlayer mediaPlayer = new MediaPlayer();
-        bool draggingProgressSlider = false; //Currently unused
+        //bool draggingProgressSlider = false; //Currently unused
+        string[] musicFilesPath;
+        int musicQuestionsCompleted;
+        /*** Mixed quiz variables ***/
+        List<int> mixedQuizIndexes = new List<int>();
+        List<int> mixedQuizScreenshot = new List<int>();
+        List<int> mixedQuizText = new List<int>();
+        List<int> mixedQuizMusic = new List<int>();
 
         //Enum type that shows which state of quiz is currently in progress
         enum quizState { customizingQuestions, choosingQuestion, answeringQuestion, givingPoints };
@@ -146,7 +165,9 @@ namespace Wiedzowkonator
                 if (curQuizType == quizType.screenshot)
                     questionLength = screenshots.Length - screenshotsCompleted;
                 else if (curQuizType == quizType.text)
-                    questionLength = textQuestions.Length;
+                    questionLength = textQuestions.Length - textQuestionsCompleted;
+                else if (curQuizType == quizType.music)
+                    questionLength = musicFilesPath.Length - musicQuestionsCompleted;
                 if (!string.IsNullOrWhiteSpace(questionNumberBox.Text) && isNumeric && int.Parse(questionNumberBox.Text) <= questionLength)
                 {
                     if (curQuizType == quizType.screenshot)
@@ -164,6 +185,13 @@ namespace Wiedzowkonator
                         questionText.Text = textQuestions[currentQuestion];
                         ShowingQuestion(); //Showing question text and button to skip to answer and giving points
                     }
+                    else if (curQuizType == quizType.music)
+                    {
+                        int currentMusicQuestionIndex = lastQuestionIndex = int.Parse(questionNumberBox.Text) - 1;
+                        mediaPlayer.Open(new Uri(musicFilesPath[currentMusicQuestionIndex]));
+                        MusicHUDShow();
+                    }
+
                     questionNumberBox.Text = "";
                 }
                 else //Uncorrectly written number
@@ -172,6 +200,8 @@ namespace Wiedzowkonator
                         MessageBox.Show("Wybierz liczby od 1 do " + (screenshots.Length - screenshotsCompleted));
                     else if (curQuizType == quizType.text)
                         MessageBox.Show("Wybierz liczby od 1 do " + (textQuestions.Length - textQuestionsCompleted));
+                    else if (curQuizType == quizType.music)
+                        MessageBox.Show("Wybierz liczby od 1 do " + (musicFilesPath.Length - musicQuestionsCompleted));
                     questionNumberBox.Text = "";
                     if (screenshotQuizStarted == false)
                         screenshotQuizStarted = true;
@@ -292,7 +322,21 @@ namespace Wiedzowkonator
                     textQuestions[lastQuestionIndex] = null; textAnswers[lastQuestionIndex] = null; textTitles[lastQuestionIndex] = null;
                     MessageBox.Show("KONIEC WIEDZÓWKI!");
                 }
-
+            }
+            else if (curQuizType == quizType.music)
+            {
+                serializationMusic.answeredQuestions.Add(musicFilesPath[lastQuestionIndex]);
+                musicFilesPath[lastQuestionIndex] = null;
+                musicQuestionsCompleted++;
+                for (int i = lastQuestionIndex; i < musicFilesPath.Length - 1; i++)
+                {
+                    musicFilesPath[i] = musicFilesPath[i + 1];
+                }
+                if (musicFilesPath.Length == musicQuestionsCompleted)
+                {
+                    musicFilesPath[lastQuestionIndex] = null;
+                    MessageBox.Show("KONIEC WIEDZÓWKI!");
+                }
             }
             QuickSave(); //If everything went good, current state is being save and if power is off or program crashes, user can load his last save
             SwitchingOffAllFields();
@@ -320,6 +364,7 @@ namespace Wiedzowkonator
 
         private void goBack_Click(object sender, RoutedEventArgs e) //Showing again screenshot before giving points
         {
+            //TODO -- going back music quiz
             curQuizState = quizState.answeringQuestion;
             ShowingHUD();
             if (screenshotQuizStarted == false)
@@ -330,8 +375,14 @@ namespace Wiedzowkonator
                 canvasScreenshotQuiz.Children.Add(screenshots[lastScreenshotIndex]);
             else if (curQuizType == quizType.text)
             {
-                questionText.Width = 250;
+                SwitchingOffAllFields();
+                ShowingQuestion();
                 questionText.Text = textQuestions[lastQuestionIndex];
+            }
+            else if (curQuizType == quizType.music)
+            {
+                SwitchingOffAllFields();
+                MusicHUDShow();
             }
         }
 
@@ -389,6 +440,15 @@ namespace Wiedzowkonator
             correctAnswer.Text = textAnswers[lastQuestionIndex];
             SwitchingOffAllFields();
             GivingPoints_ShowingAnswers(); //Showing answer and giving points to contestants
+        }
+
+        private void SkipMusicQuestion_Click(object sender, RoutedEventArgs e)
+        {
+            curQuizState = quizState.givingPoints;
+            StartClick(null, null);
+            mediaPlayer.Stop();
+            SwitchingOffAllFields();
+            GivingPoints_ShowingAnswers();
         }
 
         #region Open, Save, Load
@@ -452,7 +512,6 @@ fileDialog.Filter =
             else if (curQuizType == quizType.text)
             {
                 fileDialog.Multiselect = false;
-                //fileDialog.Multiselect = false;
                 fileDialog.Filter = "TXT Files (*.TXT) | *.txt";
                 if (fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
@@ -464,6 +523,24 @@ fileDialog.Filter =
                     }
                     else
                         MessageBox.Show("Proszę wybrać plik o odpowiednim rozszerzeniu (*.txt). Obecnie wybrany plik: \n" + path + " posiada niepoprawne rozszerzenie");
+                }
+            }
+            else if (curQuizType == quizType.music)
+            {
+                fileDialog.Multiselect = true;
+                #region fileDialog.Filter 
+fileDialog.Filter =
+"Music Files (*.*)|*.mp3;*.flac;*.wma;*.mp2;*.mpg;*.mpe;*.mpeg;*.aif;*.aiff;*.aifc;*.aifr;*.mp4|MP3 Files (*.MP3)|*.mp3|FLAC Files (*.FLAC)|*.flac|WMA Files (*.WMA)|*.wma|MP Files (*.MP2); (*.MPG); (*.MPE); (*.MPEG); (*.MPEG2)|*.mp2;*.mpg;*.mpe;*.mpeg";
+                #endregion
+                if (fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    musicFilesPath = new string[fileDialog.FileNames.Length];
+                    serializationMusic.musicFilesLocalization = new string[musicFilesPath.Length];
+                    for (int i = 0; i < musicFilesPath.Length; i++)
+                    {
+                        musicFilesPath[i] = fileDialog.FileNames[i];
+                        serializationMusic.musicFilesLocalization[i] = musicFilesPath[i];
+                    }
                 }
             }
         }
@@ -507,6 +584,21 @@ fileDialog.Filter =
                     bf.Serialize(stream, data);
                     stream.Close(); //Closing stream to prevent from damaging data
                 }
+                else if (curQuizType == quizType.music)
+                {
+                    stream = File.Create(path + ".animemusic");
+                    SerializationDataMusic data = new SerializationDataMusic();
+
+                    data.answeredQuestions = serializationMusic.answeredQuestions;
+                    data.points[0] = pointsFirstParticipant.Text;
+                    data.participants[0] = nameFirstParticipant.Text;
+                    data.musicFilesLocalization = serializationMusic.musicFilesLocalization;
+                    data.curAnswerType = serializationMusic.curAnswerType = (SerializationDataMusic.answerType)curAnswerType;
+                    data.curQuizType = serializationMusic.curQuizType = (SerializationDataMusic.quizType)curQuizType;
+
+                    bf.Serialize(stream, data);
+                    stream.Close(); //Closing stream to prevent from damaging data
+                }
             }
         }
         //Loading state of quiz from .anime file
@@ -515,12 +607,13 @@ fileDialog.Filter =
             OpenFileDialog fileDialog = new OpenFileDialog();
             if (curQuizType == quizType.screenshot) fileDialog.Filter = "AnimeScreenshot (*.ANIMESCREEN)| *.animescreen";
                 else if (curQuizType == quizType.text) fileDialog.Filter = "AnimeText (*.ANIMETEXT)| *.animetext";
+                  else if (curQuizType == quizType.music) fileDialog.Filter = "AnimeMusic (*.ANIMEMUSIC)| *.animemusic";
             if (fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 string path = fileDialog.FileName;
 
                 BinaryFormatter bf = new BinaryFormatter();
-                FileStream stream = File.Open(path, FileMode.Open);            
+                FileStream stream = File.Open(path, FileMode.Open);
                 if (curQuizType == quizType.screenshot)
                 {
                     SerializationData data = (SerializationData)bf.Deserialize(stream);
@@ -621,7 +714,7 @@ fileDialog.Filter =
                         for (int j = 0; j < textQuestions.Length; j++)
                         {
                             if (serializationText.answeredQuestions[i] == textQuestions[j])
-                            {   
+                            {
                                 textQuestionsCompleted++;
                                 textQuestions[i] = null; textTitles[i] = null; textAnswers[i] = null;
                                 for (int k = j; k < textQuestions.Length - 1; k++)
@@ -629,6 +722,32 @@ fileDialog.Filter =
                                     textQuestions[k] = textQuestions[k + 1];
                                     textAnswers[k] = textAnswers[k + 1];
                                     textTitles[k] = textTitles[k + 1];
+                                }
+                            }
+                        }
+                    }
+                }
+                else if (curQuizType == quizType.music)
+                {
+                    SerializationDataMusic data = (SerializationDataMusic)bf.Deserialize(stream);
+                    serializationMusic.answeredQuestions = data.answeredQuestions;
+                    nameFirstParticipant.Text = data.participants[0];
+                    pointsFirstParticipant.Text = data.points[0];
+                    musicFilesPath = data.musicFilesLocalization;
+                    curAnswerType = (answerType)data.curAnswerType;
+                    curQuizType = (quizType)data.curQuizType;
+
+                    for (int i = 0; i < serializationMusic.answeredQuestions.Count; i++)
+                    {
+                        for (int j = 0; j < musicFilesPath.Length; j++)
+                        {
+                            if (serializationMusic.answeredQuestions[i] == musicFilesPath[j])
+                            {
+                                musicQuestionsCompleted++;
+                                musicFilesPath[i] = null;
+                                for (int k = j; k < musicFilesPath.Length - 1; k++)
+                                {
+                                    musicFilesPath[k] = musicFilesPath[k + 1];
                                 }
                             }
                         }
@@ -697,6 +816,21 @@ fileDialog.Filter =
                 bf.Serialize(stream, data);
                 stream.Close(); //Closing stream to prevent from damaging data      
             }
+
+            else if (curQuizType == quizType.music)
+            {
+                stream = File.Create(path + ".animemusic");
+                SerializationDataMusic data = new SerializationDataMusic();
+
+                data.answeredQuestions = serializationMusic.answeredQuestions;
+                data.points[0] = pointsFirstParticipant.Text;
+                data.participants[0] = nameFirstParticipant.Text;
+                data.musicFilesLocalization = serializationMusic.musicFilesLocalization;
+                data.curAnswerType = serializationMusic.curAnswerType = (SerializationDataMusic.answerType)curAnswerType;
+                data.curQuizType = serializationMusic.curQuizType = (SerializationDataMusic.quizType)curQuizType;
+                bf.Serialize(stream, data);
+                stream.Close(); //Closing stream to prevent from damaging da
+            }
         }
 
         private void QuickLoad() //Loading at the start of quiz
@@ -712,6 +846,9 @@ fileDialog.Filter =
                 }
                 else if (curQuizType == quizType.text) {
                     if (pathToCheck[i].Extension == ".animetext") extensionPaths.Add(pathToCheck[i]);
+                }
+                else if (curQuizType == quizType.music) {
+                    if (pathToCheck[i].Extension == ".animemusic") extensionPaths.Add(pathToCheck[i]);
                 }
             }
             string path = (from f in extensionPaths
@@ -830,6 +967,33 @@ fileDialog.Filter =
                                 textQuestions[k] = textQuestions[k + 1];
                                 textAnswers[k] = textAnswers[k + 1];
                                 textTitles[k] = textTitles[k + 1];
+                            }
+                        }
+                    }
+                }
+            }
+            else if (curQuizType == quizType.music)
+            {
+                SerializationDataMusic data = (SerializationDataMusic)bf.Deserialize(stream);
+                serializationMusic.answeredQuestions = data.answeredQuestions;
+                nameFirstParticipant.Text = data.participants[0];
+                pointsFirstParticipant.Text = data.points[0];
+                musicFilesPath = data.musicFilesLocalization;
+                curAnswerType = (answerType)data.curAnswerType;
+                curQuizType = (quizType)data.curQuizType;
+
+                for (int i = 0; i < serializationMusic.answeredQuestions.Count; i++)
+                {
+                    for (int j = 0; j < musicFilesPath.Length; j++)
+                    {
+                        if (serializationMusic.answeredQuestions[i] == musicFilesPath[j])
+                        {
+
+                            musicQuestionsCompleted++;
+                            musicFilesPath[i] = null;
+                            for (int k = j; k < musicFilesPath.Length - 1; k++)
+                            {
+                                musicFilesPath[k] = musicFilesPath[k + 1];
                             }
                         }
                     }
@@ -1082,6 +1246,14 @@ fileDialog.Filter =
             customAnswerAdding.Width = 0;
             customAnswerConfirm.Width = 0;
             customAnswerBack.Width = 0;
+            //Music player HUD
+            playAudioButton.Width = 0;
+            pauseAudioButton.Width = 0;
+            stopAudioButton.Width = 0;
+            progressAudioSlider.Width = 0;
+            volumeAudioSlider.Width = 0;
+            //TODO -- maybe add timer to music player HUD
+            SkipMusicQuestion.Width = 0;
         }
 
         void ChoosingQuizType()
@@ -1142,6 +1314,17 @@ fileDialog.Filter =
             customAnswerBack.Width = 75;
         }
 
+        void MusicHUDShow()
+        {
+            playAudioButton.Width = 100;
+            pauseAudioButton.Width = 100;
+            stopAudioButton.Width = 100;
+            progressAudioSlider.Width = 500;
+            volumeAudioSlider.Width = 50;
+            //Button to skip current music question
+            SkipMusicQuestion.Width = 150;
+        }
+        /* END OF HUD METHODS */
         private void textQuizButton_Click(object sender, RoutedEventArgs e)
         {
             curQuizType = quizType.text;
@@ -1158,15 +1341,9 @@ fileDialog.Filter =
 
         private void musicQuizButton_Click(object sender, RoutedEventArgs e)
         {
-            //curQuizType = quizType.music;
-            //SwitchingOffAllFields();
-            //ChoosingQuizOpeningType();
-            OpenFileDialog fileDialog = new OpenFileDialog();
-            if (fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-            {
-                mediaPlayer.Open(new Uri(fileDialog.FileName));
-            }
+            curQuizType = quizType.music;
             SwitchingOffAllFields();
+            ChoosingQuizOpeningType();
         }
 
         private void mixedQuizButton_Click(object sender, RoutedEventArgs e)
@@ -1179,7 +1356,7 @@ fileDialog.Filter =
         private void openQuizButton_Click(object sender, RoutedEventArgs e)
         {
             Open(null, null);
-            if (textQuestions != null || screenshots != null)
+            if (textQuestions != null || screenshots != null || musicFilesPath != null)
             {
                 if (curQuizType == quizType.screenshot)
                 {
@@ -1197,7 +1374,7 @@ fileDialog.Filter =
         private void loadQuizButton_Click(object sender, RoutedEventArgs e)
         {
             Load(null, null);
-            if (textQuestions != null || screenshots != null)
+            if (textQuestions != null || screenshots != null || musicFilesPath != null)
             {
                 SwitchingOffAllFields();
                 ChoosingQuestion();
@@ -1209,7 +1386,7 @@ fileDialog.Filter =
             //TODO -- sprawdzanie rodzaju importowanej wiedzówki
             //TODO -- dodanie przycisku, który ładuje ostatnią wiedzówkę, niezależnie jakiego typu była
             QuickLoad();
-            if (textQuestions != null || screenshots != null)
+            if (textQuestions != null || screenshots != null || musicFilesPath != null)
             {
                 SwitchingOffAllFields();
                 ChoosingQuestion();

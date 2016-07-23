@@ -19,7 +19,7 @@
 
             </Menu>
         </DockPanel>
-        
+
         <!-- Audio player code -->
         <Button x:Name="playAudioButton" Content="Odtwórz" HorizontalAlignment="Center" VerticalAlignment="Center" Width="100" Click="playAudioButton_Click" Margin="72,162,340,106"/>
         <Button x:Name="pauseAudioButton" Content="Pauza" HorizontalAlignment="Center" VerticalAlignment="Center" Width="100" Click="pauseAudioButton_Click" Margin="206,162,206,106"/>
@@ -49,16 +49,10 @@
         <Button x:Name="SkipQuestion" Content="Pokaż odpowiedź" VerticalAlignment="Center" HorizontalAlignment="Center" Width="150" Click="SkipQuestion_Click" Margin="181,199,181,69"/>
         <Button x:Name="SkipMusicQuestion" Content="Dalej" VerticalAlignment="Center" HorizontalAlignment="Center" Width="150" Click="SkipMusicQuestion_Click" Margin="181,199,181,69"/>
         <!-- Quiz participants script -->
-            <!-- Points confirm button -->
-        <Button x:Name="confirmPoints" Content="Potwierdź" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="181,18,0,0" Click="confirmPoints_Click"/>
-        <Button x:Name="goBack" Content="Cofnij" HorizontalAlignment="Left" Margin="264,18,0,0" VerticalAlignment="Top" Width="75" Click="goBack_Click"/>
+        <!-- Points confirm button -->
+        <Button x:Name="confirmPoints" Content="Potwierdź" HorizontalAlignment="Center" VerticalAlignment="Center" Width="75" Click="confirmPoints_Click" Margin="171,82,266,186"/>
+        <Button x:Name="goBack" Content="Cofnij" HorizontalAlignment="Center" VerticalAlignment="Center" Width="75" Click="goBack_Click" Margin="264,82,173,186"/>
         <TextBlock x:Name="correctAnswer" HorizontalAlignment="Center" Margin="0, 98,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top"/>
-
-        <TextBox x:Name="nameParticipant1" HorizontalAlignment="Left" Height="23" Margin="29,40,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-        <TextBlock x:Name="pointsFirstParticipant" HorizontalAlignment="Left" Margin="72,68,0,0" TextWrapping="Wrap" VerticalAlignment="Top" TextAlignment="Center" Width="33" Height="19" Text="0,0"/>
-        <Button x:Name="plusFirstParticipant" Content="+" HorizontalAlignment="Left" Margin="45,18,0,0" VerticalAlignment="Top" Width="33" Click="plusFirstParticipant_Click"/>
-        <Button x:Name="minutFirstParticipant" Content="-" HorizontalAlignment="Left" Margin="98,18,0,0" VerticalAlignment="Top" Width="33" Click="minutFirstParticipant_Click"/>
-
         <!-- Loading last quiz from quick save -->
         <TextBlock x:Name="ReloadTextBlock" Text="Czy chcesz wczytać ostatnią wiedzówkę?" Width="200" Height="50" TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Center"/>
         <Button x:Name="ReloadButton_Yes" Content="Tak" Click="ReloadLastQuiz_Yes" Height="25" Width="50" Margin="196,165,266,100"/>
@@ -76,5 +70,66 @@
                 HorizontalAlignment="Left" Margin="171,249,0,0" VerticalAlignment="Top" Width="75" Click="customAnswerConfirm_Click"/>
         <Button x:Name="customAnswerBack" Content="Cofnij" 
                 HorizontalAlignment="Left" Margin="264,249,0,0" VerticalAlignment="Top" Width="75" Click="customAnswerBack_Click"/>
+
+        <!-- All participants - - THERE IS NOTHING AFTER PARTICIPANTS -->
+        <TextBox x:Name="nameParticipant1" HorizontalAlignment="Center" Height="24" Margin="-60,160,454,105" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
+        <TextBlock x:Name="pointsParticipant1" HorizontalAlignment="Center" Margin="-17,183,496,86" TextWrapping="Wrap" VerticalAlignment="Center" TextAlignment="Center" Width="33" Height="20" Text="0,0"/>
+        <Button x:Name="plusParticipant1" Content="+" HorizontalAlignment="Center" Margin="-47,139,526,129" VerticalAlignment="Center" Width="33" Click="plusFirstParticipant_Click"/>
+        <Button x:Name="minusParticipant1" Content="-" HorizontalAlignment="Center" Margin="16,139,463,129" VerticalAlignment="Center" Width="33" Click="minutFirstParticipant_Click"/>
+
+        <TextBox x:Name="nameParticipant2" HorizontalAlignment="Center" Height="24" Margin="110,160,282,106" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
+        <TextBlock x:Name="pointsParticipant2" HorizontalAlignment="Center" Margin="156,183,322,87" TextWrapping="Wrap" VerticalAlignment="Center" TextAlignment="Center" Width="34" Height="20" Text="0,0"/>
+        <Button x:Name="plusParticipant2" Content="+" HorizontalAlignment="Center" Margin="123,139,356,129" VerticalAlignment="Center" Width="33" Click="plusFirstParticipant_Click"/>
+        <Button x:Name="minusParticipant2" Content="-" HorizontalAlignment="Center" Margin="169,139,282,129" VerticalAlignment="Center" Width="33" Click="minutFirstParticipant_Click"/>
+
+        <TextBox x:Name="nameParticipant3" HorizontalAlignment="Center" Height="24" Margin="280,160,98,107" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
+        <TextBlock x:Name="pointsParticipant3" HorizontalAlignment="Center" Margin="331,183,149,87" TextWrapping="Wrap" VerticalAlignment="Center" TextAlignment="Center" Width="32" Height="20" Text="0,0"/>
+        <Button x:Name="plusParticipant3" Content="+" HorizontalAlignment="Center" Margin="298,139,181,129" VerticalAlignment="Center" Width="33" Click="plusFirstParticipant_Click"/>
+        <Button x:Name="minusParticipant3" Content="-" HorizontalAlignment="Center" Margin="346,139,105,129" VerticalAlignment="Center" Width="33" Click="minutFirstParticipant_Click"/>
+
+        <TextBox x:Name="nameParticipant4" HorizontalAlignment="Center" Height="24" Margin="462,160,-70,107" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
+        <TextBlock x:Name="pointsParticipant4" HorizontalAlignment="Center" Margin="506,183,-27,87" TextWrapping="Wrap" VerticalAlignment="Center" TextAlignment="Center" Width="33" Height="20" Text="0,0"/>
+        <Button x:Name="plusParticipant4" Content="+" HorizontalAlignment="Center" Margin="473,139,6,129" VerticalAlignment="Center" Width="33" Click="plusFirstParticipant_Click"/>
+        <Button x:Name="minusParticipant4" Content="-" HorizontalAlignment="Center" Margin="521,139,-70,129" VerticalAlignment="Center" Width="33" Click="minutFirstParticipant_Click"/>
+
+        <TextBox x:Name="nameParticipant5" HorizontalAlignment="Center" Height="24" Margin="-60,310,454,105" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
+        <TextBlock x:Name="pointsParticipant5" HorizontalAlignment="Center" Margin="-17,333,496,86" TextWrapping="Wrap" VerticalAlignment="Center" TextAlignment="Center" Width="33" Height="20" Text="0,0"/>
+        <Button x:Name="plusParticipant5" Content="+" HorizontalAlignment="Center" Margin="-47,289,526,129" VerticalAlignment="Center" Width="33" Click="plusFirstParticipant_Click"/>
+        <Button x:Name="minusParticipant5" Content="-" HorizontalAlignment="Center" Margin="16,289,463,129" VerticalAlignment="Center" Width="33" Click="minutFirstParticipant_Click"/>
+
+        <TextBox x:Name="nameParticipant6" HorizontalAlignment="Center" Height="24" Margin="110,310,282,106" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
+        <TextBlock x:Name="pointsParticipant6" HorizontalAlignment="Center" Margin="156,333,322,87" TextWrapping="Wrap" VerticalAlignment="Center" TextAlignment="Center" Width="34" Height="20" Text="0,0"/>
+        <Button x:Name="plusParticipant6" Content="+" HorizontalAlignment="Center" Margin="123,289,356,129" VerticalAlignment="Center" Width="33" Click="plusFirstParticipant_Click"/>
+        <Button x:Name="minusParticipant6" Content="-" HorizontalAlignment="Center" Margin="169,289,282,129" VerticalAlignment="Center" Width="33" Click="minutFirstParticipant_Click"/>
+
+        <TextBox x:Name="nameParticipant7" HorizontalAlignment="Center" Height="24" Margin="280,310,98,107" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
+        <TextBlock x:Name="pointsParticipant7" HorizontalAlignment="Center" Margin="331,333,149,87" TextWrapping="Wrap" VerticalAlignment="Center" TextAlignment="Center" Width="32" Height="20" Text="0,0"/>
+        <Button x:Name="plusParticipant7" Content="+" HorizontalAlignment="Center" Margin="298,289,181,129" VerticalAlignment="Center" Width="33" Click="plusFirstParticipant_Click"/>
+        <Button x:Name="minusParticipant7" Content="-" HorizontalAlignment="Center" Margin="346,289,105,129" VerticalAlignment="Center" Width="33" Click="minutFirstParticipant_Click"/>
+
+        <TextBox x:Name="nameParticipant8" HorizontalAlignment="Center" Height="24" Margin="462,310,-70,107" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
+        <TextBlock x:Name="pointsParticipant8" HorizontalAlignment="Center" Margin="506,333,-27,87" TextWrapping="Wrap" VerticalAlignment="Center" TextAlignment="Center" Width="33" Height="20" Text="0,0"/>
+        <Button x:Name="plusParticipant8" Content="+" HorizontalAlignment="Center" Margin="473,289,6,129" VerticalAlignment="Center" Width="33" Click="plusFirstParticipant_Click"/>
+        <Button x:Name="minusParticipant8" Content="-" HorizontalAlignment="Center" Margin="521,289,-70,129" VerticalAlignment="Center" Width="33" Click="minutFirstParticipant_Click"/>
+
+        <TextBox x:Name="nameParticipant9" HorizontalAlignment="Center" Height="24" Margin="-60,460,454,105" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
+        <TextBlock x:Name="pointsParticipant9" HorizontalAlignment="Center" Margin="-17,483,496,86" TextWrapping="Wrap" VerticalAlignment="Center" TextAlignment="Center" Width="33" Height="20" Text="0,0"/>
+        <Button x:Name="plusParticipant9" Content="+" HorizontalAlignment="Center" Margin="-47,439,526,129" VerticalAlignment="Center" Width="33" Click="plusFirstParticipant_Click"/>
+        <Button x:Name="minusParticipant9" Content="-" HorizontalAlignment="Center" Margin="16,439,463,129" VerticalAlignment="Center" Width="33" Click="minutFirstParticipant_Click"/>
+
+        <TextBox x:Name="nameParticipant10" HorizontalAlignment="Center" Height="24" Margin="110,460,282,106" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
+        <TextBlock x:Name="pointsParticipant10" HorizontalAlignment="Center" Margin="156,483,322,87" TextWrapping="Wrap" VerticalAlignment="Center" TextAlignment="Center" Width="34" Height="20" Text="0,0"/>
+        <Button x:Name="plusParticipant10" Content="+" HorizontalAlignment="Center" Margin="123,439,356,129" VerticalAlignment="Center" Width="33" Click="plusFirstParticipant_Click"/>
+        <Button x:Name="minusParticipant10" Content="-" HorizontalAlignment="Center" Margin="169,439,282,129" VerticalAlignment="Center" Width="33" Click="minutFirstParticipant_Click"/>
+
+        <TextBox x:Name="nameParticipant11" HorizontalAlignment="Center" Height="24" Margin="280,460,98,107" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
+        <TextBlock x:Name="pointsParticipant11" HorizontalAlignment="Center" Margin="331,483,149,87" TextWrapping="Wrap" VerticalAlignment="Center" TextAlignment="Center" Width="32" Height="20" Text="0,0"/>
+        <Button x:Name="plusParticipant11" Content="+" HorizontalAlignment="Center" Margin="298,439,181,129" VerticalAlignment="Center" Width="33" Click="plusFirstParticipant_Click"/>
+        <Button x:Name="minusParticipant11" Content="-" HorizontalAlignment="Center" Margin="346,439,105,129" VerticalAlignment="Center" Width="33" Click="minutFirstParticipant_Click"/>
+
+        <TextBox x:Name="nameParticipant12" HorizontalAlignment="Center" Height="24" Margin="462,460,-70,107" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
+        <TextBlock x:Name="pointsParticipant12" HorizontalAlignment="Center" Margin="506,483,-27,87" TextWrapping="Wrap" VerticalAlignment="Center" TextAlignment="Center" Width="33" Height="20" Text="0,0"/>
+        <Button x:Name="plusParticipant12" Content="+" HorizontalAlignment="Center" Margin="473,439,6,129" VerticalAlignment="Center" Width="33" Click="plusFirstParticipant_Click"/>
+        <Button x:Name="minusParticipant12" Content="-" HorizontalAlignment="Center" Margin="521,439,-70,129" VerticalAlignment="Center" Width="33" Click="minutFirstParticipant_Click"/>
     </Grid>
 </Window>

@@ -38,8 +38,8 @@ namespace Wiedzowkonator
         //public Image[] screenshots_;
         //public BitmapImage[] bitmapImage_;
         public List<string> answeredScreenshots = new List<string>(); //List of which screenshots were already shown
-        public string[] points = new string[1]; //Number of participant points
-        public string[] participants = new string[1]; //Name of participants
+        public string[] points = new string[12]; //Number of participant points
+        public string[] participants = new string[12]; //Name of participants
         public string[] _screenshotsLocalizationPath; //Path to quiz files (screenshot)
         public enum answerType { noAnswer, fileNameAnswer, customAnswer };
         public answerType curAnswerType;
@@ -50,8 +50,8 @@ namespace Wiedzowkonator
     public class SerializationDataText
     {
         public List<string> answeredQuestions = new List<string>(); //List of which text questions were already shown
-        public string[] points = new string[1]; //Number of participant points
-        public string[] participants = new string[1]; //Name of participants
+        public string[] points = new string[12]; //Number of participant points
+        public string[] participants = new string[12]; //Name of participants
         public string txtFileLocalization; //Path to quiz files (text questions)
         public enum answerType { noAnswer, fileNameAnswer, customAnswer };
         public answerType curAnswerType;
@@ -62,8 +62,8 @@ namespace Wiedzowkonator
     public class SerializationDataMusic
     {
         public List<string> answeredQuestions = new List<string>(); //List of which music questions were already shown
-        public string[] points = new string[1]; //Number of participant points
-        public string[] participants = new string[1]; //Name of participants
+        public string[] points = new string[12]; //Number of participant points
+        public string[] participants = new string[12]; //Name of participants
         public string[] musicFilesLocalization; //Path to quiz files (music)
         public enum answerType { noAnswer, fileNameAnswer, customAnswer };
         public answerType curAnswerType;
@@ -81,8 +81,8 @@ namespace Wiedzowkonator
         public string localizationText;
         public string[] localizationMusic;
 
-        public string[] points = new string[1];
-        public string[] participants = new string[1];
+        public string[] points = new string[12];
+        public string[] participants = new string[12];
 
         public enum answerType { noAnswer, fileNameAnswer, customAnswer };
         public answerType curAnswerType;
@@ -99,10 +99,11 @@ namespace Wiedzowkonator
         SerializationDataMusic serializationMusic = new SerializationDataMusic();
         SerializationDataMixed serializationMixed = new SerializationDataMixed();
 
-        int numberOfParticipants;
+        int numberOfParticipants = 12;
         System.Windows.Controls.TextBox[] participantsNames = new System.Windows.Controls.TextBox[16];
-        System.Windows.Controls.TextBox[] participantsPoints = new System.Windows.Controls.TextBox[16];
-
+        System.Windows.Controls.TextBlock[] participantsPoints = new System.Windows.Controls.TextBlock[16];
+        System.Windows.Controls.Button[] participantsPlus = new Button[16];
+        System.Windows.Controls.Button[] participantsMinus = new Button[16];
         /************************/
 
         public Image[] screenshots; //Screenshots that will be shown on canvas
@@ -156,7 +157,6 @@ namespace Wiedzowkonator
         {
             InitializeComponent(); //Opening window
             Start(); //Initializing window's properties like width, sizes etc.
-
             //Variables used for making simple mp3 player for music quiz
             System.Windows.Threading.DispatcherTimer timer = new System.Windows.Threading.DispatcherTimer();
             timer.Interval = TimeSpan.FromSeconds(1);
@@ -170,6 +170,7 @@ namespace Wiedzowkonator
             {
                 Directory.CreateDirectory(quickSavePath);
             }
+            InitializingParticipants();
             curQuizType = quizType.text;
             Application.Current.MainWindow.WindowState = WindowState.Maximized; //Starting fullscreen
             canvasBorder.BorderThickness = new Thickness(2.5f);
@@ -266,14 +267,12 @@ namespace Wiedzowkonator
         void ShowingHUD()
         {
             //In giving points phase, all controls that allows to give participants points are being shown
-            if (plusFirstParticipant.Width == 0 && curQuizState == quizState.givingPoints)
+            if (participantsPlus[0].Width == 0 && curQuizState == quizState.givingPoints)
             {
-                plusFirstParticipant.Width = 33;
-                minutFirstParticipant.Width = 33;
                 for (int i = 0; i < numberOfParticipants; i++)
                 {
-                    participantsNames[i].Width = 120;
-                    participantsPoints[i].Width = 33;
+                    participantsPlus[i].Width = 33;
+                    participantsMinus[i].Width = 33;
                 }
                 confirmPoints.Width = 75;
                 goBack.Width = 75;
@@ -282,8 +281,11 @@ namespace Wiedzowkonator
             }
             else //Leaving this phase
             {
-                plusFirstParticipant.Width = 0;
-                minutFirstParticipant.Width = 0;
+                for (int i = 0; i < numberOfParticipants; i++)
+                {
+                    participantsPlus[i].Width = 0;
+                    participantsMinus[i].Width = 0;
+                }
                 for (int i = 0; i < numberOfParticipants; i++)
                 {
                     participantsNames[i].Width = 0;
@@ -310,23 +312,27 @@ namespace Wiedzowkonator
         private void plusFirstParticipant_Click(object sender, RoutedEventArgs e) //Increasing 1st participant points
         {
             string name = (sender as Button).Name.ToString();
-            MessageBox.Show(name);
-            float curPoints = float.Parse(pointsFirstParticipant.Text);
+            name = name.Remove(0, "plusParticipant".Length);
+            int index = int.Parse(name) - 1;
+            float curPoints = float.Parse(participantsPoints[index].Text);
             curPoints++;
             if (curPoints == (int)curPoints)
-                pointsFirstParticipant.Text = curPoints.ToString() + ",0";
+                participantsPoints[index].Text = curPoints.ToString() + ",0";
             else
-                pointsFirstParticipant.Text = curPoints.ToString();
+                participantsPoints[index].Text = curPoints.ToString();
         }
 
         private void minutFirstParticipant_Click(object sender, RoutedEventArgs e) //Decreasing 1st participant points
         {
-            float curPoints = float.Parse(pointsFirstParticipant.Text);
+            string name = (sender as Button).Name.ToString();
+            name = name.Remove(0, "minusParticipant".Length);
+            int index = int.Parse(name) - 1;
+            float curPoints = float.Parse(participantsPoints[index].Text);
             curPoints--;
             if (curPoints == (int)curPoints)
-                pointsFirstParticipant.Text = curPoints.ToString() + ",0";
+                participantsPoints[index].Text = curPoints.ToString() + ",0";
             else
-                pointsFirstParticipant.Text = curPoints.ToString();
+                participantsPoints[index].Text = curPoints.ToString();
         }
         //If user is done, then he leaves giving points phase and go back to choosing question
         private void confirmPoints_Click(object sender, RoutedEventArgs e)
@@ -703,8 +709,13 @@ namespace Wiedzowkonator
                     SerializationData data = (SerializationData)bf.Deserialize(stream);
                     serializationData.answeredScreenshots = data.answeredScreenshots;
                     
-                    nameFirstParticipant.Text = data.participants[0];
-                    pointsFirstParticipant.Text = data.points[0];
+                    //nameFirstParticipant.Text = data.participants[0];
+                    //pointsFirstParticipant.Text = data.points[0];
+                    for (int i = 0; i < numberOfParticipants; i++)
+                    {
+                        participantsPoints[i].Text = data.points[i];
+                        participantsNames[i].Text = data.participants[i];
+                    }
                     screenshotsLocalizationPath = data._screenshotsLocalizationPath;
                     curAnswerType = (answerType)data.curAnswerType;
                     curQuizType = (quizType)data.curQuizType;
@@ -748,8 +759,11 @@ namespace Wiedzowkonator
                 {
                     SerializationDataText data = (SerializationDataText)bf.Deserialize(stream);
                     serializationText.answeredQuestions = data.answeredQuestions;
-                    nameFirstParticipant.Text = data.participants[0];
-                    pointsFirstParticipant.Text = data.points[0];
+                    for (int i = 0; i < numberOfParticipants; i++)
+                    {
+                        participantsPoints[i].Text = data.points[i];
+                        participantsNames[i].Text = data.participants[i];
+                    }
                     txtFilePath = data.txtFileLocalization;
                     curAnswerType = (answerType)data.curAnswerType;
                     curQuizType = (quizType)data.curQuizType;
@@ -780,8 +794,11 @@ namespace Wiedzowkonator
                 {
                     SerializationDataMusic data = (SerializationDataMusic)bf.Deserialize(stream);
                     serializationMusic.answeredQuestions = data.answeredQuestions;
-                    nameFirstParticipant.Text = data.participants[0];
-                    pointsFirstParticipant.Text = data.points[0];
+                    for (int i = 0; i < numberOfParticipants; i++)
+                    {
+                        participantsPoints[i].Text = data.points[i];
+                        participantsNames[i].Text = data.participants[i];
+                    }
                     musicFilesPath = data.musicFilesLocalization;
                     curAnswerType = (answerType)data.curAnswerType;
                     curQuizType = (quizType)data.curQuizType;
@@ -841,8 +858,11 @@ namespace Wiedzowkonator
                 SerializationData data = new SerializationData();
 
                 data.answeredScreenshots = serializationData.answeredScreenshots;
-                data.points[0] = pointsFirstParticipant.Text;
-                data.participants[0] = nameFirstParticipant.Text;
+                for (int i = 0; i < numberOfParticipants; i++)
+                {
+                    data.points[i] = participantsPoints[i].Text;
+                    data.participants[i] = participantsNames[i].Text;
+                }
                 data._screenshotsLocalizationPath = screenshotsLocalizationPath;
                 data.curAnswerType = serializationData.curAnswerType = (SerializationData.answerType)curAnswerType;
                 data.curQuizType = serializationData.curQuizType = (SerializationData.quizType)curQuizType;
@@ -856,8 +876,11 @@ namespace Wiedzowkonator
                 SerializationDataText data = new SerializationDataText();
 
                 data.answeredQuestions = serializationText.answeredQuestions;
-                data.points[0] = pointsFirstParticipant.Text;
-                data.participants[0] = nameFirstParticipant.Text;
+                for (int i = 0; i < numberOfParticipants; i++)
+                {
+                    data.points[i] = participantsPoints[i].Text;
+                    data.participants[i] = participantsNames[i].Text;
+                }   
                 data.txtFileLocalization = txtFilePath;
                 data.curAnswerType = serializationText.curAnswerType = (SerializationDataText.answerType)curAnswerType;
                 data.curQuizType = serializationText.curQuizType = (SerializationDataText.quizType)curQuizType;
@@ -872,8 +895,11 @@ namespace Wiedzowkonator
                 SerializationDataMusic data = new SerializationDataMusic();
 
                 data.answeredQuestions = serializationMusic.answeredQuestions;
-                data.points[0] = pointsFirstParticipant.Text;
-                data.participants[0] = nameFirstParticipant.Text;
+                for (int i = 0; i < numberOfParticipants; i++)
+                {
+                    data.points[i] = participantsPoints[i].Text;
+                    data.participants[i] = participantsNames[i].Text;
+                }
                 data.musicFilesLocalization = serializationMusic.musicFilesLocalization;
                 data.curAnswerType = serializationMusic.curAnswerType = (SerializationDataMusic.answerType)curAnswerType;
                 data.curQuizType = serializationMusic.curQuizType = (SerializationDataMusic.quizType)curQuizType;
@@ -921,8 +947,11 @@ namespace Wiedzowkonator
             {
                 SerializationData data = (SerializationData)bf.Deserialize(stream);
                 serializationData.answeredScreenshots = data.answeredScreenshots;
-                nameFirstParticipant.Text = data.participants[0];
-                pointsFirstParticipant.Text = data.points[0];
+                for (int i = 0; i < numberOfParticipants; i++)
+                {
+                    participantsPoints[i].Text = data.points[i];
+                    participantsNames[i].Text = data.participants[i];
+                }
                 screenshotsLocalizationPath = data._screenshotsLocalizationPath;
                 curAnswerType = (answerType)data.curAnswerType;
 
@@ -964,8 +993,11 @@ namespace Wiedzowkonator
             {
                 SerializationDataText data = (SerializationDataText)bf.Deserialize(stream);
                 serializationText.answeredQuestions = data.answeredQuestions;
-                nameFirstParticipant.Text = data.participants[0];
-                pointsFirstParticipant.Text = data.points[0];
+                for (int i = 0; i < numberOfParticipants; i++)
+                {
+                    participantsPoints[i].Text = data.points[i];
+                    participantsNames[i].Text = data.participants[i];
+                }
                 txtFilePath = data.txtFileLocalization;
                 curAnswerType = (answerType)data.curAnswerType;
                 curQuizType = (quizType)data.curQuizType;
@@ -996,8 +1028,11 @@ namespace Wiedzowkonator
             {
                 SerializationDataMusic data = (SerializationDataMusic)bf.Deserialize(stream);
                 serializationMusic.answeredQuestions = data.answeredQuestions;
-                nameFirstParticipant.Text = data.participants[0];
-                pointsFirstParticipant.Text = data.points[0];
+                for (int i = 0; i < numberOfParticipants; i++)
+                {
+                    participantsPoints[i].Text = data.points[i];
+                    participantsNames[i].Text = data.participants[i];
+                }
                 musicFilesPath = data.musicFilesLocalization;
                 curAnswerType = (answerType)data.curAnswerType;
                 curQuizType = (quizType)data.curQuizType;
@@ -1265,10 +1300,16 @@ namespace Wiedzowkonator
             confirmPoints.Width = 0;
             goBack.Width = 0;
             //correctAnswer.Width = 0; // --> This value is set to auto
-            plusFirstParticipant.Width = 0;
-            minutFirstParticipant.Width = 0;
-            nameFirstParticipant.Width = 0;
-            pointsFirstParticipant.Width = 0;
+            for (int i = 0; i < numberOfParticipants; i++)
+            {
+                participantsPlus[i].Width = 0;
+                participantsMinus[i].Width = 0;
+            }
+            for (int i = 0; i < numberOfParticipants; i++)
+            {
+                participantsNames[i].Width = 0;
+                participantsPoints[i].Width = 0;
+            }
             //Asking user if he wants to reload last quiz 
             //TODO -- Rather unused in current context. Will fix in the future
             ReloadTextBlock.Width = 0;
@@ -1330,10 +1371,16 @@ namespace Wiedzowkonator
             confirmPoints.Width = 75;
             goBack.Width = 75;
             //correctAnswer.Width = 0;
-            nameFirstParticipant.Width = 120;
-            pointsFirstParticipant.Width = 33;
-            plusFirstParticipant.Width = 33;
-            minutFirstParticipant.Width = 33;
+            for (int i = 0; i < numberOfParticipants; i++)
+            {
+                participantsNames[i].Width = 120;
+                participantsPoints[i].Width = 33;
+            }
+            for (int i = 0; i < numberOfParticipants; i++)
+            {
+                participantsPlus[i].Width = 33;
+                participantsMinus[i].Width = 33;
+            }
         }
 
         void CustomScreenshotAnswers()
@@ -1621,8 +1668,11 @@ namespace Wiedzowkonator
                 data.localizationText = serializationText.txtFileLocalization = txtFilePath;
                 data.localizationScreenshot = serializationData._screenshotsLocalizationPath = screenshotsLocalizationPath;
                 data.localizationMusic = serializationMusic.musicFilesLocalization = musicFilesPath;
-                data.points[0] = pointsFirstParticipant.Text;
-                data.participants[0] = nameFirstParticipant.Text;
+                for (int i = 0; i < numberOfParticipants; i++)
+                {
+                    data.points[i] = participantsPoints[i].Text;
+                    data.participants[i] = participantsNames[i].Text;
+                }
                 data.curAnswerType = serializationMixed.curAnswerType = (SerializationDataMixed.answerType)curAnswerType;
                 data.curQuizType = serializationMixed.curQuizType = (SerializationDataMixed.quizType)curQuizType;
 
@@ -1646,8 +1696,11 @@ namespace Wiedzowkonator
             data.localizationText = serializationText.txtFileLocalization = txtFilePath;
             data.localizationScreenshot = serializationData._screenshotsLocalizationPath = screenshotsLocalizationPath;
             data.localizationMusic = serializationMusic.musicFilesLocalization = musicFilesPath;
-            data.points[0] = pointsFirstParticipant.Text;
-            data.participants[0] = nameFirstParticipant.Text;
+            for (int i = 0; i < numberOfParticipants; i++)
+            {
+                data.points[i] = participantsPoints[i].Text;
+                data.participants[i] = participantsNames[i].Text;
+            }
             data.curAnswerType = serializationMixed.curAnswerType = (SerializationDataMixed.answerType)curAnswerType;
             data.curQuizType = serializationMixed.curQuizType = (SerializationDataMixed.quizType)curQuizType;
 
@@ -1680,8 +1733,11 @@ namespace Wiedzowkonator
             txtFilePath = serializationText.txtFileLocalization = data.localizationText;
             screenshotsLocalizationPath = serializationData._screenshotsLocalizationPath = data.localizationScreenshot;
             musicFilesPath = serializationMusic.musicFilesLocalization = data.localizationMusic;
-            pointsFirstParticipant.Text = data.points[0];
-            nameFirstParticipant.Text = data.participants[0];
+            for (int i = 0; i < numberOfParticipants; i++)
+            {
+                participantsPoints[i].Text = data.points[i];
+                participantsNames[i].Text = data.participants[i];
+            }
             curQuizType = (quizType)data.curQuizType;
             curAnswerType = (answerType)data.curAnswerType;
 
@@ -1813,6 +1869,43 @@ namespace Wiedzowkonator
             for (int i = 0; i < mixedQuizMusic.Count; i++)
                 if (mixedQuizMusic[i] > lastQuestionIndex)
                     mixedQuizMusic[i]--;
+        }
+        //////////////////////////////////////////////////////////////////////
+        /*************** PARTICIPANTS REGION ********************************/
+        void InitializingParticipants()
+        {
+            for (int i = 0; i < participantsNames.Length; i++)
+            {
+                participantsNames[i] = null;
+                participantsPoints[i] = null;
+                participantsPlus[i] = null;
+                participantsMinus[i] = null;
+            }
+            participantsNames[0] = nameParticipant1;
+            participantsPoints[0] = pointsParticipant1;
+            participantsPlus[0] = plusParticipant1;
+            participantsMinus[0] = minusParticipant1;
+
+participantsNames[1] = nameParticipant2; participantsPoints[1] = pointsParticipant2; participantsPlus[1] = plusParticipant2; participantsMinus[1] = minusParticipant2;
+participantsNames[2] = nameParticipant3; participantsPoints[2] = pointsParticipant3; participantsPlus[2] = plusParticipant3; participantsMinus[2] = minusParticipant3;
+participantsNames[3] = nameParticipant4; participantsPoints[3] = pointsParticipant4; participantsPlus[3] = plusParticipant4; participantsMinus[3] = minusParticipant4;
+participantsNames[4] = nameParticipant5; participantsPoints[4] = pointsParticipant5; participantsPlus[4] = plusParticipant5; participantsMinus[4] = minusParticipant5;
+participantsNames[5] = nameParticipant6; participantsPoints[5] = pointsParticipant6; participantsPlus[5] = plusParticipant6; participantsMinus[5] = minusParticipant6;
+participantsNames[6] = nameParticipant7; participantsPoints[6] = pointsParticipant7; participantsPlus[6] = plusParticipant7; participantsMinus[6] = minusParticipant7;
+participantsNames[7] = nameParticipant8; participantsPoints[7] = pointsParticipant8; participantsPlus[7] = plusParticipant8; participantsMinus[7] = minusParticipant8;
+participantsNames[8] = nameParticipant9; participantsPoints[8] = pointsParticipant9; participantsPlus[8] = plusParticipant9; participantsMinus[8] = minusParticipant9;
+participantsNames[9] = nameParticipant10; participantsPoints[9] = pointsParticipant10;participantsPlus[9] = plusParticipant10; participantsMinus[9] = minusParticipant10;
+participantsNames[10] = nameParticipant11; participantsPoints[10] = pointsParticipant11;participantsPlus[10] = plusParticipant11;participantsMinus[10]=minusParticipant11;
+participantsNames[11] = nameParticipant12;participantsPoints[11] = pointsParticipant12;participantsPlus[11] = plusParticipant12;participantsMinus[11]=minusParticipant12;
+
+            for (int i = 0; i < participantsNames.Length; i++)
+            {
+                if (participantsNames[i] != null) //TODO -- wywalić ten warunek != null, bo wszystkie zmienne będą już przypisane np. 16-24 uczestników
+                {
+                    participantsNames[i].Text = "";
+                    participantsPoints[i].Text = "0,0";
+                }
+            }
         }
         #endregion
     }

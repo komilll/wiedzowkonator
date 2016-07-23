@@ -54,7 +54,7 @@
         <Button x:Name="goBack" Content="Cofnij" HorizontalAlignment="Left" Margin="264,18,0,0" VerticalAlignment="Top" Width="75" Click="goBack_Click"/>
         <TextBlock x:Name="correctAnswer" HorizontalAlignment="Center" Margin="0, 98,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top"/>
 
-        <TextBox x:Name="nameFirstParticipant" HorizontalAlignment="Left" Height="23" Margin="29,40,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+        <TextBox x:Name="nameParticipant1" HorizontalAlignment="Left" Height="23" Margin="29,40,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
         <TextBlock x:Name="pointsFirstParticipant" HorizontalAlignment="Left" Margin="72,68,0,0" TextWrapping="Wrap" VerticalAlignment="Top" TextAlignment="Center" Width="33" Height="19" Text="0,0"/>
         <Button x:Name="plusFirstParticipant" Content="+" HorizontalAlignment="Left" Margin="45,18,0,0" VerticalAlignment="Top" Width="33" Click="plusFirstParticipant_Click"/>
         <Button x:Name="minutFirstParticipant" Content="-" HorizontalAlignment="Left" Margin="98,18,0,0" VerticalAlignment="Top" Width="33" Click="minutFirstParticipant_Click"/>

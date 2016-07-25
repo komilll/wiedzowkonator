@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Wiedzowkonator"
         mc:Ignorable="d"
-        Title="Wiedzówkonator 2k16" Height="320" Width="520">
+        Title="Wiedzówkonator 2k16" Height="720" Width="1280">
 
     <Grid>
         <DockPanel Height="20"  VerticalAlignment="Top">
@@ -41,6 +41,7 @@
         <Border x:Name="canvasBorder" BorderBrush="Black">
             <Canvas x:Name="canvasScreenshotQuiz" HorizontalAlignment="Center" Height="290" VerticalAlignment="Center" Width="512" MouseDown="SkippingScreenshot"/>
         </Border>
+        <TextBox x:Name="ScreenshotSkipper" Width="0" KeyDown="ScreenshotSkipper_KeyDown"/>
         <Button x:Name="StartButton" Content="Rozpocznij wiedzówkę!" VerticalAlignment="Center" HorizontalAlignment="Center" Width="150" Click="StartClick"/>
         <TextBox x:Name="questionNumberBox" HorizontalAlignment="Center" Height="23" TextWrapping="Wrap" Focusable="True"
                  VerticalAlignment="Center" Width="132" Margin="193,161,187,106" TextAlignment="Center" KeyDown="questionNumberBox_KeyDown"/>
@@ -72,6 +73,8 @@
                 HorizontalAlignment="Left" Margin="264,249,0,0" VerticalAlignment="Top" Width="75" Click="customAnswerBack_Click"/>
 
         <!-- All participants - - THERE IS NOTHING AFTER PARTICIPANTS -->
+        <TextBlock x:Name="winners" HorizontalAlignment="Center" TextWrapping="Wrap" Text="" VerticalAlignment="Center" Width="300" Height="Auto" Margin="487,221,485,453"/>
+
         <TextBox x:Name="nameParticipant1" HorizontalAlignment="Center" Height="24" Margin="-60,160,454,105" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
         <TextBlock x:Name="pointsParticipant1" HorizontalAlignment="Center" Margin="-17,183,496,86" TextWrapping="Wrap" VerticalAlignment="Center" TextAlignment="Center" Width="33" Height="20" Text="0,0"/>
         <Button x:Name="plusParticipant1" Content="+" HorizontalAlignment="Center" Margin="-47,139,526,129" VerticalAlignment="Center" Width="33" Click="plusFirstParticipant_Click"/>

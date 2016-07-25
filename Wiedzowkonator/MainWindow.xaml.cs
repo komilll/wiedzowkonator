@@ -100,6 +100,7 @@ namespace Wiedzowkonator
         SerializationDataMixed serializationMixed = new SerializationDataMixed();
 
         int numberOfParticipants = 12;
+        bool finishedQuiz = false;
         System.Windows.Controls.TextBox[] participantsNames = new System.Windows.Controls.TextBox[16];
         System.Windows.Controls.TextBlock[] participantsPoints = new System.Windows.Controls.TextBlock[16];
         System.Windows.Controls.Button[] participantsPlus = new Button[16];
@@ -214,6 +215,9 @@ namespace Wiedzowkonator
                         canvasScreenshotQuiz.Width = screenshots[currentScreenshot].Width;
                         canvasScreenshotQuiz.Height = screenshots[currentScreenshot].Height;
 
+                        screenshots[currentScreenshot].Stretch = Stretch.Fill;
+                        ScreenshotSkipper.Focus();
+
                         canvasScreenshotQuiz.Children.Add(screenshots[currentScreenshot]);
                     }
                     else if (curQuizType == quizType.text)
@@ -236,13 +240,25 @@ namespace Wiedzowkonator
                 else //Uncorrectly written number
                 {
                     if (curQuizType == quizType.screenshot)
-                        MessageBox.Show("Wybierz liczby od 1 do " + (screenshots.Length - screenshotsCompleted));
+                    {
+                        if (screenshots.Length - screenshotsCompleted == 0) MessageBox.Show("Skończyły się pytania");
+                        else MessageBox.Show("Wybierz liczby od 1 do " + (screenshots.Length - screenshotsCompleted));
+                    }
                     else if (curQuizType == quizType.text)
-                        MessageBox.Show("Wybierz liczby od 1 do " + (textQuestions.Length - textQuestionsCompleted));
+                    {
+                        if (textQuestions.Length - textQuestionsCompleted == 0) MessageBox.Show("Skończyły się pytania");
+                        else MessageBox.Show("Wybierz liczby od 1 do " + (textQuestions.Length - textQuestionsCompleted));
+                    }
                     else if (curQuizType == quizType.music)
-                        MessageBox.Show("Wybierz liczby od 1 do " + (musicFilesPath.Length - musicQuestionsCompleted));
+                    {
+                        if (musicFilesPath.Length - musicQuestionsCompleted == 0) MessageBox.Show("Skończyły się pytania");
+                        else MessageBox.Show("Wybierz liczby od 1 do " + (musicFilesPath.Length - musicQuestionsCompleted));
+                    }
                     else if (curQuizType == quizType.mixed)
-                        MessageBox.Show("Wybierz liczby od 1 do " + (mixedQuizIndexes.Count));
+                    {
+                        if (mixedQuizIndexes.Count == 0) MessageBox.Show("Skończyły się pytania");
+                        else MessageBox.Show("Wybierz liczby od 1 do " + (mixedQuizIndexes.Count));
+                    }
                     questionNumberBox.Text = "";
                     if (screenshotQuizStarted == false)
                         screenshotQuizStarted = true;
@@ -357,6 +373,8 @@ namespace Wiedzowkonator
                 {
                     screenshots[lastScreenshotIndex] = null;
                     MessageBox.Show("KONIEC WIEDZÓWKI!");
+                    FinishedQuiz();
+                    finishedQuiz = true;
                 }
             }
             else if (curQuizType == quizType.text)
@@ -375,6 +393,8 @@ namespace Wiedzowkonator
                 {
                     textQuestions[lastQuestionIndex] = null; textAnswers[lastQuestionIndex] = null; textTitles[lastQuestionIndex] = null;
                     MessageBox.Show("KONIEC WIEDZÓWKI!");
+                    FinishedQuiz();
+                    finishedQuiz = true;
                 }
             }
             else if (curQuizType == quizType.music)
@@ -390,13 +410,18 @@ namespace Wiedzowkonator
                 {
                     musicFilesPath[lastQuestionIndex] = null;
                     MessageBox.Show("KONIEC WIEDZÓWKI!");
+                    FinishedQuiz();
+                    finishedQuiz = true;
                 }
             }
             else if (curQuizType == quizType.mixed)
                 ConfirmPointsMixed();
             QuickSave(); //If everything went good, current state is being save and if power is off or program crashes, user can load his last save
-            SwitchingOffAllFields();
-            ChoosingQuestion();
+            if (finishedQuiz == false)
+            {
+                SwitchingOffAllFields();
+                ChoosingQuestion();
+            }
         }
 
         private void ReloadLastQuiz_Yes(object sender, RoutedEventArgs e) //Question on start
@@ -420,39 +445,45 @@ namespace Wiedzowkonator
 
         private void goBack_Click(object sender, RoutedEventArgs e) //Showing again screenshot before giving points
         {
-            curQuizState = quizState.answeringQuestion;
-            ShowingHUD(); //TODO -- a bit out of date but it's working good
-            if (screenshotQuizStarted == false)
-                screenshotQuizStarted = true;
-            else
-                screenshotQuizStarted = false;
-            if (curQuizType == quizType.screenshot)
-                canvasScreenshotQuiz.Children.Add(screenshots[lastScreenshotIndex]);
-            else if (curQuizType == quizType.text)
+            if (curQuizState == quizState.givingPoints)
             {
-                SwitchingOffAllFields();
-                ShowingQuestion();
-                questionText.Text = textQuestions[lastQuestionIndex];
-            }
-            else if (curQuizType == quizType.music)
-            {
-                SwitchingOffAllFields();
-                MusicHUDShow();
-            }
-            else if (curQuizType == quizType.mixed)
-            {
-                if (curSubType == subType.screenshot)
-                    canvasScreenshotQuiz.Children.Add(screenshots[mixedIndex]);
-                else if (curSubType == subType.text)
+                curQuizState = quizState.answeringQuestion;
+                ShowingHUD(); //TODO -- a bit out of date but it's working good
+                if (screenshotQuizStarted == false)
+                    screenshotQuizStarted = true;
+                else
+                    screenshotQuizStarted = false;
+                if (curQuizType == quizType.screenshot)
+                {
+                    canvasScreenshotQuiz.Children.Add(screenshots[lastScreenshotIndex]);
+                    ScreenshotSkipper.Focus();
+                }
+                else if (curQuizType == quizType.text)
                 {
                     SwitchingOffAllFields();
                     ShowingQuestion();
-                    questionText.Text = textQuestions[mixedIndex];
+                    questionText.Text = textQuestions[lastQuestionIndex];
                 }
-                else if (curSubType == subType.music)
+                else if (curQuizType == quizType.music)
                 {
                     SwitchingOffAllFields();
                     MusicHUDShow();
+                }
+                else if (curQuizType == quizType.mixed)
+                {
+                    if (curSubType == subType.screenshot)
+                        canvasScreenshotQuiz.Children.Add(screenshots[mixedIndex]);
+                    else if (curSubType == subType.text)
+                    {
+                        SwitchingOffAllFields();
+                        ShowingQuestion();
+                        questionText.Text = textQuestions[mixedIndex];
+                    }
+                    else if (curSubType == subType.music)
+                    {
+                        SwitchingOffAllFields();
+                        MusicHUDShow();
+                    }
                 }
             }
         }
@@ -470,7 +501,7 @@ namespace Wiedzowkonator
         private void SkippingScreenshot(object sender, MouseButtonEventArgs e)
         {
             //Leaving answering question phase and skipping screenshot by >>pressing left mouse button<<
-            if (e.LeftButton == MouseButtonState.Pressed)
+            if (e.LeftButton == MouseButtonState.Pressed && curQuizState != quizState.customizingQuestions)
             {
                 curQuizState = quizState.givingPoints;
                 StartClick(null, null);
@@ -500,9 +531,48 @@ namespace Wiedzowkonator
                         correctAnswer.Text = "Poprawna odpowiedź: " + correctAnswerToPass[1];
                     }
                 }
+                SwitchingOffAllFields();
+                GivingPoints_ShowingAnswers();
             }
         }
 
+
+        private void ScreenshotSkipper_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter && curQuizState != quizState.customizingQuestions)
+            {
+                curQuizState = quizState.givingPoints;
+                StartClick(null, null);
+
+                if (curAnswerType == answerType.noAnswer)
+                {
+                    correctAnswer.Text = "";
+                }
+                else if (curAnswerType == answerType.fileNameAnswer)
+                {
+                    FileInfo file = new FileInfo(bitmapImage[lastScreenshotIndex].UriSource.LocalPath);
+                    if (file.Name.Contains("@correct_answer_")) //If file has "correct_answer" in name, but user want use other checking answers method
+                    {
+                        string[] correctAnswerToPass = file.Name.Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
+                        correctAnswer.Text = "Poprawna odpowiedź: " + correctAnswerToPass[0];
+                    }
+                    else //When file is untouched
+                        correctAnswer.Text = "Poprawna odpowiedź: " + file.Name.Replace(file.Extension, "");
+                }
+                else if (curAnswerType == answerType.customAnswer)
+                {
+                    FileInfo pathInfo = new FileInfo(bitmapImage[lastScreenshotIndex].UriSource.LocalPath);
+                    string path = pathInfo.Name.Replace(pathInfo.Extension, "");
+                    if (path.Contains("@correct_answer_"))
+                    {
+                        string[] correctAnswerToPass = path.Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
+                        correctAnswer.Text = "Poprawna odpowiedź: " + correctAnswerToPass[1];
+                    }
+                }
+                SwitchingOffAllFields();
+                GivingPoints_ShowingAnswers();
+            }
+        }
 
         private void SkipQuestion_Click(object sender, RoutedEventArgs e)
         {
@@ -820,6 +890,7 @@ namespace Wiedzowkonator
                     }
                 }
                 stream.Close(); //Closing stream to prevent from damaging data
+                    curQuizState = quizState.choosingQuestion;
             }
         }
 
@@ -1056,6 +1127,7 @@ namespace Wiedzowkonator
             else if (curQuizType == quizType.mixed)
                 QuickLoadMixedQuiz(path);
             stream.Close(); //Closing stream to prevent from damaging data
+            curQuizState = quizState.choosingQuestion;
         }
         #endregion
         /* Importing new quizes */
@@ -1367,7 +1439,7 @@ namespace Wiedzowkonator
 
         void GivingPoints_ShowingAnswers()
         {
-            //TODO -- dodać więcej uczestników oraz ogarnąć wartości procentowe
+            //TODO -- ogarnąć wartości procentowe
             confirmPoints.Width = 75;
             goBack.Width = 75;
             //correctAnswer.Width = 0;
@@ -1648,7 +1720,11 @@ namespace Wiedzowkonator
             }
 
             if (mixedQuizMusic.Count == 0 && mixedQuizScreenshot.Count == 0 && mixedQuizText.Count == 0)
+            {
                 MessageBox.Show("KONIEC WIEDZÓWKI!");
+                FinishedQuiz();
+                finishedQuiz = true;
+            }
         }
 
         void SaveMixedQuiz()
@@ -1900,12 +1976,47 @@ participantsNames[11] = nameParticipant12;participantsPoints[11] = pointsPartici
 
             for (int i = 0; i < participantsNames.Length; i++)
             {
-                if (participantsNames[i] != null) //TODO -- wywalić ten warunek != null, bo wszystkie zmienne będą już przypisane np. 16-24 uczestników
+                if (participantsNames[i] != null)
                 {
                     participantsNames[i].Text = "";
                     participantsPoints[i].Text = "0,0";
                 }
             }
+        }
+
+        void FinishedQuiz()
+        {
+            SwitchingOffAllFields();
+            GivingPoints_ShowingAnswers();
+            confirmPoints.Width = 0;
+            goBack.Width = 0;
+
+            int[] pointsList = new int[numberOfParticipants];
+
+            for (int i = 0; i < numberOfParticipants; i++)
+            {
+                if (participantsNames[i].Text != "" && participantsNames[i].Text != null)
+                {
+                    string points = participantsPoints[i].Text.Replace(",0", "");
+                    pointsList[i] = int.Parse(points);
+                }
+            }
+            Array.Sort(pointsList);
+            Array.Reverse(pointsList);
+            int currentPositionOfWinners = 1;
+            for (int i = 0; i < numberOfParticipants; i++)
+            {
+                for (int j = 0; j < numberOfParticipants; j++)
+                {
+                    string points = participantsPoints[j].Text.Replace(",0", "");
+                    if (pointsList[i] == int.Parse(points) && participantsNames[j].Text != null && participantsNames[j].Text != "")
+                    {
+                        winners.Text += currentPositionOfWinners.ToString() + ". " + participantsNames[j].Text + " ; " + points + "\r";
+                        currentPositionOfWinners++;
+                    }
+                }
+            }
+            MessageBox.Show(winners.Text);
         }
         #endregion
     }

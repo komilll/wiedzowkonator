@@ -1006,128 +1006,137 @@ namespace Wiedzowkonator
                     if (pathToCheck[i].Extension == ".animemixed") extensionPaths.Add(pathToCheck[i]);
                 }
             }
-            string path = (from f in extensionPaths
+
+            if (pathToCheck.Length > 0)
+            {
+                string path = (from f in extensionPaths
                            orderby f.LastWriteTime descending
                            select f).First().FullName;
-            //MessageBox.Show(path);
-            BinaryFormatter bf = new BinaryFormatter();
-            FileStream stream = File.Open(path, FileMode.Open);
-            if (curQuizType == quizType.mixed) stream.Close(); //Instant closing stream to get access in another method if opening mixed Quiz
+                //MessageBox.Show(path);
+                BinaryFormatter bf = new BinaryFormatter();
+                FileStream stream = File.Open(path, FileMode.Open);
+                if (curQuizType == quizType.mixed) stream.Close(); //Instant closing stream to get access in another method if opening mixed Quiz
 
-            if (curQuizType == quizType.screenshot)
-            {
-                SerializationData data = (SerializationData)bf.Deserialize(stream);
-                serializationData.answeredScreenshots = data.answeredScreenshots;
-                for (int i = 0; i < numberOfParticipants; i++)
+                if (curQuizType == quizType.screenshot)
                 {
-                    participantsPoints[i].Text = data.points[i];
-                    participantsNames[i].Text = data.participants[i];
-                }
-                screenshotsLocalizationPath = data._screenshotsLocalizationPath;
-                curAnswerType = (answerType)data.curAnswerType;
-
-                MessageBox.Show(curAnswerType.ToString());
-                bitmapImage = new BitmapImage[screenshotsLocalizationPath.Length];
-                screenshots = new Image[bitmapImage.Length];
-                nameOfScreenshots = new string[bitmapImage.Length];
-                for (int k = 0; k < screenshotsLocalizationPath.Length; k++)
-                {
-                    bitmapImage[k] = new BitmapImage(new Uri(screenshotsLocalizationPath[k], UriKind.Absolute));
-                    screenshots[k] = new Image();
-                    screenshots[k].Source = bitmapImage[k];
-                    screenshots[k].Width = bitmapImage[k].Width;
-                    screenshots[k].Height = bitmapImage[k].Height;
-                    nameOfScreenshots[k] = screenshotsLocalizationPath[k];
-
-                    string[] correctNameOfScreenshot = nameOfScreenshots[k].Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
-                    FileInfo info = new FileInfo(nameOfScreenshots[k]);
-                    nameOfScreenshots[k] = correctNameOfScreenshot[0] + info.Extension;
-                }
-
-                for (int i = 0; i < serializationData.answeredScreenshots.Count; i++)
-                {
-                    for (int j = 0; j < nameOfScreenshots.Length; j++)
+                    SerializationData data = (SerializationData)bf.Deserialize(stream);
+                    serializationData.answeredScreenshots = data.answeredScreenshots;
+                    for (int i = 0; i < numberOfParticipants; i++)
                     {
-                        if (serializationData.answeredScreenshots[i] == nameOfScreenshots[j])
+                        participantsPoints[i].Text = data.points[i];
+                        participantsNames[i].Text = data.participants[i];
+                    }
+                    screenshotsLocalizationPath = data._screenshotsLocalizationPath;
+                    curAnswerType = (answerType)data.curAnswerType;
+
+                    MessageBox.Show(curAnswerType.ToString());
+                    bitmapImage = new BitmapImage[screenshotsLocalizationPath.Length];
+                    screenshots = new Image[bitmapImage.Length];
+                    nameOfScreenshots = new string[bitmapImage.Length];
+                    for (int k = 0; k < screenshotsLocalizationPath.Length; k++)
+                    {
+                        bitmapImage[k] = new BitmapImage(new Uri(screenshotsLocalizationPath[k], UriKind.Absolute));
+                        screenshots[k] = new Image();
+                        screenshots[k].Source = bitmapImage[k];
+                        screenshots[k].Width = bitmapImage[k].Width;
+                        screenshots[k].Height = bitmapImage[k].Height;
+                        nameOfScreenshots[k] = screenshotsLocalizationPath[k];
+
+                        string[] correctNameOfScreenshot = nameOfScreenshots[k].Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
+                        FileInfo info = new FileInfo(nameOfScreenshots[k]);
+                        nameOfScreenshots[k] = correctNameOfScreenshot[0] + info.Extension;
+                    }
+
+                    for (int i = 0; i < serializationData.answeredScreenshots.Count; i++)
+                    {
+                        for (int j = 0; j < nameOfScreenshots.Length; j++)
                         {
-                            screenshotsCompleted++;
-                            for (int k = j; k < screenshots.Length - 1; k++)
+                            if (serializationData.answeredScreenshots[i] == nameOfScreenshots[j])
                             {
-                                screenshots[k] = screenshots[k + 1];
-                                bitmapImage[k] = bitmapImage[k + 1];
+                                screenshotsCompleted++;
+                                for (int k = j; k < screenshots.Length - 1; k++)
+                                {
+                                    screenshots[k] = screenshots[k + 1];
+                                    bitmapImage[k] = bitmapImage[k + 1];
+                                }
                             }
                         }
                     }
                 }
-            }
-            else if (curQuizType == quizType.text)
-            {
-                SerializationDataText data = (SerializationDataText)bf.Deserialize(stream);
-                serializationText.answeredQuestions = data.answeredQuestions;
-                for (int i = 0; i < numberOfParticipants; i++)
+                else if (curQuizType == quizType.text)
                 {
-                    participantsPoints[i].Text = data.points[i];
-                    participantsNames[i].Text = data.participants[i];
-                }
-                txtFilePath = data.txtFileLocalization;
-                curAnswerType = (answerType)data.curAnswerType;
-                curQuizType = (quizType)data.curQuizType;
-
-                if (File.Exists(txtFilePath))
-                    OpeningTextQuiz(txtFilePath); //Loading new quiz from file
-                else MessageBox.Show("Błąd importowania! Proszę zresetować program i upewnić się, że plik " + txtFilePath + " istnieje.");
-
-                for (int i = 0; i < serializationText.answeredQuestions.Count; i++)
-                {
-                    for (int j = 0; j < textQuestions.Length; j++)
+                    SerializationDataText data = (SerializationDataText)bf.Deserialize(stream);
+                    serializationText.answeredQuestions = data.answeredQuestions;
+                    for (int i = 0; i < numberOfParticipants; i++)
                     {
-                        if (serializationText.answeredQuestions[i] == textQuestions[j])
+                        participantsPoints[i].Text = data.points[i];
+                        participantsNames[i].Text = data.participants[i];
+                    }
+                    txtFilePath = data.txtFileLocalization;
+                    curAnswerType = (answerType)data.curAnswerType;
+                    curQuizType = (quizType)data.curQuizType;
+
+                    if (File.Exists(txtFilePath))
+                        OpeningTextQuiz(txtFilePath); //Loading new quiz from file
+                    else MessageBox.Show("Błąd importowania! Proszę zresetować program i upewnić się, że plik " + txtFilePath + " istnieje.");
+
+                    for (int i = 0; i < serializationText.answeredQuestions.Count; i++)
+                    {
+                        for (int j = 0; j < textQuestions.Length; j++)
                         {
-                            textQuestionsCompleted++;
-                            textQuestions[i] = null; textTitles[i] = null; textAnswers[i] = null;
-                            for (int k = j; k < textQuestions.Length - 1; k++)
+                            if (serializationText.answeredQuestions[i] == textQuestions[j])
                             {
-                                textQuestions[k] = textQuestions[k + 1];
-                                textAnswers[k] = textAnswers[k + 1];
-                                textTitles[k] = textTitles[k + 1];
+                                textQuestionsCompleted++;
+                                textQuestions[i] = null; textTitles[i] = null; textAnswers[i] = null;
+                                for (int k = j; k < textQuestions.Length - 1; k++)
+                                {
+                                    textQuestions[k] = textQuestions[k + 1];
+                                    textAnswers[k] = textAnswers[k + 1];
+                                    textTitles[k] = textTitles[k + 1];
+                                }
                             }
                         }
                     }
                 }
-            }
-            else if (curQuizType == quizType.music)
-            {
-                SerializationDataMusic data = (SerializationDataMusic)bf.Deserialize(stream);
-                serializationMusic.answeredQuestions = data.answeredQuestions;
-                for (int i = 0; i < numberOfParticipants; i++)
+                else if (curQuizType == quizType.music)
                 {
-                    participantsPoints[i].Text = data.points[i];
-                    participantsNames[i].Text = data.participants[i];
-                }
-                musicFilesPath = data.musicFilesLocalization;
-                curAnswerType = (answerType)data.curAnswerType;
-                curQuizType = (quizType)data.curQuizType;
-
-                for (int i = 0; i < serializationMusic.answeredQuestions.Count; i++)
-                {
-                    for (int j = 0; j < musicFilesPath.Length; j++)
+                    SerializationDataMusic data = (SerializationDataMusic)bf.Deserialize(stream);
+                    serializationMusic.answeredQuestions = data.answeredQuestions;
+                    for (int i = 0; i < numberOfParticipants; i++)
                     {
-                        if (serializationMusic.answeredQuestions[i] == musicFilesPath[j])
+                        participantsPoints[i].Text = data.points[i];
+                        participantsNames[i].Text = data.participants[i];
+                    }
+                    musicFilesPath = data.musicFilesLocalization;
+                    curAnswerType = (answerType)data.curAnswerType;
+                    curQuizType = (quizType)data.curQuizType;
+
+                    for (int i = 0; i < serializationMusic.answeredQuestions.Count; i++)
+                    {
+                        for (int j = 0; j < musicFilesPath.Length; j++)
                         {
-                            musicQuestionsCompleted++;
-                            musicFilesPath[i] = null;
-                            for (int k = j; k < musicFilesPath.Length - 1; k++)
+                            if (serializationMusic.answeredQuestions[i] == musicFilesPath[j])
                             {
-                                musicFilesPath[k] = musicFilesPath[k + 1];
+                                musicQuestionsCompleted++;
+                                musicFilesPath[i] = null;
+                                for (int k = j; k < musicFilesPath.Length - 1; k++)
+                                {
+                                    musicFilesPath[k] = musicFilesPath[k + 1];
+                                }
                             }
                         }
                     }
                 }
+                else if (curQuizType == quizType.mixed)
+                    QuickLoadMixedQuiz(path);
+                stream.Close(); //Closing stream to prevent from damaging data
+                curQuizState = quizState.choosingQuestion;
             }
-            else if (curQuizType == quizType.mixed)
-                QuickLoadMixedQuiz(path);
-            stream.Close(); //Closing stream to prevent from damaging data
-            curQuizState = quizState.choosingQuestion;
+            else //If there in no files in quicksave/quickload directory
+            {
+                MessageBox.Show("Brak plików w folderze szybkiego zapisu. Oznacza to, że nie utworzono do tej pory"
+                    + "żadnej wiedzówki. Aby to zrobić kliknij \"Utwórz nową wiedzówkę...\"");
+            }
         }
         #endregion
         /* Importing new quizes */

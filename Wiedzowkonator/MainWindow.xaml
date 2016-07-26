@@ -30,8 +30,8 @@
         <!-- STARTING -> Choosing type of quiz, importing options etc. -->
         <Button x:Name="textQuizButton" Content="Wiedzówka z pytań" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" Click="textQuizButton_Click"/>
         <Button x:Name="screenshotQuizButton" Content="Screenówka" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" Margin="131,164,131,104" Click="screenshotQuizButton_Click"/>
-        <Button x:Name="musicQuizButton" Content="Wiedzówka muzyczna (nie działa!)" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" Margin="131,199,131,69" Click="musicQuizButton_Click"/>
-        <Button x:Name="mixedQuizButton" Content="Wiedzówka mieszana (nie działa!)" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" Margin="131,228,131,40" Click="mixedQuizButton_Click"/>
+        <Button x:Name="musicQuizButton" Content="Wiedzówka muzyczna" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" Margin="131,199,131,69" Click="musicQuizButton_Click"/>
+        <Button x:Name="mixedQuizButton" Content="Wiedzówka mieszana" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" Margin="131,228,131,40" Click="mixedQuizButton_Click"/>
 
         <Button x:Name="openQuizButton" Content="Utwórz nową wiedzówkę (wybierz pliki...)" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" Click="openQuizButton_Click"/>
         <Button x:Name="loadQuizButton" Content="Załaduj plik .anime z wybraną przez siebie wiedzówką" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" Margin="131,164,131,104" Click="loadQuizButton_Click"/>

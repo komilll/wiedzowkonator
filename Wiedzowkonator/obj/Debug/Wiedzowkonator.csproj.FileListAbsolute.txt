@@ -12,3 +12,8 @@ C:\Users\Kamil\Documents\Visual Studio 2015\Projects\Wiedzowkonator\Wiedzowkonat
 C:\Users\Kamil\Documents\Visual Studio 2015\Projects\Wiedzowkonator\Wiedzowkonator\obj\Debug\Wiedzowkonator.exe
 C:\Users\Kamil\Documents\Visual Studio 2015\Projects\Wiedzowkonator\Wiedzowkonator\obj\Debug\Wiedzowkonator.pdb
 C:\Users\Kamil\Documents\Visual Studio 2015\Projects\Wiedzowkonator\Wiedzowkonator\obj\Debug\Wiedzowkonator.csprojResolveAssemblyReference.cache
+C:\Users\Kamil\Documents\Visual Studio 2015\Projects\Wiedzowkonator\Wiedzowkonator\obj\Debug\Wiedzowkonator_Content.g.cs
+C:\Users\Kamil\Documents\Visual Studio 2015\Projects\Wiedzowkonator\Wiedzowkonator\bin\Debug\Icons\blocked.png
+C:\Users\Kamil\Documents\Visual Studio 2015\Projects\Wiedzowkonator\Wiedzowkonator\bin\Debug\Icons\doublePoints.png
+C:\Users\Kamil\Documents\Visual Studio 2015\Projects\Wiedzowkonator\Wiedzowkonator\bin\Debug\Icons\forced.png
+C:\Users\Kamil\Documents\Visual Studio 2015\Projects\Wiedzowkonator\Wiedzowkonator\bin\Debug\Icons\noLosingPoints.png

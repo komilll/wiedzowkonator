@@ -19,12 +19,14 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Xml;
 using System.Xml.Serialization;
 using System.Drawing;
+using System.Windows.Resources;
 //
 using Application = System.Windows.Application;
 using MessageBox = System.Windows.Forms.MessageBox;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 using Image = System.Windows.Controls.Image;
 using Button = System.Windows.Controls.Button;
+using Brush = System.Drawing.Brush;
 
 namespace Wiedzowkonator
 {
@@ -105,7 +107,10 @@ namespace Wiedzowkonator
         System.Windows.Controls.TextBlock[] participantsPoints = new System.Windows.Controls.TextBlock[16];
         System.Windows.Controls.Button[] participantsPlus = new Button[16];
         System.Windows.Controls.Button[] participantsMinus = new Button[16];
+        System.Windows.Controls.Button[] participantsBonus = new Button[16];
         /************************/
+        bool awaitingLotterySwap;
+        bool swappingWithFirstPlace;
 
         public Image[] screenshots; //Screenshots that will be shown on canvas
         BitmapImage[] bitmapImage; //Images that will be written into "screenshots" variable
@@ -138,6 +143,13 @@ namespace Wiedzowkonator
         List<int> mixedQuizMusic = new List<int>();
         bool isMixedQuiz = false;
         int mixedIndex = 0; //Something similar to lastIndex, but since there are 2 layers of lists then I need other index for mixedQuizText; Music; Screen
+        /**************************/
+        /****** LOTTERY QUIZ ******/
+        int curLotteryBonus;
+        int lotteryPointsToPass;
+        Image[] lotteryIcons;
+        BitmapImage[] lotteryBitmaps;
+        string lotteryIconsDirectory = System.AppDomain.CurrentDomain.BaseDirectory + "/Icons";
 
         //Enum type that shows which state of quiz is currently in progress
         enum quizState { customizingQuestions, choosingQuestion, answeringQuestion, givingPoints };
@@ -148,6 +160,9 @@ namespace Wiedzowkonator
 
         enum quizType { screenshot, text, music, mixed };
         quizType curQuizType;
+
+        enum pointsType { manual, lottery, tilesChoosing};
+        pointsType curPointsType;
 
         //This enum is used >>ONLY<< for mixed quiz. Don't touch when operating on other quizes
         enum subType { screenshot, text, music }
@@ -350,6 +365,124 @@ namespace Wiedzowkonator
             else
                 participantsPoints[index].Text = curPoints.ToString();
         }
+
+        private void bonusParticipant_Click(object sender, RoutedEventArgs e)
+        {
+            Button button = (sender as Button);
+            /*if (button.Background != null)
+            {
+                button.Width = 0;
+                button.Background = null;
+                button.ToolTip = null;
+            }
+            else
+            {
+
+            }*/
+
+            string indexOfParticipantString = button.Name.Replace("bonusParticipant", "");
+            int indexOfParticipant = int.Parse(indexOfParticipantString) - 1;
+            string pPoints;
+            switch (curLotteryBonus)
+            {
+       
+                case 0: //Adding points for participant
+                    pPoints = participantsPoints[indexOfParticipant].Text.Replace(",0", "");
+                    
+                    participantsPoints[indexOfParticipant].Text = (int.Parse(pPoints) + int.Parse(lotteryPointsToPass.ToString())).ToString() + ",0";
+                    break;
+
+                case 1: //Substracting points for participant
+                    pPoints = participantsPoints[indexOfParticipant].Text.Replace(",0", "");
+
+                    participantsPoints[indexOfParticipant].Text = (int.Parse(pPoints) - int.Parse(lotteryPointsToPass.ToString())).ToString() + ",0";
+                    break;
+
+                case 2: //Swapping points with first place
+                    string participantToSwap = participantsNames[indexOfParticipant].Text;
+                    awaitingLotterySwap = false;
+                    int[] pointsList = new int[numberOfParticipants];
+                    int indexOfParticipantToSwap = 0; //Initialize
+
+                    for (int i = 0; i < numberOfParticipants; i++) //Getting number of points
+                    {
+                        if (participantsNames[i].Text != "" && participantsNames[i].Text != null)
+                        {
+                            string points = participantsPoints[i].Text.Replace(",0", "");
+                            pointsList[i] = int.Parse(points);
+                        }
+                    }
+                    Array.Sort(pointsList); //Sorting by points
+                    if (swappingWithFirstPlace) //Reversing points list if changing 1st with other participant
+                        Array.Reverse(pointsList);
+
+                    for (int j = 0; j < numberOfParticipants; j++) //Getting name of participant written in TextBox
+                    {
+                        if (participantToSwap == participantsNames[j].Text && participantsNames[j].Text != null && participantsNames[j].Text != "")
+                        {
+                            indexOfParticipantToSwap = j;
+                        }
+                    }
+
+                    for (int j = 0; j < numberOfParticipants; j++) //Getting name of participant with most points
+                    {
+                        string points = participantsPoints[j].Text.Replace(",0", "");
+                        if (pointsList[0] == int.Parse(points) && participantsNames[j].Text != null && participantsNames[j].Text != "")
+                        {
+                            string tempPoints = participantsPoints[j].Text;
+                            participantsPoints[j].Text = participantsPoints[indexOfParticipantToSwap].Text;
+                            participantsPoints[indexOfParticipantToSwap].Text = tempPoints;
+                        }
+                    }
+                    break;
+                case 3: //Switching with last place
+                    participantToSwap = participantsNames[indexOfParticipant].Text;
+                    awaitingLotterySwap = false;
+                    pointsList = new int[numberOfParticipants];
+                    indexOfParticipantToSwap = 0; //Initialize
+
+                    for (int i = 0; i < numberOfParticipants; i++) //Getting number of points
+                    {
+                        if (participantsNames[i].Text != "" && participantsNames[i].Text != null)
+                        {
+                            string points = participantsPoints[i].Text.Replace(",0", "");
+                            pointsList[i] = int.Parse(points);
+                        }
+                    }
+                    Array.Sort(pointsList); //Sorting by points
+
+                    for (int j = 0; j < numberOfParticipants; j++) //Getting name of participant written in TextBox
+                    {
+                        if (participantToSwap == participantsNames[j].Text && participantsNames[j].Text != null && participantsNames[j].Text != "")
+                        {
+                            indexOfParticipantToSwap = j;
+                        }
+                    }
+
+                    for (int j = 0; j < numberOfParticipants; j++) //Getting name of participant with most points
+                    {
+                        string points = participantsPoints[j].Text.Replace(",0", "");
+                        if (pointsList[0] == int.Parse(points) && participantsNames[j].Text != null && participantsNames[j].Text != "")
+                        {
+                            string tempPoints = participantsPoints[j].Text;
+                            participantsPoints[j].Text = participantsPoints[indexOfParticipantToSwap].Text;
+                            participantsPoints[indexOfParticipantToSwap].Text = tempPoints;
+                        }
+                    }
+                    break;
+                case 4: //User is forced to take over questions
+                    Image forcedImage = new Image();
+                    BitmapImage forcedBitmap = new BitmapImage(new Uri("Icons/forced.png", UriKind.Relative));
+                    forcedImage.Source = forcedBitmap;
+                    forcedImage.Width = forcedBitmap.Width;
+                    forcedImage.Height = forcedBitmap.Height;
+
+                    imageParticipant1.Children.Add(forcedImage);
+                    imageParticipant1.ToolTip = "Przez następne trzy rundy, jeśli nikt nie odpowie na pytanie, musisz je przejąć";
+                    break;
+            }
+        }
+
         //If user is done, then he leaves giving points phase and go back to choosing question
         private void confirmPoints_Click(object sender, RoutedEventArgs e)
         {
@@ -1385,6 +1518,7 @@ namespace Wiedzowkonator
             {
                 participantsPlus[i].Width = 0;
                 participantsMinus[i].Width = 0;
+                participantsBonus[i].Width = 0;
             }
             for (int i = 0; i < numberOfParticipants; i++)
             {
@@ -1412,6 +1546,19 @@ namespace Wiedzowkonator
             volumeAudioSlider.Width = 0;
             //TODO -- maybe add timer to music player HUD
             SkipMusicQuestion.Width = 0;
+            //Choosing type of assigning points
+            manualQuizButton.Width = 0;
+            lotteryQuizButton.Width = 0;
+            tilesChoosingQuizButton.Width = 0;
+
+            LotteryText.Width = 0;
+        }
+
+        void ChoosingPointsType()
+        {
+            manualQuizButton.Width = 250;
+            lotteryQuizButton.Width = 250;
+            tilesChoosingQuizButton.Width = 250;
         }
 
         void ChoosingQuizType()
@@ -1459,8 +1606,20 @@ namespace Wiedzowkonator
             }
             for (int i = 0; i < numberOfParticipants; i++)
             {
-                participantsPlus[i].Width = 33;
-                participantsMinus[i].Width = 33;
+                if (curPointsType == pointsType.manual)
+                {
+                    participantsPlus[i].Width = 33;
+                    participantsMinus[i].Width = 33;
+                }
+                else if (curPointsType == pointsType.lottery)
+                {
+                    participantsBonus[i].Width = 30;
+                }
+            }
+
+            if (curPointsType == pointsType.lottery)
+            {
+                StartLottery();
             }
         }
 
@@ -1488,7 +1647,8 @@ namespace Wiedzowkonator
             //Button to skip current music question
             SkipMusicQuestion.Width = 150;
         }
-        /* END OF HUD METHODS */
+        /**************************** END OF HUD METHODS *****************************/
+        /*****************************************************************************/
         private void textQuizButton_Click(object sender, RoutedEventArgs e)
         {
             curQuizType = quizType.text;
@@ -1530,7 +1690,7 @@ namespace Wiedzowkonator
                 else
                 {
                     SwitchingOffAllFields();
-                    ChoosingQuestion();
+                    ChoosingPointsType();
                 }
             }
         }
@@ -1541,7 +1701,7 @@ namespace Wiedzowkonator
             if (textQuestions != null || screenshots != null || musicFilesPath != null)
             {
                 SwitchingOffAllFields();
-                ChoosingQuestion();
+                ChoosingPointsType();
             }
         }
 
@@ -1553,10 +1713,107 @@ namespace Wiedzowkonator
             if (textQuestions != null || screenshots != null || musicFilesPath != null)
             {
                 SwitchingOffAllFields();
-                ChoosingQuestion();
+                ChoosingPointsType();
             }
         }
 
+        private void manualQuizButton_Click(object sender, RoutedEventArgs e)
+        {
+            curPointsType = pointsType.manual;
+            SwitchingOffAllFields();
+            ChoosingQuestion();
+        }
+
+        private void lotteryQuizButton_Click(object sender, RoutedEventArgs e)
+        {
+            curPointsType = pointsType.lottery;
+            SwitchingOffAllFields();
+            ChoosingQuestion();
+        }
+
+        private void tilesChoosingQuizButton_Click(object sender, RoutedEventArgs e)
+        {
+            curPointsType = pointsType.tilesChoosing;
+            SwitchingOffAllFields();
+            ChoosingQuestion();
+        }
+
+        void StartLottery()
+        {
+            LotteryText.Width = 350;
+            string[] lotteryVariants = new string[8];
+            lotteryVariants[0] = "Dostajesz.punkty";
+            lotteryVariants[1] = "Tracisz.punkty";
+            lotteryVariants[2] = "Zamieniasz się punktami z pierwszym miejscem";
+            lotteryVariants[3] = "Zamieniasz się punktami z ostatnim miejscem";
+            lotteryVariants[4] = "Przez następne trzy rundy, jeśli nikt nie odpowie na pytanie, musisz je przejąć";
+            lotteryVariants[5] = "Za następne pytanie na które odpowiesz otrzymujesz x.punktów";
+            lotteryVariants[6] = "Przez trzy tury nie możesz przejmować pytań";
+            lotteryVariants[7] = "Podczas następnego nieudanego przejęcia nie tracisz punktów";
+
+            Random random = new Random();
+            int randomizing = random.Next(61, 70); //TODO - zmienić potem na numer od 0 do 100
+
+            if (randomizing >= 0 && randomizing <= 55) //Variant 0-1; Adding or substracting points from user
+            {
+                randomizing = random.Next(1, 11);
+                if (randomizing >= 1 && randomizing <= 8) //80% chance to get from 0 to 5 points
+                {
+                    string[] stringToPass = lotteryVariants[0].Split('.');
+                    randomizing = random.Next(0, 6);
+                    if (randomizing == 1) stringToPass[1] = "punkt";
+                    else if (randomizing == 5) stringToPass[1] = "punktów";
+                    LotteryText.Text = stringToPass[0] + " " + randomizing.ToString() + " " + stringToPass[1];
+                    curLotteryBonus = 0; //Index of bonus
+                    lotteryPointsToPass = randomizing; //Points that player will get for this answer
+                }
+                else
+                {
+                    string[] stringToPass = lotteryVariants[1].Split('.');
+                    randomizing = random.Next(0, 6);
+                    if (randomizing == 1) stringToPass[1] = "punkt";
+                    else if (randomizing == 5) stringToPass[1] = "punktów";
+                    LotteryText.Text = stringToPass[0] + " " + randomizing.ToString() + " " + stringToPass[1];
+                    curLotteryBonus = 1; //Index of bonus
+                    lotteryPointsToPass = randomizing; //Points that player will get for this answer
+                }
+            }
+            else if (randomizing >= 56 && randomizing <= 60) //Variant 2-3; Swapping 1st and last place 
+            {
+                randomizing = random.Next(0, 2);
+                awaitingLotterySwap = true;
+                if (randomizing == 0) //Swapping with first place
+                {
+                    LotteryText.Text = lotteryVariants[2] + Environment.NewLine + "Wskaż drużynę, która odpowiedziała na to pytanie:";
+                    swappingWithFirstPlace = true;
+                    curLotteryBonus = 2; //Index of bonus
+                }
+                else //Swapping with last place
+                {
+                    LotteryText.Text = lotteryVariants[3] + Environment.NewLine + "Wskaż drużynę, która odpowiedziała na to pytanie:";
+                    swappingWithFirstPlace = false;
+                    curLotteryBonus = 3; //Index of bonus
+                }
+
+            }
+            else if (randomizing >= 61 && randomizing <= 70) //Variant 4; Next three rounds you're forced to answer questions
+            {
+                LotteryText.Text = lotteryVariants[4]; //TOOLTIPY dodać 
+                curLotteryBonus = 4; //Index of bonus
+            }
+            else if (randomizing >= 71 && randomizing <= 80) //Variant 5; For next answered question you're gaining extra points
+            {
+
+            }
+            else if (randomizing >= 81 && randomizing <= 90) //Variant 6; You can't answer other participant's questions for three rounds
+            {
+
+            }
+            else if (randomizing >= 91 && randomizing <= 100) //Variant 7; You're not loosing points for next unfortunate question take over
+            {
+
+            }
+        }
         /************************************** MUSIC QUIZ METHODS *******************************************/
         private void playAudioButton_Click(object sender, RoutedEventArgs e)
         {
@@ -1965,11 +2222,13 @@ namespace Wiedzowkonator
                 participantsPoints[i] = null;
                 participantsPlus[i] = null;
                 participantsMinus[i] = null;
+                participantsBonus[i] = null;
             }
             participantsNames[0] = nameParticipant1;
             participantsPoints[0] = pointsParticipant1;
             participantsPlus[0] = plusParticipant1;
             participantsMinus[0] = minusParticipant1;
+            participantsBonus[0] = bonusParticipant1;
 
 participantsNames[1] = nameParticipant2; participantsPoints[1] = pointsParticipant2; participantsPlus[1] = plusParticipant2; participantsMinus[1] = minusParticipant2;
 participantsNames[2] = nameParticipant3; participantsPoints[2] = pointsParticipant3; participantsPlus[2] = plusParticipant3; participantsMinus[2] = minusParticipant3;
@@ -1982,6 +2241,11 @@ participantsNames[8] = nameParticipant9; participantsPoints[8] = pointsParticipa
 participantsNames[9] = nameParticipant10; participantsPoints[9] = pointsParticipant10;participantsPlus[9] = plusParticipant10; participantsMinus[9] = minusParticipant10;
 participantsNames[10] = nameParticipant11; participantsPoints[10] = pointsParticipant11;participantsPlus[10] = plusParticipant11;participantsMinus[10]=minusParticipant11;
 participantsNames[11] = nameParticipant12;participantsPoints[11] = pointsParticipant12;participantsPlus[11] = plusParticipant12;participantsMinus[11]=minusParticipant12;
+
+            participantsBonus[0] = bonusParticipant1; participantsBonus[4] = bonusParticipant5; participantsBonus[8] = bonusParticipant9;
+            participantsBonus[1] = bonusParticipant2; participantsBonus[5] = bonusParticipant6; participantsBonus[9] = bonusParticipant10;
+            participantsBonus[2] = bonusParticipant3; participantsBonus[6] = bonusParticipant7; participantsBonus[10] = bonusParticipant11;
+            participantsBonus[3] = bonusParticipant4; participantsBonus[7] = bonusParticipant8; participantsBonus[11] = bonusParticipant12;
 
             for (int i = 0; i < participantsNames.Length; i++)
             {

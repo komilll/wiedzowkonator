@@ -53,6 +53,7 @@
         <Button x:Name="SkipQuestion" Content="Pokaż odpowiedź" VerticalAlignment="Center" HorizontalAlignment="Center" Width="150" Click="SkipQuestion_Click" Margin="181,199,181,69"/>
         <Button x:Name="SkipMusicQuestion" Content="Dalej" VerticalAlignment="Center" HorizontalAlignment="Center" Width="150" Click="SkipMusicQuestion_Click" Margin="181,199,181,69"/>
         <TextBlock x:Name="LotteryText" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" Text="Lottery" Height="Auto" Width="350" VerticalAlignment="Center" Margin="600,177,621,497"/>
+        <TextBlock x:Name="BonusesText" FontSize="15" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Left" Text="Obecne modyfikatory:" Height="300" Width="250" VerticalAlignment="Center" Margin="236,291,786,98"/>
         <!-- Quiz participants script -->
         <!-- Points confirm button -->
         <Button x:Name="confirmPoints" Content="Potwierdź" HorizontalAlignment="Center" VerticalAlignment="Center" Width="75" Click="confirmPoints_Click" Margin="171,82,266,186"/>
@@ -76,6 +77,66 @@
         <Button x:Name="customAnswerBack" Content="Cofnij" 
                 HorizontalAlignment="Left" Margin="264,249,0,0" VerticalAlignment="Top" Width="75" Click="customAnswerBack_Click"/>
 
+        <!--***************** Buffs and debuffs **********************-->
+        <Canvas x:Name="modifier1_1" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="236,312,1016,358"/>
+        <Canvas x:Name="modifier1_2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="256,312,996,358"/>
+        <Canvas x:Name="modifier1_3" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="276,312,976,358"/>
+        <Canvas x:Name="modifier1_4" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="296,312,956,358"/>
+        
+        <Canvas x:Name="modifier2_1" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="236,332,1016,338"/>
+        <Canvas x:Name="modifier2_2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="256,332,996,338"/>
+        <Canvas x:Name="modifier2_3" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="276,332,976,338"/>
+        <Canvas x:Name="modifier2_4" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="296,332,956,338"/>
+        
+        <Canvas x:Name="modifier3_1" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="236,352,1016,318"/>
+        <Canvas x:Name="modifier3_2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="256,352,996,318"/>
+        <Canvas x:Name="modifier3_3" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="276,352,976,318"/>
+        <Canvas x:Name="modifier3_4" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="296,352,956,318"/>
+
+        <Canvas x:Name="modifier4_1" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="236,372,1016,298"/>
+        <Canvas x:Name="modifier4_2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="256,372,996,298"/>
+        <Canvas x:Name="modifier4_3" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="276,372,976,298"/>
+        <Canvas x:Name="modifier4_4" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="296,372,956,298"/>
+        
+        <Canvas x:Name="modifier5_1" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="236,392,1016,278"/>
+        <Canvas x:Name="modifier5_2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="256,392,996,278"/>
+        <Canvas x:Name="modifier5_3" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="276,392,976,278"/>
+        <Canvas x:Name="modifier5_4" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="296,392,956,278"/>
+        
+        <Canvas x:Name="modifier6_1" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="236,412,1016,258"/>
+        <Canvas x:Name="modifier6_2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="256,412,996,258"/>
+        <Canvas x:Name="modifier6_3" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="276,412,976,258"/>
+        <Canvas x:Name="modifier6_4" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="296,412,956,258"/>
+        
+        <Canvas x:Name="modifier7_1" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="236,432,1016,238"/>
+        <Canvas x:Name="modifier7_2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="256,432,996,238"/>
+        <Canvas x:Name="modifier7_3" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="276,432,976,238"/>
+        <Canvas x:Name="modifier7_4" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="296,432,956,238"/>
+        
+        <Canvas x:Name="modifier8_1" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="236,452,1016,218"/>
+        <Canvas x:Name="modifier8_2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="256,452,996,218"/>
+        <Canvas x:Name="modifier8_3" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="276,452,976,218"/>
+        <Canvas x:Name="modifier8_4" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="296,452,956,218"/>
+
+        <Canvas x:Name="modifier9_1" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="236,472,1016,198"/>
+        <Canvas x:Name="modifier9_2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="256,472,996,198"/>
+        <Canvas x:Name="modifier9_3" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="276,472,976,198"/>
+        <Canvas x:Name="modifier9_4" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="296,472,956,198"/>
+        
+        <Canvas x:Name="modifier10_1" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="236,492,1016,178"/>
+        <Canvas x:Name="modifier10_2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="256,492,996,178"/>
+        <Canvas x:Name="modifier10_3" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="276,492,976,178"/>
+        <Canvas x:Name="modifier10_4" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="296,492,956,178"/>
+        
+        <Canvas x:Name="modifier11_1" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="236,512,1016,158"/>
+        <Canvas x:Name="modifier11_2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="256,512,996,158"/>
+        <Canvas x:Name="modifier11_3" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="276,512,976,158"/>
+        <Canvas x:Name="modifier11_4" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="296,512,956,158"/>
+
+        <Canvas x:Name="modifier12_1" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="236,532,1016,138"/>
+        <Canvas x:Name="modifier12_2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="256,532,996,138"/>
+        <Canvas x:Name="modifier12_3" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="276,532,976,138"/>
+        <Canvas x:Name="modifier12_4" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="296,532,956,138"/>
         <!-- All participants - - THERE IS NOTHING AFTER PARTICIPANTS -->
         <TextBlock x:Name="winners" HorizontalAlignment="Center" TextWrapping="Wrap" Text="" VerticalAlignment="Center" Width="300" Height="Auto" Margin="487,221,485,453"/>
 
@@ -84,73 +145,119 @@
         <Button x:Name="plusParticipant1" Content="+" HorizontalAlignment="Center" Margin="-47,139,526,129" VerticalAlignment="Center" Width="33" Click="plusFirstParticipant_Click"/>
         <Button x:Name="minusParticipant1" Content="-" HorizontalAlignment="Center" Margin="396,339,843,329" VerticalAlignment="Center" Width="33" Click="minutFirstParticipant_Click"/>
         <Button x:Name="bonusParticipant1" Content="" HorizontalAlignment="Center" Margin="366,339,876,329" VerticalAlignment="Center" Width="30" Height="22" Click="bonusParticipant_Click"/>
-        <Canvas x:Name="imageParticipant1" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="319,383,933,287"/>
-        <Canvas x:Name="imageParticipant2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="339,383,913,287"/>
-
+        <Canvas x:Name="imageParticipant1_1" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="319,383,933,287"/>
+        <Canvas x:Name="imageParticipant1_2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="339,383,913,287"/>
+        <Canvas x:Name="imageParticipant1_3" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="399,383,853,287"/>
+        <Canvas x:Name="imageParticipant1_4" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="419,383,833,287"/>
+        
         <TextBox x:Name="nameParticipant2" HorizontalAlignment="Center" Height="24" Margin="110,160,282,106" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
         <TextBlock x:Name="pointsParticipant2" HorizontalAlignment="Center" Margin="156,183,322,87" TextWrapping="Wrap" VerticalAlignment="Center" TextAlignment="Center" Width="34" Height="20" Text="0,0"/>
         <Button x:Name="plusParticipant2" Content="+" HorizontalAlignment="Center" Margin="505,339,734,329" VerticalAlignment="Center" Width="33" Click="plusFirstParticipant_Click"/>
         <Button x:Name="minusParticipant2" Content="-" HorizontalAlignment="Center" Margin="568,339,671,329" VerticalAlignment="Center" Width="33" Click="minutFirstParticipant_Click"/>
         <Button x:Name="bonusParticipant2" Content="" HorizontalAlignment="Center" Margin="538,339,704,329" VerticalAlignment="Center" Width="30" Height="22" Click="bonusParticipant_Click"/>
+        <Canvas x:Name="imageParticipant2_1" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="490,383,762,287"/>
+        <Canvas x:Name="imageParticipant2_2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="511,383,741,287"/>
+        <Canvas x:Name="imageParticipant2_3" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="566,383,686,287"/>
+        <Canvas x:Name="imageParticipant2_4" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="590,383,662,287"/>
 
         <TextBox x:Name="nameParticipant3" HorizontalAlignment="Center" Height="24" Margin="280,160,98,107" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
         <TextBlock x:Name="pointsParticipant3" HorizontalAlignment="Center" Margin="331,183,149,87" TextWrapping="Wrap" VerticalAlignment="Center" TextAlignment="Center" Width="32" Height="20" Text="0,0"/>
         <Button x:Name="plusParticipant3" Content="+" HorizontalAlignment="Center" Margin="298,139,181,129" VerticalAlignment="Center" Width="33" Click="plusFirstParticipant_Click"/>
         <Button x:Name="minusParticipant3" Content="-" HorizontalAlignment="Center" Margin="741,339,498,329" VerticalAlignment="Center" Width="33" Click="minutFirstParticipant_Click"/>
         <Button x:Name="bonusParticipant3" Content="" HorizontalAlignment="Center" Margin="711,339,531,329" VerticalAlignment="Center" Width="30" Height="22" Click="bonusParticipant_Click"/>
+        <Canvas x:Name="imageParticipant3_1" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="667,383,585,287"/>
+        <Canvas x:Name="imageParticipant3_2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="687,383,565,287"/>
+        <Canvas x:Name="imageParticipant3_3" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="747,383,505,287"/>
+        <Canvas x:Name="imageParticipant3_4" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="767,383,485,287"/>
 
         <TextBox x:Name="nameParticipant4" HorizontalAlignment="Center" Height="24" Margin="462,160,-70,107" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
         <TextBlock x:Name="pointsParticipant4" HorizontalAlignment="Center" Margin="506,183,-27,87" TextWrapping="Wrap" VerticalAlignment="Center" TextAlignment="Center" Width="33" Height="20" Text="0,0"/>
         <Button x:Name="plusParticipant4" Content="+" HorizontalAlignment="Center" Margin="473,139,6,129" VerticalAlignment="Center" Width="33" Click="plusFirstParticipant_Click"/>
         <Button x:Name="minusParticipant4" Content="-" HorizontalAlignment="Center" Margin="916,339,324,329" VerticalAlignment="Center" Width="32" Click="minutFirstParticipant_Click"/>
         <Button x:Name="bonusParticipant4" Content="" HorizontalAlignment="Center" Margin="886,339,356,329" VerticalAlignment="Center" Width="30" Height="22" Click="bonusParticipant_Click"/>
+        <Canvas x:Name="imageParticipant4_1" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="842,383,410,287"/>
+        <Canvas x:Name="imageParticipant4_2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="862,383,390,287"/>
+        <Canvas x:Name="imageParticipant4_3" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="922,383,330,287"/>
+        <Canvas x:Name="imageParticipant4_4" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="942,383,310,287"/>
 
         <TextBox x:Name="nameParticipant5" HorizontalAlignment="Center" Height="24" Margin="-60,310,454,105" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
         <TextBlock x:Name="pointsParticipant5" HorizontalAlignment="Center" Margin="-17,333,496,86" TextWrapping="Wrap" VerticalAlignment="Center" TextAlignment="Center" Width="33" Height="20" Text="0,0"/>
         <Button x:Name="plusParticipant5" Content="+" HorizontalAlignment="Center" Margin="-47,289,526,129" VerticalAlignment="Center" Width="33" Click="plusFirstParticipant_Click"/>
         <Button x:Name="minusParticipant5" Content="-" HorizontalAlignment="Center" Margin="16,289,463,129" VerticalAlignment="Center" Width="33" Click="minutFirstParticipant_Click"/>
         <Button x:Name="bonusParticipant5" Content="" HorizontalAlignment="Center" Margin="366,414,876,254" VerticalAlignment="Center" Width="30" Height="22" Click="bonusParticipant_Click"/>
+        <Canvas x:Name="imageParticipant5_1" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="319,458,933,212"/>
+        <Canvas x:Name="imageParticipant5_2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="339,458,913,212"/>
+        <Canvas x:Name="imageParticipant5_3" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="399,458,853,212"/>
+        <Canvas x:Name="imageParticipant5_4" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="419,458,833,212"/>
 
         <TextBox x:Name="nameParticipant6" HorizontalAlignment="Center" Height="24" Margin="110,310,282,106" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
         <TextBlock x:Name="pointsParticipant6" HorizontalAlignment="Center" Margin="156,333,322,87" TextWrapping="Wrap" VerticalAlignment="Center" TextAlignment="Center" Width="34" Height="20" Text="0,0"/>
         <Button x:Name="plusParticipant6" Content="+" HorizontalAlignment="Center" Margin="123,289,356,129" VerticalAlignment="Center" Width="33" Click="plusFirstParticipant_Click"/>
         <Button x:Name="minusParticipant6" Content="-" HorizontalAlignment="Center" Margin="566,414,673,254" VerticalAlignment="Center" Width="33" Click="minutFirstParticipant_Click"/>
         <Button x:Name="bonusParticipant6" Content="" HorizontalAlignment="Center" Margin="536,414,706,254" VerticalAlignment="Center" Width="30" Height="22" Click="bonusParticipant_Click"/>
+        <Canvas x:Name="imageParticipant6_1" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="490,458,762,212"/>
+        <Canvas x:Name="imageParticipant6_2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="510,458,742,212"/>
+        <Canvas x:Name="imageParticipant6_3" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="566,458,686,212"/>
+        <Canvas x:Name="imageParticipant6_4" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="590,458,662,212"/>
 
         <TextBox x:Name="nameParticipant7" HorizontalAlignment="Center" Height="24" Margin="280,310,98,107" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
         <TextBlock x:Name="pointsParticipant7" HorizontalAlignment="Center" Margin="331,333,149,87" TextWrapping="Wrap" VerticalAlignment="Center" TextAlignment="Center" Width="32" Height="20" Text="0,0"/>
         <Button x:Name="plusParticipant7" Content="+" HorizontalAlignment="Center" Margin="298,289,181,129" VerticalAlignment="Center" Width="33" Click="plusFirstParticipant_Click"/>
         <Button x:Name="minusParticipant7" Content="-" HorizontalAlignment="Center" Margin="741,414,498,254" VerticalAlignment="Center" Width="33" Click="minutFirstParticipant_Click"/>
         <Button x:Name="bonusParticipant7" Content="" HorizontalAlignment="Center" Margin="711,414,531,254" VerticalAlignment="Center" Width="30" Height="22" Click="bonusParticipant_Click"/>
+        <Canvas x:Name="imageParticipant7_1" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="667,458,585,212"/>
+        <Canvas x:Name="imageParticipant7_2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="687,458,565,212"/>
+        <Canvas x:Name="imageParticipant7_3" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="747,458,505,212"/>
+        <Canvas x:Name="imageParticipant7_4" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="767,458,485,212"/>
 
         <TextBox x:Name="nameParticipant8" HorizontalAlignment="Center" Height="24" Margin="462,310,-70,107" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
         <TextBlock x:Name="pointsParticipant8" HorizontalAlignment="Center" Margin="506,333,-27,87" TextWrapping="Wrap" VerticalAlignment="Center" TextAlignment="Center" Width="33" Height="20" Text="0,0"/>
         <Button x:Name="plusParticipant8" Content="+" HorizontalAlignment="Center" Margin="473,289,6,129" VerticalAlignment="Center" Width="33" Click="plusFirstParticipant_Click"/>
         <Button x:Name="minusParticipant8" Content="-" HorizontalAlignment="Center" Margin="916,414,323,254" VerticalAlignment="Center" Width="33" Click="minutFirstParticipant_Click"/>
         <Button x:Name="bonusParticipant8" Content="" HorizontalAlignment="Center" Margin="886,414,356,254" VerticalAlignment="Center" Width="30" Height="22" Click="bonusParticipant_Click"/>
+        <Canvas x:Name="imageParticipant8_1" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="842,458,410,212"/>
+        <Canvas x:Name="imageParticipant8_2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="862,458,390,212"/>
+        <Canvas x:Name="imageParticipant8_3" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="922,458,330,212"/>
+        <Canvas x:Name="imageParticipant8_4" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="942,458,310,212"/>
 
         <TextBox x:Name="nameParticipant9" HorizontalAlignment="Center" Height="24" Margin="-60,460,454,105" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
         <TextBlock x:Name="pointsParticipant9" HorizontalAlignment="Center" Margin="-17,483,496,86" TextWrapping="Wrap" VerticalAlignment="Center" TextAlignment="Center" Width="33" Height="20" Text="0,0"/>
         <Button x:Name="plusParticipant9" Content="+" HorizontalAlignment="Center" Margin="-47,439,526,129" VerticalAlignment="Center" Width="33" Click="plusFirstParticipant_Click"/>
         <Button x:Name="minusParticipant9" Content="-" HorizontalAlignment="Center" Margin="16,439,463,129" VerticalAlignment="Center" Width="33" Click="minutFirstParticipant_Click"/>
         <Button x:Name="bonusParticipant9" Content="" HorizontalAlignment="Center" Margin="366,489,876,179" VerticalAlignment="Center" Width="30" Height="22" Click="bonusParticipant_Click"/>
+        <Canvas x:Name="imageParticipant9_1" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="319,533,933,137"/>
+        <Canvas x:Name="imageParticipant9_2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="339,533,913,137"/>
+        <Canvas x:Name="imageParticipant9_3" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="399,533,853,137"/>
+        <Canvas x:Name="imageParticipant9_4" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="419,533,833,137"/>
 
         <TextBox x:Name="nameParticipant10" HorizontalAlignment="Center" Height="24" Margin="110,460,282,106" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
         <TextBlock x:Name="pointsParticipant10" HorizontalAlignment="Center" Margin="156,483,322,87" TextWrapping="Wrap" VerticalAlignment="Center" TextAlignment="Center" Width="34" Height="20" Text="0,0"/>
         <Button x:Name="plusParticipant10" Content="+" HorizontalAlignment="Center" Margin="123,439,356,129" VerticalAlignment="Center" Width="33" Click="plusFirstParticipant_Click"/>
         <Button x:Name="minusParticipant10" Content="-" HorizontalAlignment="Center" Margin="566,489,673,179" VerticalAlignment="Center" Width="33" Click="minutFirstParticipant_Click"/>
         <Button x:Name="bonusParticipant10" Content="" HorizontalAlignment="Center" Margin="536,489,706,179" VerticalAlignment="Center" Width="30" Height="22" Click="bonusParticipant_Click"/>
+        <Canvas x:Name="imageParticipant10_1" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="490,533,762,137"/>
+        <Canvas x:Name="imageParticipant10_2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="510,533,742,137"/>
+        <Canvas x:Name="imageParticipant10_3" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="570,533,682,137"/>
+        <Canvas x:Name="imageParticipant10_4" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="590,533,662,137"/>
 
         <TextBox x:Name="nameParticipant11" HorizontalAlignment="Center" Height="24" Margin="280,460,98,107" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
         <TextBlock x:Name="pointsParticipant11" HorizontalAlignment="Center" Margin="331,483,149,87" TextWrapping="Wrap" VerticalAlignment="Center" TextAlignment="Center" Width="32" Height="20" Text="0,0"/>
         <Button x:Name="plusParticipant11" Content="+" HorizontalAlignment="Center" Margin="298,439,181,129" VerticalAlignment="Center" Width="33" Click="plusFirstParticipant_Click"/>
         <Button x:Name="minusParticipant11" Content="-" HorizontalAlignment="Center" Margin="741,489,498,179" VerticalAlignment="Center" Width="33" Click="minutFirstParticipant_Click"/>
         <Button x:Name="bonusParticipant11" Content="" HorizontalAlignment="Center" Margin="711,489,531,179" VerticalAlignment="Center" Width="30" Height="22" Click="bonusParticipant_Click"/>
+        <Canvas x:Name="imageParticipant11_1" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="667,533,585,137"/>
+        <Canvas x:Name="imageParticipant11_2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="687,533,565,137"/>
+        <Canvas x:Name="imageParticipant11_3" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="747,533,505,137"/>
+        <Canvas x:Name="imageParticipant11_4" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="767,533,485,137"/>
 
         <TextBox x:Name="nameParticipant12" HorizontalAlignment="Center" Height="24" Margin="462,460,-70,107" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
         <TextBlock x:Name="pointsParticipant12" HorizontalAlignment="Center" Margin="506,483,-27,87" TextWrapping="Wrap" VerticalAlignment="Center" TextAlignment="Center" Width="33" Height="20" Text="0,0"/>
         <Button x:Name="plusParticipant12" Content="+" HorizontalAlignment="Center" Margin="473,439,6,129" VerticalAlignment="Center" Width="33" Click="plusFirstParticipant_Click"/>
         <Button x:Name="minusParticipant12" Content="-" HorizontalAlignment="Center" Margin="916,489,323,179" VerticalAlignment="Center" Width="33" Click="minutFirstParticipant_Click"/>
         <Button x:Name="bonusParticipant12" Content="" HorizontalAlignment="Center" Margin="886,489,356,179" VerticalAlignment="Center" Width="30" Height="22" Click="bonusParticipant_Click"/>
+        <Canvas x:Name="imageParticipant12_1" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="842,533,410,137"/>
+        <Canvas x:Name="imageParticipant12_2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="862,533,390,137"/>
+        <Canvas x:Name="imageParticipant12_3" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="922,533,330,137"/>
+        <Canvas x:Name="imageParticipant12_4" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="942,533,310,137"/>
     </Grid>
 </Window>

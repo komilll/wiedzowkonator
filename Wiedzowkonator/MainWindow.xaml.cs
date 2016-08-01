@@ -108,6 +108,8 @@ namespace Wiedzowkonator
         System.Windows.Controls.Button[] participantsPlus = new Button[16];
         System.Windows.Controls.Button[] participantsMinus = new Button[16];
         System.Windows.Controls.Button[] participantsBonus = new Button[16];
+        System.Windows.Controls.Canvas[,] participantsIcons = new Canvas[16, 4];
+        System.Windows.Controls.Canvas[,] participantsModifiers = new Canvas[16, 4];
         /************************/
         bool awaitingLotterySwap;
         bool swappingWithFirstPlace;
@@ -150,6 +152,14 @@ namespace Wiedzowkonator
         Image[] lotteryIcons;
         BitmapImage[] lotteryBitmaps;
         string lotteryIconsDirectory = System.AppDomain.CurrentDomain.BaseDirectory + "/Icons";
+        //Lottery buffs / debuffs
+        bool[] lForced = new bool[12];
+        bool[] lBlocked = new bool[12];
+        bool[] lDouble = new bool[12];
+        bool[] lNotLoosing = new bool[12];
+        int[] usersModifiers = new int[16];
+        int[] lForcedLifeSpan = new int[12];
+        int[] lBlockedLifeSpan = new int[12];
 
         //Enum type that shows which state of quiz is currently in progress
         enum quizState { customizingQuestions, choosingQuestion, answeringQuestion, givingPoints };
@@ -295,7 +305,7 @@ namespace Wiedzowkonator
             }
         }
 
-        void ShowingHUD()
+        void ShowingHUD() //TODO - it's a bit old. I should get rid of it
         {
             //In giving points phase, all controls that allows to give participants points are being shown
             if (participantsPlus[0].Width == 0 && curQuizState == quizState.givingPoints)
@@ -336,6 +346,16 @@ namespace Wiedzowkonator
             {
                 questionNumberBox.Width = 0;
                 StartButton.Width = 0;
+                BonusesText.Width = 0;
+                for (int i = 0; i < numberOfParticipants; i++)
+                {
+                    for (int k = 0; k < 4; k++)
+                    {
+                        participantsIcons[i, k].Children.Clear();
+                        participantsModifiers[i, k].Children.Clear();
+                    }
+                }
+
             }
         }
 
@@ -369,16 +389,6 @@ namespace Wiedzowkonator
         private void bonusParticipant_Click(object sender, RoutedEventArgs e)
         {
             Button button = (sender as Button);
-            /*if (button.Background != null)
-            {
-                button.Width = 0;
-                button.Background = null;
-                button.ToolTip = null;
-            }
-            else
-            {
-
-            }*/
 
             string indexOfParticipantString = button.Name.Replace("bonusParticipant", "");
             int indexOfParticipant = int.Parse(indexOfParticipantString) - 1;
@@ -388,14 +398,26 @@ namespace Wiedzowkonator
        
                 case 0: //Adding points for participant
                     pPoints = participantsPoints[indexOfParticipant].Text.Replace(",0", "");
-                    
-                    participantsPoints[indexOfParticipant].Text = (int.Parse(pPoints) + int.Parse(lotteryPointsToPass.ToString())).ToString() + ",0";
+
+                    if (lDouble[indexOfParticipant] == true)
+                    {
+                        participantsPoints[indexOfParticipant].Text = (int.Parse(pPoints) + (int.Parse(lotteryPointsToPass.ToString())) * 2).ToString() + ",0";
+                        lDouble[indexOfParticipant] = false;
+                                                usersModifiers[indexOfParticipant]--;
+                    }
+                    else participantsPoints[indexOfParticipant].Text = (int.Parse(pPoints) + int.Parse(lotteryPointsToPass.ToString())).ToString() + ",0";
                     break;
 
                 case 1: //Substracting points for participant
                     pPoints = participantsPoints[indexOfParticipant].Text.Replace(",0", "");
 
-                    participantsPoints[indexOfParticipant].Text = (int.Parse(pPoints) - int.Parse(lotteryPointsToPass.ToString())).ToString() + ",0";
+                    if (lNotLoosing[indexOfParticipant] == true)
+                    {
+                        lNotLoosing[indexOfParticipant] = false;
+                        usersModifiers[indexOfParticipant]--;
+                    }
+                    else
+                        participantsPoints[indexOfParticipant].Text = (int.Parse(pPoints) - int.Parse(lotteryPointsToPass.ToString())).ToString() + ",0";
                     break;
 
                 case 2: //Swapping points with first place
@@ -477,8 +499,48 @@ namespace Wiedzowkonator
                     forcedImage.Width = forcedBitmap.Width;
                     forcedImage.Height = forcedBitmap.Height;
 
-                    imageParticipant1.Children.Add(forcedImage);
-                    imageParticipant1.ToolTip = "Przez następne trzy rundy, jeśli nikt nie odpowie na pytanie, musisz je przejąć";
+                    participantsIcons[indexOfParticipant, usersModifiers[indexOfParticipant]].Children.Add(forcedImage);
+                    participantsIcons[indexOfParticipant, usersModifiers[indexOfParticipant]].ToolTip = "Przez następne trzy rundy, jeśli nikt nie odpowie na pytanie, musisz je przejąć";
+                    lForced[indexOfParticipant] = true;
+                    lForcedLifeSpan[indexOfParticipant] = 3;
+                    usersModifiers[indexOfParticipant]++;
+                    break;
+                case 5: //For next question, user is gaining double points
+                    Image doubleImage = new Image();
+                    BitmapImage doubleBitmap = new BitmapImage(new Uri("Icons/doublePoints.png", UriKind.Relative));
+                    doubleImage.Source = doubleBitmap;
+                    doubleImage.Width = doubleBitmap.Width;
+                    doubleImage.Height = doubleBitmap.Height;
+
+                    lDouble[indexOfParticipant] = true;
+                    participantsIcons[indexOfParticipant, usersModifiers[indexOfParticipant]].Children.Add(doubleImage);
+                    participantsIcons[indexOfParticipant, usersModifiers[indexOfParticipant]].ToolTip = "Za następne pytanie na które odpowiesz otrzymujesz 2x punktów";
+                    usersModifiers[indexOfParticipant]++;
+                    break;
+                case 6: //You can't answer other participant's questions for three rounds
+                    Image blockedImage = new Image();
+                    BitmapImage blockedBitmap = new BitmapImage(new Uri("Icons/blocked.png", UriKind.Relative));
+                    blockedImage.Source = blockedBitmap;
+                    blockedImage.Width = blockedBitmap.Width;
+                    blockedImage.Height = blockedBitmap.Height;
+
+                    lBlocked[indexOfParticipant] = true;
+                    lBlockedLifeSpan[indexOfParticipant] = 3;
+                    participantsIcons[indexOfParticipant, usersModifiers[indexOfParticipant]].Children.Add(blockedImage);
+                    participantsIcons[indexOfParticipant, usersModifiers[indexOfParticipant]].ToolTip = "Przez trzy tury nie możesz przejmować pytań";
+                    usersModifiers[indexOfParticipant]++;
+                    break;
+                case 7: //You're not loosing points for next unfortunate question take over
+                    Image loseImage = new Image();
+                    BitmapImage loseBitmap = new BitmapImage(new Uri("Icons/noLosingPoints.png", UriKind.Relative));
+                    loseImage.Source = loseBitmap;
+                    loseImage.Width = loseBitmap.Width;
+                    loseImage.Height = loseBitmap.Height;
+
+                    lNotLoosing[indexOfParticipant] = true;
+                    participantsIcons[indexOfParticipant, usersModifiers[indexOfParticipant]].Children.Add(loseImage);
+                    participantsIcons[indexOfParticipant, usersModifiers[indexOfParticipant]].ToolTip = "Podczas następnego nieudanego przejęcia nie tracisz punktów";
+                    usersModifiers[indexOfParticipant]++;
                     break;
             }
         }
@@ -488,6 +550,25 @@ namespace Wiedzowkonator
         {
             curQuizState = quizState.choosingQuestion;
             ShowingHUD();
+            if (curPointsType == pointsType.lottery)
+            {
+                for (int i = 0; i < numberOfParticipants; i++)
+                {
+                    lForcedLifeSpan[i]--;
+                    lBlockedLifeSpan[i]--;
+                    if (lForcedLifeSpan[i] < 0)
+                    {
+                        lForcedLifeSpan[i] = 0;
+                        lForced[i] = false;
+                    }
+                    if (lBlockedLifeSpan[i] < 0)
+                    {
+                        lBlockedLifeSpan[i] = 0;
+                        lBlocked[i] = false;
+                    }
+                }
+            }
+
             if (curQuizType == quizType.screenshot)
             {
                 screenshots[lastScreenshotIndex] = null;
@@ -1552,6 +1633,16 @@ namespace Wiedzowkonator
             tilesChoosingQuizButton.Width = 0;
 
             LotteryText.Width = 0;
+            BonusesText.Width = 0;
+            BonusesText.Text = "";
+            for (int i = 0; i < numberOfParticipants; i++)
+            {
+                for (int k = 0; k < 4; k++)
+                {
+                    participantsIcons[i, k].Children.Clear();
+                    participantsModifiers[i, k].Children.Clear();
+                }
+            }
         }
 
         void ChoosingPointsType()
@@ -1582,6 +1673,70 @@ namespace Wiedzowkonator
             StartButton.Width = 150;
             questionNumberBox.Width = 132; //This field is focusable (XAML)
             Keyboard.Focus(questionNumberBox);
+            BonusesText.Width = 250;
+            int participantIndex = 0;
+            BonusesText.Text = "Obecne modyfikatory:";
+            for (int i = 0; i < numberOfParticipants; i++)
+            {
+                int index = 0;
+                if (lForced[i] == true)
+                {
+                    Image forcedImage = new Image();
+                    BitmapImage forcedBitmap = new BitmapImage(new Uri("Icons/forced.png", UriKind.Relative));
+                    forcedImage.Source = forcedBitmap;
+                    forcedImage.Width = forcedBitmap.Width;
+                    forcedImage.Height = forcedBitmap.Height;
+
+                    participantsModifiers[participantIndex, index].Children.Add(forcedImage);
+                    participantsModifiers[participantIndex, index].ToolTip = "Przez następne trzy rundy, jeśli nikt nie odpowie na pytanie, musisz je przejąć";
+                    index++;
+                }
+                if (lDouble[i] == true)
+                {
+                    Image doubleImage = new Image();
+                    BitmapImage doubleBitmap = new BitmapImage(new Uri("Icons/doublePoints.png", UriKind.Relative));
+                    doubleImage.Source = doubleBitmap;
+                    doubleImage.Width = doubleBitmap.Width;
+                    doubleImage.Height = doubleBitmap.Height;
+
+                    participantsModifiers[participantIndex, index].Children.Add(doubleImage);
+                    participantsModifiers[participantIndex, index].ToolTip = "Za następne pytanie na które odpowiesz otrzymujesz 2x punktów";
+                    index++;
+                }
+                if (lBlocked[i] == true)
+                {
+                    Image blockedImage = new Image();
+                    BitmapImage blockedBitmap = new BitmapImage(new Uri("Icons/blocked.png", UriKind.Relative));
+                    blockedImage.Source = blockedBitmap;
+                    blockedImage.Width = blockedBitmap.Width;
+                    blockedImage.Height = blockedBitmap.Height;
+
+                    participantsModifiers[participantIndex, index].Children.Add(blockedImage);
+                    participantsModifiers[participantIndex, index].ToolTip = "Przez trzy tury nie możesz przejmować pytań";
+                    index++;
+                }
+                if (lNotLoosing[i] == true)
+                {
+                    Image loseImage = new Image();
+                    BitmapImage loseBitmap = new BitmapImage(new Uri("Icons/noLosingPoints.png", UriKind.Relative));
+                    loseImage.Source = loseBitmap;
+                    loseImage.Width = loseBitmap.Width;
+                    loseImage.Height = loseBitmap.Height;
+
+                    participantsModifiers[participantIndex, index].Children.Add(loseImage);
+                    participantsModifiers[participantIndex, index].ToolTip = "Podczas następnego nieudanego przejęcia nie tracisz punktów";
+                }
+                if (lBlocked[i] || lNotLoosing[i] || lDouble[i] || lForced[i])
+                {
+                    participantIndex++;
+                    BonusesText.Text = BonusesText.Text + Environment.NewLine;
+                    for (int k = 0; k < index; k++)
+                    {
+                        BonusesText.Text = BonusesText.Text + "       ";
+                    }
+                    BonusesText.Text = BonusesText.Text + participantsNames[i].Text;
+                }
+            }
         }
 
         void ShowingQuestion()
@@ -1614,6 +1769,54 @@ namespace Wiedzowkonator
                 else if (curPointsType == pointsType.lottery)
                 {
                     participantsBonus[i].Width = 30;
+                    int index = 0;
+                    if (lForced[i] == true)
+                    {
+                        Image forcedImage = new Image();
+                        BitmapImage forcedBitmap = new BitmapImage(new Uri("Icons/forced.png", UriKind.Relative));
+                        forcedImage.Source = forcedBitmap;
+                        forcedImage.Width = forcedBitmap.Width;
+                        forcedImage.Height = forcedBitmap.Height;
+
+                        participantsIcons[i, index].Children.Add(forcedImage);
+                        participantsIcons[i, index].ToolTip = "Przez następne trzy rundy, jeśli nikt nie odpowie na pytanie, musisz je przejąć";
+                        index++;
+                    }
+                    if (lDouble[i] == true)
+                    {
+                        Image doubleImage = new Image();
+                        BitmapImage doubleBitmap = new BitmapImage(new Uri("Icons/doublePoints.png", UriKind.Relative));
+                        doubleImage.Source = doubleBitmap;
+                        doubleImage.Width = doubleBitmap.Width;
+                        doubleImage.Height = doubleBitmap.Height;
+
+                        participantsIcons[i, index].Children.Add(doubleImage);
+                        participantsIcons[i, index].ToolTip = "Za następne pytanie na które odpowiesz otrzymujesz 2x punktów";
+                        index++;
+                    }
+                    if (lBlocked[i] == true)
+                    {
+                        Image blockedImage = new Image();
+                        BitmapImage blockedBitmap = new BitmapImage(new Uri("Icons/blocked.png", UriKind.Relative));
+                        blockedImage.Source = blockedBitmap;
+                        blockedImage.Width = blockedBitmap.Width;
+                        blockedImage.Height = blockedBitmap.Height;
+
+                        participantsIcons[i, index].Children.Add(blockedImage);
+                        participantsIcons[i, index].ToolTip = "Przez trzy tury nie możesz przejmować pytań";
+                        index++;
+                    }
+                    if (lNotLoosing[i] == true)
+                    {
+                        Image loseImage = new Image();
+                        BitmapImage loseBitmap = new BitmapImage(new Uri("Icons/noLosingPoints.png", UriKind.Relative));
+                        loseImage.Source = loseBitmap;
+                        loseImage.Width = loseBitmap.Width;
+                        loseImage.Height = loseBitmap.Height;
+
+                        participantsIcons[i, index].Children.Add(loseImage);
+                        participantsIcons[i, index].ToolTip = "Podczas następnego nieudanego przejęcia nie tracisz punktów";
+                    }
                 }
             }
 
@@ -1752,7 +1955,7 @@ namespace Wiedzowkonator
             lotteryVariants[7] = "Podczas następnego nieudanego przejęcia nie tracisz punktów";
 
             Random random = new Random();
-            int randomizing = random.Next(61, 70); //TODO - zmienić potem na numer od 0 do 100
+            int randomizing = random.Next(0, 100); //TODO - zmienić potem na numer od 0 do 100
 
             if (randomizing >= 0 && randomizing <= 55) //Variant 0-1; Adding or substracting points from user
             {
@@ -1798,20 +2001,24 @@ namespace Wiedzowkonator
             }
             else if (randomizing >= 61 && randomizing <= 70) //Variant 4; Next three rounds you're forced to answer questions
             {
-                LotteryText.Text = lotteryVariants[4]; //TOOLTIPY dodać 
+                LotteryText.Text = lotteryVariants[4]; 
                 curLotteryBonus = 4; //Index of bonus
+                
             }
             else if (randomizing >= 71 && randomizing <= 80) //Variant 5; For next answered question you're gaining extra points
             {
-
+                LotteryText.Text = lotteryVariants[5];
+                curLotteryBonus = 5; //Index of bonus
             }
             else if (randomizing >= 81 && randomizing <= 90) //Variant 6; You can't answer other participant's questions for three rounds
             {
-
+                LotteryText.Text = lotteryVariants[6];
+                curLotteryBonus = 6; //Index of bonus
             }
             else if (randomizing >= 91 && randomizing <= 100) //Variant 7; You're not loosing points for next unfortunate question take over
             {
-
+                LotteryText.Text = lotteryVariants[7];
+                curLotteryBonus = 7; //Index of bonus
             }
         }
         /************************************** MUSIC QUIZ METHODS *******************************************/
@@ -2223,14 +2430,22 @@ namespace Wiedzowkonator
                 participantsPlus[i] = null;
                 participantsMinus[i] = null;
                 participantsBonus[i] = null;
+                usersModifiers[i] = 0;
+                for (int k = 0; k < 4; k++)
+                {
+                    participantsIcons[i, k] = null;
+                    participantsModifiers[i, k] = null;
+                }
             }
             participantsNames[0] = nameParticipant1;
             participantsPoints[0] = pointsParticipant1;
             participantsPlus[0] = plusParticipant1;
             participantsMinus[0] = minusParticipant1;
             participantsBonus[0] = bonusParticipant1;
-
-participantsNames[1] = nameParticipant2; participantsPoints[1] = pointsParticipant2; participantsPlus[1] = plusParticipant2; participantsMinus[1] = minusParticipant2;
+            participantsIcons[0, 0] = imageParticipant1_1;
+            participantsModifiers[0, 0] = modifier1_1;
+            #region Setting fields
+            participantsNames[1] = nameParticipant2; participantsPoints[1] = pointsParticipant2; participantsPlus[1] = plusParticipant2; participantsMinus[1] = minusParticipant2;
 participantsNames[2] = nameParticipant3; participantsPoints[2] = pointsParticipant3; participantsPlus[2] = plusParticipant3; participantsMinus[2] = minusParticipant3;
 participantsNames[3] = nameParticipant4; participantsPoints[3] = pointsParticipant4; participantsPlus[3] = plusParticipant4; participantsMinus[3] = minusParticipant4;
 participantsNames[4] = nameParticipant5; participantsPoints[4] = pointsParticipant5; participantsPlus[4] = plusParticipant5; participantsMinus[4] = minusParticipant5;
@@ -2246,6 +2461,34 @@ participantsNames[11] = nameParticipant12;participantsPoints[11] = pointsPartici
             participantsBonus[1] = bonusParticipant2; participantsBonus[5] = bonusParticipant6; participantsBonus[9] = bonusParticipant10;
             participantsBonus[2] = bonusParticipant3; participantsBonus[6] = bonusParticipant7; participantsBonus[10] = bonusParticipant11;
             participantsBonus[3] = bonusParticipant4; participantsBonus[7] = bonusParticipant8; participantsBonus[11] = bonusParticipant12;
+
+participantsIcons[0, 1] = imageParticipant1_2; participantsIcons[0, 2] = imageParticipant1_3; participantsIcons[0, 3] = imageParticipant1_4;
+participantsIcons[1, 0] = imageParticipant2_1; participantsIcons[1, 1] = imageParticipant2_2; participantsIcons[1, 2] = imageParticipant2_3; participantsIcons[1, 3] = imageParticipant2_4;
+participantsIcons[2, 0] = imageParticipant3_1; participantsIcons[2, 1] = imageParticipant3_2; participantsIcons[2, 2] = imageParticipant3_3; participantsIcons[2, 3] = imageParticipant3_4;
+participantsIcons[3, 0] = imageParticipant4_1; participantsIcons[3, 1] = imageParticipant4_2; participantsIcons[3, 2] = imageParticipant4_3; participantsIcons[3, 3] = imageParticipant4_4;
+participantsIcons[4, 0] = imageParticipant5_1; participantsIcons[4, 1] = imageParticipant5_2; participantsIcons[4, 2] = imageParticipant5_3; participantsIcons[4, 3] = imageParticipant5_4;
+participantsIcons[5, 0] = imageParticipant6_1; participantsIcons[5, 1] = imageParticipant6_2; participantsIcons[5, 2] = imageParticipant6_3; participantsIcons[5, 3] = imageParticipant6_4;
+participantsIcons[6, 0] = imageParticipant7_1; participantsIcons[6, 1] = imageParticipant7_2; participantsIcons[6, 2] = imageParticipant7_3; participantsIcons[6, 3] = imageParticipant7_4;
+participantsIcons[7, 0] = imageParticipant8_1; participantsIcons[7, 1] = imageParticipant8_2; participantsIcons[7, 2] = imageParticipant8_3; participantsIcons[7, 3] = imageParticipant8_4;
+participantsIcons[8, 0] = imageParticipant9_1; participantsIcons[8, 1] = imageParticipant9_2; participantsIcons[8, 2] = imageParticipant9_3; participantsIcons[8, 3] = imageParticipant9_4;
+participantsIcons[9, 0] = imageParticipant10_1; participantsIcons[9, 1] = imageParticipant10_2; participantsIcons[9, 2] = imageParticipant10_3; participantsIcons[9, 3] = imageParticipant10_4;
+participantsIcons[10, 0] = imageParticipant11_1; participantsIcons[10, 1] = imageParticipant11_2; participantsIcons[10, 2] = imageParticipant11_3; participantsIcons[10, 3] = imageParticipant11_4;
+participantsIcons[11, 0] = imageParticipant12_1; participantsIcons[11, 1] = imageParticipant12_2; participantsIcons[11, 2] = imageParticipant12_3; participantsIcons[11, 3] = imageParticipant12_4;
+
+                                        participantsModifiers[0, 1] = modifier1_2; participantsModifiers[0, 2] = modifier1_3; participantsModifiers[0, 3] = modifier1_4;
+participantsModifiers[1, 0] = modifier2_1; participantsModifiers[1, 1] = modifier2_2; participantsModifiers[1, 2] = modifier2_3; participantsModifiers[1, 3] = modifier2_4;
+participantsModifiers[2, 0] = modifier3_1; participantsModifiers[2, 1] = modifier3_2; participantsModifiers[2, 2] = modifier3_3; participantsModifiers[2, 3] = modifier3_4;
+participantsModifiers[3, 0] = modifier4_1; participantsModifiers[3, 1] = modifier4_2; participantsModifiers[3, 2] = modifier4_3; participantsModifiers[3, 3] = modifier4_4;
+participantsModifiers[4, 0] = modifier5_1; participantsModifiers[4, 1] = modifier5_2; participantsModifiers[4, 2] = modifier5_3; participantsModifiers[4, 3] = modifier5_4;
+participantsModifiers[5, 0] = modifier6_1; participantsModifiers[5, 1] = modifier6_2; participantsModifiers[5, 2] = modifier6_3; participantsModifiers[5, 3] = modifier6_4;
+participantsModifiers[6, 0] = modifier7_1; participantsModifiers[6, 1] = modifier7_2; participantsModifiers[6, 2] = modifier7_3; participantsModifiers[6, 3] = modifier7_4;
+participantsModifiers[7, 0] = modifier8_1; participantsModifiers[7, 1] = modifier8_2; participantsModifiers[7, 2] = modifier8_3; participantsModifiers[7, 3] = modifier8_4;
+participantsModifiers[8, 0] = modifier9_1; participantsModifiers[8, 1] = modifier9_2; participantsModifiers[8, 2] = modifier9_3; participantsModifiers[8, 3] = modifier9_4;
+participantsModifiers[9, 0] = modifier10_1; participantsModifiers[9, 1] = modifier10_2; participantsModifiers[9, 2] = modifier10_3; participantsModifiers[9, 3] = modifier10_4;
+participantsModifiers[10, 0] = modifier11_1; participantsModifiers[10, 1] = modifier11_2; participantsModifiers[10, 2] = modifier11_3; participantsModifiers[10, 3] = modifier11_4;
+participantsModifiers[11, 0] = modifier12_1; participantsModifiers[11, 1] = modifier12_2; participantsModifiers[11, 2] = modifier12_3; participantsModifiers[11, 3] = modifier12_4;
+
+            #endregion
 
             for (int i = 0; i < participantsNames.Length; i++)
             {

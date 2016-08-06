@@ -76,18 +76,25 @@
                 HorizontalAlignment="Left" Margin="171,249,0,0" VerticalAlignment="Top" Width="75" Click="customAnswerConfirm_Click"/>
         <Button x:Name="customAnswerBack" Content="Cofnij" 
                 HorizontalAlignment="Left" Margin="264,249,0,0" VerticalAlignment="Top" Width="75" Click="customAnswerBack_Click"/>
+        <!-- Importing custom music quiz -->
+        <TextBox x:Name="artistNameMusic" HorizontalAlignment="Center" Height="23" TextWrapping="Wrap" Text="Artysta" VerticalAlignment="Center" Width="250" Margin="321,212,701,453"/>
+        <TextBox x:Name="titleMusic" HorizontalAlignment="Center" Height="23" TextWrapping="Wrap" Text="Tytuł utworu" VerticalAlignment="Center" Width="250" Margin="321,248,701,419"/>
+        <TextBox x:Name="animeNameMusic" HorizontalAlignment="Center" Height="23" TextWrapping="Wrap" Text="Tytuł anime" VerticalAlignment="Center" Width="250" Margin="321,284,701,383"/>
 
+        <TextBlock x:Name="artistNameMusicAnswer" HorizontalAlignment="Center" Height="23" TextWrapping="Wrap" Text="Artysta" VerticalAlignment="Center" Width="250" Margin="321,212,701,453"/>
+        <TextBlock x:Name="titleMusicAnswer" HorizontalAlignment="Center" Height="23" TextWrapping="Wrap" Text="Tytuł utworu" VerticalAlignment="Center" Width="250" Margin="321,248,701,419"/>
+        <TextBlock x:Name="animeNameMusicAnswer" HorizontalAlignment="Center" Height="23" TextWrapping="Wrap" Text="Tytuł anime" VerticalAlignment="Center" Width="250" Margin="321,284,701,383"/>
         <!--***************** Buffs and debuffs **********************-->
         <Canvas x:Name="modifier1_1" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="236,312,1016,358"/>
         <Canvas x:Name="modifier1_2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="256,312,996,358"/>
         <Canvas x:Name="modifier1_3" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="276,312,976,358"/>
         <Canvas x:Name="modifier1_4" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="296,312,956,358"/>
-        
+
         <Canvas x:Name="modifier2_1" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="236,332,1016,338"/>
         <Canvas x:Name="modifier2_2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="256,332,996,338"/>
         <Canvas x:Name="modifier2_3" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="276,332,976,338"/>
         <Canvas x:Name="modifier2_4" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="296,332,956,338"/>
-        
+
         <Canvas x:Name="modifier3_1" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="236,352,1016,318"/>
         <Canvas x:Name="modifier3_2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="256,352,996,318"/>
         <Canvas x:Name="modifier3_3" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="276,352,976,318"/>
@@ -97,22 +104,22 @@
         <Canvas x:Name="modifier4_2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="256,372,996,298"/>
         <Canvas x:Name="modifier4_3" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="276,372,976,298"/>
         <Canvas x:Name="modifier4_4" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="296,372,956,298"/>
-        
+
         <Canvas x:Name="modifier5_1" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="236,392,1016,278"/>
         <Canvas x:Name="modifier5_2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="256,392,996,278"/>
         <Canvas x:Name="modifier5_3" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="276,392,976,278"/>
         <Canvas x:Name="modifier5_4" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="296,392,956,278"/>
-        
+
         <Canvas x:Name="modifier6_1" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="236,412,1016,258"/>
         <Canvas x:Name="modifier6_2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="256,412,996,258"/>
         <Canvas x:Name="modifier6_3" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="276,412,976,258"/>
         <Canvas x:Name="modifier6_4" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="296,412,956,258"/>
-        
+
         <Canvas x:Name="modifier7_1" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="236,432,1016,238"/>
         <Canvas x:Name="modifier7_2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="256,432,996,238"/>
         <Canvas x:Name="modifier7_3" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="276,432,976,238"/>
         <Canvas x:Name="modifier7_4" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="296,432,956,238"/>
-        
+
         <Canvas x:Name="modifier8_1" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="236,452,1016,218"/>
         <Canvas x:Name="modifier8_2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="256,452,996,218"/>
         <Canvas x:Name="modifier8_3" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="276,452,976,218"/>
@@ -122,12 +129,12 @@
         <Canvas x:Name="modifier9_2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="256,472,996,198"/>
         <Canvas x:Name="modifier9_3" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="276,472,976,198"/>
         <Canvas x:Name="modifier9_4" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="296,472,956,198"/>
-        
+
         <Canvas x:Name="modifier10_1" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="236,492,1016,178"/>
         <Canvas x:Name="modifier10_2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="256,492,996,178"/>
         <Canvas x:Name="modifier10_3" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="276,492,976,178"/>
         <Canvas x:Name="modifier10_4" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="296,492,956,178"/>
-        
+
         <Canvas x:Name="modifier11_1" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="236,512,1016,158"/>
         <Canvas x:Name="modifier11_2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="256,512,996,158"/>
         <Canvas x:Name="modifier11_3" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="276,512,976,158"/>
@@ -149,7 +156,7 @@
         <Canvas x:Name="imageParticipant1_2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="339,383,913,287"/>
         <Canvas x:Name="imageParticipant1_3" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="399,383,853,287"/>
         <Canvas x:Name="imageParticipant1_4" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="419,383,833,287"/>
-        
+
         <TextBox x:Name="nameParticipant2" HorizontalAlignment="Center" Height="24" Margin="110,160,282,106" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
         <TextBlock x:Name="pointsParticipant2" HorizontalAlignment="Center" Margin="156,183,322,87" TextWrapping="Wrap" VerticalAlignment="Center" TextAlignment="Center" Width="34" Height="20" Text="0,0"/>
         <Button x:Name="plusParticipant2" Content="+" HorizontalAlignment="Center" Margin="505,339,734,329" VerticalAlignment="Center" Width="33" Click="plusFirstParticipant_Click"/>

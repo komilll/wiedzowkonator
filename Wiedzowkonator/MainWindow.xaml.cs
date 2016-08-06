@@ -111,7 +111,6 @@ namespace Wiedzowkonator
         System.Windows.Controls.Canvas[,] participantsIcons = new Canvas[16, 4];
         System.Windows.Controls.Canvas[,] participantsModifiers = new Canvas[16, 4];
         /************************/
-        bool awaitingLotterySwap;
         bool swappingWithFirstPlace;
 
         public Image[] screenshots; //Screenshots that will be shown on canvas
@@ -121,7 +120,8 @@ namespace Wiedzowkonator
         int lastScreenshotIndex; //Getting index of last shown screenshot in case if user want to see it once again
         int screenshotsCompleted; //If user already answered this screenshot it won't be shown again
         static string userName = Environment.UserName; //Name of user logged on Windows account
-        string quickSavePath = "C:/Users/" + userName + "/AppData/LocalLow/Wiedzowkonator/"; //Choosing directory path
+        static string[] systemDirectoryChunks = Environment.SystemDirectory.ToString().Split('\\'); //Getting system Windows disk (Mostly C:/)
+        string quickSavePath = systemDirectoryChunks[0] + "/Users/" + userName + "/AppData/LocalLow/Wiedzowkonator/"; //Choosing directory path
         string[] screenshotsLocalizationPath; //Localizition of directory which contains screenshots
         int customAnswerIndex; //Index that increases after pressing "next"; Help with managing custom answers
         /*** ___________________________ ***/
@@ -149,8 +149,8 @@ namespace Wiedzowkonator
         /****** LOTTERY QUIZ ******/
         int curLotteryBonus;
         int lotteryPointsToPass;
-        Image[] lotteryIcons;
-        BitmapImage[] lotteryBitmaps;
+        //Image[] lotteryIcons;
+        //BitmapImage[] lotteryBitmaps;
         string lotteryIconsDirectory = System.AppDomain.CurrentDomain.BaseDirectory + "/Icons";
         //Lottery buffs / debuffs
         bool[] lForced = new bool[12];
@@ -395,7 +395,7 @@ namespace Wiedzowkonator
             string pPoints;
             switch (curLotteryBonus)
             {
-       
+
                 case 0: //Adding points for participant
                     pPoints = participantsPoints[indexOfParticipant].Text.Replace(",0", "");
 
@@ -403,7 +403,7 @@ namespace Wiedzowkonator
                     {
                         participantsPoints[indexOfParticipant].Text = (int.Parse(pPoints) + (int.Parse(lotteryPointsToPass.ToString())) * 2).ToString() + ",0";
                         lDouble[indexOfParticipant] = false;
-                                                usersModifiers[indexOfParticipant]--;
+                        usersModifiers[indexOfParticipant]--;
                     }
                     else participantsPoints[indexOfParticipant].Text = (int.Parse(pPoints) + int.Parse(lotteryPointsToPass.ToString())).ToString() + ",0";
                     break;
@@ -421,74 +421,114 @@ namespace Wiedzowkonator
                     break;
 
                 case 2: //Swapping points with first place
-                    string participantToSwap = participantsNames[indexOfParticipant].Text;
-                    awaitingLotterySwap = false;
-                    int[] pointsList = new int[numberOfParticipants];
-                    int indexOfParticipantToSwap = 0; //Initialize
+                    string participantToSwap = participantsNames[indexOfParticipant].Text; //Getting participant that answered question
+                    List<int> firstPlaces = new List<int>();
+                    int[] pointsList = new int[numberOfParticipants]; //Initializing array length with number of participants
+                    int indexOfParticipantToSwap = 0; //Initialize variable that will pass index of needed participant
 
-                    for (int i = 0; i < numberOfParticipants; i++) //Getting number of points
+                    for (int i = 0; i < numberOfParticipants; i++) //Getting number of points to fill an array
                     {
-                        if (participantsNames[i].Text != "" && participantsNames[i].Text != null)
+                        if (participantsNames[i].Text != "" && participantsNames[i].Text != null) //If there is name of team/user written in TextBox
                         {
                             string points = participantsPoints[i].Text.Replace(",0", "");
-                            pointsList[i] = int.Parse(points);
+                            pointsList[i] = int.Parse(points); //Adding points to array
                         }
                     }
                     Array.Sort(pointsList); //Sorting by points
                     if (swappingWithFirstPlace) //Reversing points list if changing 1st with other participant
-                        Array.Reverse(pointsList);
+                        Array.Reverse(pointsList); //Now the highest score has [0] index
 
                     for (int j = 0; j < numberOfParticipants; j++) //Getting name of participant written in TextBox
                     {
                         if (participantToSwap == participantsNames[j].Text && participantsNames[j].Text != null && participantsNames[j].Text != "")
                         {
-                            indexOfParticipantToSwap = j;
+                            indexOfParticipantToSwap = j; //Getting index of participant chosen by user
                         }
                     }
 
-                    for (int j = 0; j < numberOfParticipants; j++) //Getting name of participant with most points
+                    for (int i = 0; i < numberOfParticipants; i++)
                     {
-                        string points = participantsPoints[j].Text.Replace(",0", "");
-                        if (pointsList[0] == int.Parse(points) && participantsNames[j].Text != null && participantsNames[j].Text != "")
+                        if (pointsList[0] == pointsList[i])
                         {
-                            string tempPoints = participantsPoints[j].Text;
-                            participantsPoints[j].Text = participantsPoints[indexOfParticipantToSwap].Text;
-                            participantsPoints[indexOfParticipantToSwap].Text = tempPoints;
+                            firstPlaces.Add(pointsList[i]);
+                        }
+                    }
+                    string chosenParticipantPoints = "";
+                    for (int k = 0; k < firstPlaces.Count; k++)
+                    {
+                        for (int j = 0; j < numberOfParticipants; j++) //Getting name of participant with most points
+                        {
+                            string points = participantsPoints[j].Text.Replace(",0", ""); //Initialize points of currently checked user
+                                                                                          //If this user has exact amount of points then if statement is true
+                            if (pointsList[0] == int.Parse(points) && participantsNames[j].Text != null && participantsNames[j].Text != "")
+                            {
+                                string tempPoints = participantsPoints[j].Text; //Participant with the highest score (1st place)  
+                                if (chosenParticipantPoints == "")
+                                    chosenParticipantPoints = participantsPoints[indexOfParticipantToSwap].Text;
+
+                                participantsPoints[j].Text = chosenParticipantPoints; //Participant with the highest score is getting chosen one points
+                                participantsPoints[indexOfParticipantToSwap].Text = tempPoints; //Chosen participant is getting the highest score (1st place)
+
+                            }
                         }
                     }
                     break;
                 case 3: //Switching with last place
-                    participantToSwap = participantsNames[indexOfParticipant].Text;
-                    awaitingLotterySwap = false;
-                    pointsList = new int[numberOfParticipants];
-                    indexOfParticipantToSwap = 0; //Initialize
+                    participantToSwap = participantsNames[indexOfParticipant].Text; //Getting participant that answered question
+                    List<int> lastPlaces = new List<int>();
+                    List<int> pointsIntList = new List<int>(); //Initializing array length with number of participants
+                    indexOfParticipantToSwap = 0; //Initialize variable that will pass index of needed participant
+                    int newPointsListLength = 0;
 
-                    for (int i = 0; i < numberOfParticipants; i++) //Getting number of points
+                    for (int i = 0; i < numberOfParticipants; i++) //Getting number of points to fill an array
                     {
-                        if (participantsNames[i].Text != "" && participantsNames[i].Text != null)
+                        if (participantsNames[i].Text != "" && participantsNames[i].Text != null) //If there is name of team/user written in TextBox
                         {
                             string points = participantsPoints[i].Text.Replace(",0", "");
-                            pointsList[i] = int.Parse(points);
+                            pointsIntList.Add(int.Parse(points)); //Adding points to array
+                            newPointsListLength++;
                         }
                     }
-                    Array.Sort(pointsList); //Sorting by points
 
                     for (int j = 0; j < numberOfParticipants; j++) //Getting name of participant written in TextBox
                     {
                         if (participantToSwap == participantsNames[j].Text && participantsNames[j].Text != null && participantsNames[j].Text != "")
                         {
-                            indexOfParticipantToSwap = j;
+                            indexOfParticipantToSwap = j; //Getting index of participant chosen by user
                         }
                     }
 
-                    for (int j = 0; j < numberOfParticipants; j++) //Getting name of participant with most points
+                    pointsList = new int[newPointsListLength];
+                    for (int k = 0; k < pointsIntList.Count; k++)
                     {
-                        string points = participantsPoints[j].Text.Replace(",0", "");
-                        if (pointsList[0] == int.Parse(points) && participantsNames[j].Text != null && participantsNames[j].Text != "")
+                        pointsList[k] = pointsIntList[k];
+                    }
+                    Array.Sort(pointsList);
+
+                    for (int i = 0; i < pointsList.Length; i++)
+                    {
+                        if (pointsList[0] == pointsList[i])
                         {
-                            string tempPoints = participantsPoints[j].Text;
-                            participantsPoints[j].Text = participantsPoints[indexOfParticipantToSwap].Text;
-                            participantsPoints[indexOfParticipantToSwap].Text = tempPoints;
+                            lastPlaces.Add(pointsList[i]);
+                        }
+                    }
+                    string chosenParticipantPointsLowest = "";
+                    for (int k = 0; k < lastPlaces.Count; k++)
+                    {
+                        for (int j = 0; j < numberOfParticipants; j++) //Getting name of participant with least points
+                        {
+                            string points = participantsPoints[j].Text.Replace(",0", ""); //Initialize points of currently checked user
+                                                                                          //If this user has exact amount of points then if statement is true
+                            if (pointsList[0] == int.Parse(points) && participantsNames[j].Text != null && participantsNames[j].Text != "")
+                            {
+                                string tempPoints = participantsPoints[j].Text; //Participant with the lowest score (last place)  
+                                if (chosenParticipantPointsLowest == "")
+                                    chosenParticipantPointsLowest = participantsPoints[indexOfParticipantToSwap].Text;
+
+                                participantsPoints[j].Text = chosenParticipantPointsLowest; //Participant with the lowest score is getting chosen one points
+                                participantsPoints[indexOfParticipantToSwap].Text = tempPoints; //Chosen participant is getting the lowest score (last place)
+
+                            }
                         }
                     }
                     break;
@@ -554,17 +594,25 @@ namespace Wiedzowkonator
             {
                 for (int i = 0; i < numberOfParticipants; i++)
                 {
-                    lForcedLifeSpan[i]--;
-                    lBlockedLifeSpan[i]--;
-                    if (lForcedLifeSpan[i] < 0)
+                    if (lForcedLifeSpan[i] >= 0 && lForced[i] == true)
                     {
-                        lForcedLifeSpan[i] = 0;
-                        lForced[i] = false;
+                        lForcedLifeSpan[i]--;
+                        if (lForcedLifeSpan[i] < 0)
+                        {
+                            lForcedLifeSpan[i] = 0;
+                            lForced[i] = false;
+                            usersModifiers[i]--;
+                        }
                     }
-                    if (lBlockedLifeSpan[i] < 0)
+                    if (lBlockedLifeSpan[i] >= 0 && lBlocked[i] == true)
                     {
-                        lBlockedLifeSpan[i] = 0;
-                        lBlocked[i] = false;
+                        lBlockedLifeSpan[i]--;
+                        if (lBlockedLifeSpan[i] < 0)
+                        {
+                            lBlockedLifeSpan[i] = 0;
+                            lBlocked[i] = false;
+                            usersModifiers[i]--;
+                        }
                     }
                 }
             }
@@ -711,7 +759,7 @@ namespace Wiedzowkonator
                 StartClick(null, null);
             }
         }
-
+        #region Skipping Questions
         private void SkippingScreenshot(object sender, MouseButtonEventArgs e)
         {
             //Leaving answering question phase and skipping screenshot by >>pressing left mouse button<<
@@ -805,8 +853,9 @@ namespace Wiedzowkonator
             mediaPlayer.Stop();
             SwitchingOffAllFields();
             GivingPoints_ShowingAnswers();
+            correctAnswer.Text = ""; //TODO -- wstawić tutaj odpowiedź na pytanie muzyczne
         }
-
+        #endregion
         #region Open, Save, Load
         /********************* Managing menu tabs ************************/
         private void Open(object sender, RoutedEventArgs e) //Importing new screenshots
@@ -1354,26 +1403,49 @@ namespace Wiedzowkonator
         }
         #endregion
         /* Importing new quizes */
-        #region Importing new quizes (screenshots)
+        #region Importing new quizes (screenshots & music)
         private void customAnswerButton_Click(object sender, RoutedEventArgs e)
         {
             curAnswerType = answerType.customAnswer;
-            serializationData.curAnswerType = SerializationData.answerType.customAnswer;
-            customAnswerButton.Width = fileNameAnswerButton.Width = noAnswerButton.Width = 0;
-            customAnswerIndex = 0; //Initializing index position with 0
-            canvasScreenshotQuiz.Width = screenshots[customAnswerIndex].Width;
-            canvasScreenshotQuiz.Height = screenshots[customAnswerIndex].Height;
-            canvasScreenshotQuiz.Children.Add(screenshots[customAnswerIndex]); //Adding first screenshot to canvas
-
-            FileInfo file = new FileInfo(bitmapImage[0].UriSource.LocalPath);
-            if (file.Name.Contains("@correct_answer_"))
+            if (curQuizType == quizType.screenshot)
             {
-                string fileName = file.Name.Replace(file.Extension, "");
-                string[] correctAnswerToPass = fileName.Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
-                customAnswerAdding.Text = correctAnswerToPass[1];
-            }
+                serializationData.curAnswerType = SerializationData.answerType.customAnswer;
+                customAnswerButton.Width = fileNameAnswerButton.Width = noAnswerButton.Width = 0;
+                customAnswerIndex = 0; //Initializing index position with 0
+                canvasScreenshotQuiz.Width = screenshots[customAnswerIndex].Width;
+                canvasScreenshotQuiz.Height = screenshots[customAnswerIndex].Height;
+                canvasScreenshotQuiz.Children.Add(screenshots[customAnswerIndex]); //Adding first screenshot to canvas
 
-            File.Create(quickSavePath + "toDelete.txt").Close();
+                FileInfo file = new FileInfo(bitmapImage[0].UriSource.LocalPath);
+                if (file.Name.Contains("@correct_answer_"))
+                {
+                    string fileName = file.Name.Replace(file.Extension, "");
+                    string[] correctAnswerToPass = fileName.Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
+                    customAnswerAdding.Text = correctAnswerToPass[1];
+                }
+
+                File.Create(quickSavePath + "toDelete.txt").Close();
+            }
+            /*
+            else if (curQuizType == quizType.music)
+            {//EDIT
+                serializationMusic.curAnswerType = SerializationDataMusic.answerType.customAnswer;
+                customAnswerButton.Width = fileNameAnswerButton.Width = noAnswerButton.Width = 0;
+                customAnswerIndex = 0; //Initializing index position with 0
+                canvasScreenshotQuiz.Width = screenshots[customAnswerIndex].Width;
+                canvasScreenshotQuiz.Height = screenshots[customAnswerIndex].Height;
+                canvasScreenshotQuiz.Children.Add(screenshots[customAnswerIndex]); //Adding first screenshot to canvas
+
+                FileInfo file = new FileInfo(bitmapImage[0].UriSource.LocalPath);
+                if (file.Name.Contains("@correct_answer_"))
+                {
+                    string fileName = file.Name.Replace(file.Extension, "");
+                    string[] correctAnswerToPass = fileName.Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
+                    customAnswerAdding.Text = correctAnswerToPass[1];
+                }
+
+                File.Create(quickSavePath + "toDelete.txt").Close();
+            }*/
             SwitchingOffAllFields(); //Clearing all currently open fields to width = 0
             CustomScreenshotAnswersAdding(); //Showing fields to add custom answers
         }
@@ -1385,13 +1457,12 @@ namespace Wiedzowkonator
             customAnswerButton.Width = fileNameAnswerButton.Width = noAnswerButton.Width = 0;
             QuizHUDAfterImporting(true);
             curQuizState = quizState.choosingQuestion;
+
             SwitchingOffAllFields();
-            ChoosingQuestion();
             if (isMixedQuiz)
-            {
-                SwitchingOffAllFields();
                 OpenMixedQuiz();
-            }
+            else
+                ChoosingPointsType();
         }
 
         private void noAnswerButton_Click(object sender, RoutedEventArgs e)
@@ -1401,13 +1472,12 @@ namespace Wiedzowkonator
             customAnswerButton.Width = fileNameAnswerButton.Width = noAnswerButton.Width = 0;
             QuizHUDAfterImporting(true);
             curQuizState = quizState.choosingQuestion;
+
             SwitchingOffAllFields();
-            ChoosingQuestion();
             if (isMixedQuiz)
-            {
-                SwitchingOffAllFields();
                 OpenMixedQuiz();
-            }
+            else
+                ChoosingPointsType();
         }
 
         private void addingCustomAnswers(object sender, KeyEventArgs e)
@@ -1474,13 +1544,12 @@ namespace Wiedzowkonator
                     canvasScreenshotQuiz.Children.Clear();
                     QuizHUDAfterImporting(true);
                     curQuizState = quizState.choosingQuestion;
+
                     SwitchingOffAllFields();
-                    ChoosingQuestion(); //Choosing question state after choosing all custom answers
                     if (isMixedQuiz)
-                    {
-                        SwitchingOffAllFields();
                         OpenMixedQuiz();
-                    }
+                    else
+                        ChoosingPointsType();
                 }
             }
         }
@@ -1496,6 +1565,7 @@ namespace Wiedzowkonator
                 canvasScreenshotQuiz.Children.Add(screenshots[customAnswerIndex]);
             }
         }
+        #endregion
 
         void QuizHUDAfterImporting(bool show)
         {
@@ -1572,6 +1642,7 @@ namespace Wiedzowkonator
             }
         }
 
+        #region HUD
         /***************************************** Showing/hiding all fields and managing them ************************************************************/
 
         void SwitchingOffAllFields()
@@ -1768,6 +1839,9 @@ namespace Wiedzowkonator
                 }
                 else if (curPointsType == pointsType.lottery)
                 {
+                    //TODO for testing
+                    participantsPlus[i].Width = 33;
+                    participantsMinus[i].Width = 33;
                     participantsBonus[i].Width = 30;
                     int index = 0;
                     if (lForced[i] == true)
@@ -1851,6 +1925,7 @@ namespace Wiedzowkonator
             SkipMusicQuestion.Width = 150;
         }
         /**************************** END OF HUD METHODS *****************************/
+        #endregion
         /*****************************************************************************/
         private void textQuizButton_Click(object sender, RoutedEventArgs e)
         {
@@ -1955,7 +2030,7 @@ namespace Wiedzowkonator
             lotteryVariants[7] = "Podczas następnego nieudanego przejęcia nie tracisz punktów";
 
             Random random = new Random();
-            int randomizing = random.Next(0, 100); //TODO - zmienić potem na numer od 0 do 100
+            int randomizing = random.Next(56, 60); //TODO - zmienić potem na numer od 0 do 100
 
             if (randomizing >= 0 && randomizing <= 55) //Variant 0-1; Adding or substracting points from user
             {
@@ -1984,7 +2059,6 @@ namespace Wiedzowkonator
             else if (randomizing >= 56 && randomizing <= 60) //Variant 2-3; Swapping 1st and last place 
             {
                 randomizing = random.Next(0, 2);
-                awaitingLotterySwap = true;
                 if (randomizing == 0) //Swapping with first place
                 {
                     LotteryText.Text = lotteryVariants[2] + Environment.NewLine + "Wskaż drużynę, która odpowiedziała na to pytanie:";
@@ -2021,6 +2095,7 @@ namespace Wiedzowkonator
                 curLotteryBonus = 7; //Index of bonus
             }
         }
+        #region Music quiz
         /************************************** MUSIC QUIZ METHODS *******************************************/
         private void playAudioButton_Click(object sender, RoutedEventArgs e)
         {
@@ -2057,6 +2132,8 @@ namespace Wiedzowkonator
         {
             mediaPlayer.Position = TimeSpan.FromSeconds(progressAudioSlider.Value);
         }
+        #endregion
+        #region Mixed Quiz
         /*********************************** MIXED QUIZ METHODS **********************************************/
         void OpenMixedQuiz()
         {
@@ -2095,7 +2172,8 @@ namespace Wiedzowkonator
                     mixedQuizMusic.Add(i);
                 }
                 curQuizType = quizType.mixed;
-                ChoosingQuestion();
+                SwitchingOffAllFields();
+                ChoosingPointsType();
             }
         }
 
@@ -2419,6 +2497,8 @@ namespace Wiedzowkonator
                 if (mixedQuizMusic[i] > lastQuestionIndex)
                     mixedQuizMusic[i]--;
         }
+        #endregion
+        #region Participants initialization
         //////////////////////////////////////////////////////////////////////
         /*************** PARTICIPANTS REGION ********************************/
         void InitializingParticipants()
@@ -2533,7 +2613,7 @@ participantsModifiers[11, 0] = modifier12_1; participantsModifiers[11, 1] = modi
                 }
             }
             MessageBox.Show(winners.Text);
+            #endregion
         }
-        #endregion
     }
 }

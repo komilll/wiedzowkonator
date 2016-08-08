@@ -20,6 +20,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using System.Drawing;
 using System.Windows.Resources;
+using System.Diagnostics;
 //
 using Application = System.Windows.Application;
 using MessageBox = System.Windows.Forms.MessageBox;
@@ -103,6 +104,7 @@ namespace Wiedzowkonator
 
         int numberOfParticipants = 12;
         bool finishedQuiz = false;
+        bool questionCustomizingFinished = false;
         System.Windows.Controls.TextBox[] participantsNames = new System.Windows.Controls.TextBox[16];
         System.Windows.Controls.TextBlock[] participantsPoints = new System.Windows.Controls.TextBlock[16];
         System.Windows.Controls.Button[] participantsPlus = new Button[16];
@@ -178,6 +180,10 @@ namespace Wiedzowkonator
         enum subType { screenshot, text, music }
         subType curSubType;
 
+        answerType curScreenshotAnswerType;
+
+        answerType curMusicAnswerType;
+
         /* END OF VARIABLES */
         public MainWindow()
         {
@@ -251,6 +257,7 @@ namespace Wiedzowkonator
                         int currentQuestion = lastQuestionIndex = int.Parse(questionNumberBox.Text) - 1;
                         questionText.Text = textQuestions[currentQuestion];
                         ShowingQuestion(); //Showing question text and button to skip to answer and giving points
+                        SkipQuestion.Focus(); //Focusing to let player skip question with "Enter" key
                     }
                     else if (curQuizType == quizType.music)
                     {
@@ -528,7 +535,6 @@ namespace Wiedzowkonator
 
                                 participantsPoints[j].Text = chosenParticipantPointsLowest; //Participant with the lowest score is getting chosen one points
                                 participantsPoints[indexOfParticipantToSwap].Text = tempPoints; //Chosen participant is getting the lowest score (last place)
-
                             }
                         }
                     }
@@ -766,7 +772,8 @@ namespace Wiedzowkonator
             //Leaving answering question phase and skipping screenshot by >>pressing left mouse button<<
             if (e.LeftButton == MouseButtonState.Pressed && curQuizState != quizState.customizingQuestions)
             {
-                curQuizState = quizState.givingPoints;
+                curQuizState = quizState.givingPoints; //Setting curAnswerType to screenshot answer type
+                curAnswerType = curScreenshotAnswerType;
                 StartClick(null, null);
 
                 if (curAnswerType == answerType.noAnswer)
@@ -853,6 +860,7 @@ namespace Wiedzowkonator
         {
             if (curQuizState != quizState.customizingQuestions)
             {
+                curAnswerType = curMusicAnswerType; //Setting curAnswerType to music answer type
                 curQuizState = quizState.givingPoints;
                 StartClick(null, null);
                 mediaPlayer.Stop();
@@ -872,7 +880,26 @@ namespace Wiedzowkonator
             }
             else
             {
+                artistNameMusic.Focus();
+                mediaPlayer.Stop();
                 customAnswerAdding_Button_or_Enter();
+            }
+        }
+
+
+        private void GoBackMusicQuestion_Click(object sender, RoutedEventArgs e)
+        {
+            if (customAnswerIndex-- < 0)
+            {
+                customAnswerIndex--;
+                mediaPlayer.Stop();
+                mediaPlayer.Open(new Uri(musicFilesPath[customAnswerIndex]));
+                mediaPlayer.Play();
+                FillingCustomMusicQuestions(customAnswerIndex);
+            }
+            else
+            {
+                MessageBox.Show("Nie można cofnąć, ponieważ jest to pierwsze pytanie.\rWcześniej nic nie ma ¯\\_(ツ)_/¯");
             }
         }
         #endregion
@@ -1143,7 +1170,7 @@ namespace Wiedzowkonator
                             if (serializationText.answeredQuestions[i] == textQuestions[j])
                             {
                                 textQuestionsCompleted++;
-                                textQuestions[i] = null; textTitles[i] = null; textAnswers[i] = null;
+                                textQuestions[j] = null; textTitles[j] = null; textAnswers[j] = null;
                                 for (int k = j; k < textQuestions.Length - 1; k++)
                                 {
                                     textQuestions[k] = textQuestions[k + 1];
@@ -1174,7 +1201,7 @@ namespace Wiedzowkonator
                             if (serializationMusic.answeredQuestions[i] == musicFilesPath[j])
                             {
                                 musicQuestionsCompleted++;
-                                musicFilesPath[i] = null;
+                                musicFilesPath[j] = null;
                                 for (int k = j; k < musicFilesPath.Length - 1; k++)
                                 {
                                     musicFilesPath[k] = musicFilesPath[k + 1];
@@ -1192,9 +1219,11 @@ namespace Wiedzowkonator
         {
             OpenFileDialog fileDialog = new OpenFileDialog();
             fileDialog.Multiselect = true;
-
+            Stopwatch sw = new Stopwatch();
+            int deletedEndings = 0;
             if (fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
+                sw.Start();
                 string[] paths = fileDialog.FileNames;
                 string[] pathParts = new string[2];
                 string readyPath;
@@ -1202,12 +1231,28 @@ namespace Wiedzowkonator
                 {
                     readyPath = "";
                     FileInfo info = new FileInfo(paths[i]);
-                    pathParts = paths[i].Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
+                    if (paths[i].Contains("@correct_answer_"))
+                        pathParts = paths[i].Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
+                    else if (paths[i].Contains("@artist_"))
+                        pathParts = paths[i].Split(new[] { "@artist_" }, StringSplitOptions.None);
+                    else
+                        pathParts[0] = paths[i].Replace(info.Extension, "");
                     readyPath = pathParts[0] + info.Extension;
 
-                    if (readyPath != "")
+                    if (readyPath != "" && !File.Exists(readyPath))
+                    {
                         File.Move(paths[i], readyPath);
+                        deletedEndings++;
+                    }
+                    else
+                        if (File.Exists(readyPath) && readyPath != paths[i])
+                        {
+                            File.Delete(paths[i]);
+                            deletedEndings++;
+                        }
                 }
+                sw.Stop();
+                MessageBox.Show("Operacja zakończona pozytywnie. Usunięto " + deletedEndings + " końcówek w " + sw.ElapsedMilliseconds.ToString() + "ms.");
             }
         }
 
@@ -1436,38 +1481,50 @@ namespace Wiedzowkonator
         #region Importing new quizes (screenshots & music)
         private void customAnswerButton_Click(object sender, RoutedEventArgs e)
         {
-            curAnswerType = answerType.customAnswer;
-            SwitchingOffAllFields(); //Clearing all currently open fields to width = 0
-            if (curQuizType == quizType.screenshot)
+            //TODO - dać tutaj warunek customizing question, żeby nie było bugów
+            if (questionCustomizingFinished == false)
             {
-                serializationData.curAnswerType = SerializationData.answerType.customAnswer;
-                customAnswerButton.Width = fileNameAnswerButton.Width = noAnswerButton.Width = 0;
-                customAnswerIndex = 0; //Initializing index position with 0
-                canvasScreenshotQuiz.Width = screenshots[customAnswerIndex].Width;
-                canvasScreenshotQuiz.Height = screenshots[customAnswerIndex].Height;
-                canvasScreenshotQuiz.Children.Add(screenshots[customAnswerIndex]); //Adding first screenshot to canvas
+                questionCustomizingFinished = true;
+                curAnswerType = answerType.customAnswer;
+                customAnswerIndex = 0;
+                SwitchingOffAllFields(); //Clearing all currently open fields to width = 0
 
-                FileInfo file = new FileInfo(bitmapImage[0].UriSource.LocalPath);
-                if (file.Name.Contains("@correct_answer_"))
+                if (curQuizType == quizType.screenshot || (curQuizType == quizType.mixed && curSubType == subType.screenshot))
                 {
-                    string fileName = file.Name.Replace(file.Extension, "");
-                    string[] correctAnswerToPass = fileName.Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
-                    customAnswerAdding.Text = correctAnswerToPass[1];
-                }
-                CustomScreenshotAnswersAdding(); //Showing fields to add custom answers
-                File.Create(quickSavePath + "toDelete.txt").Close();
-            }
-            else if (curQuizType == quizType.music)
-            {//TODO -- EDIT
-                CustomMusicAnswersAdding();
-                serializationMusic.curAnswerType = SerializationDataMusic.answerType.customAnswer;
-                customAnswerButton.Width = fileNameAnswerButton.Width = noAnswerButton.Width = 0;
-                customAnswerIndex = 0; //Initializing index position with 0
-                FillingCustomMusicQuestions(customAnswerIndex);
+                    curScreenshotAnswerType = curAnswerType;
+                    serializationData.curAnswerType = SerializationData.answerType.customAnswer;
+                    customAnswerButton.Width = fileNameAnswerButton.Width = noAnswerButton.Width = 0;
+                    customAnswerIndex = 0; //Initializing index position with 0
+                    canvasScreenshotQuiz.Width = screenshots[customAnswerIndex].Width;
+                    canvasScreenshotQuiz.Height = screenshots[customAnswerIndex].Height;
+                    canvasScreenshotQuiz.Children.Add(screenshots[customAnswerIndex]); //Adding first screenshot to canvas
 
-                File.Create(quickSavePath + "toDelete.txt").Close();
-                MusicHUDShow();
-                mediaPlayer.Open(new Uri(musicFilesPath[customAnswerIndex]));
+                    FileInfo file = new FileInfo(bitmapImage[0].UriSource.LocalPath);
+                    if (file.Name.Contains("@correct_answer_"))
+                    {
+                        string fileName = file.Name.Replace(file.Extension, "");
+                        string[] correctAnswerToPass = fileName.Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
+                        customAnswerAdding.Text = correctAnswerToPass[1];
+                    }
+                    CustomScreenshotAnswersAdding(); //Showing fields to add custom answers
+                    File.Create(quickSavePath + "toDelete.txt").Close();
+                }
+                else if (curQuizType == quizType.music || (curQuizType == quizType.mixed && curSubType == subType.music))
+                {//TODO -- EDIT
+                    curQuizState = quizState.customizingQuestions;
+                    curMusicAnswerType = curAnswerType;
+                    CustomMusicAnswersAdding();
+                    serializationMusic.curAnswerType = SerializationDataMusic.answerType.customAnswer;
+                    customAnswerButton.Width = fileNameAnswerButton.Width = noAnswerButton.Width = 0;
+                    customAnswerIndex = 0; //Initializing index position with 0
+                    FillingCustomMusicQuestions(customAnswerIndex);
+
+                    File.Create(quickSavePath + "toDelete.txt").Close();
+                    MusicHUDShow();
+                    mediaPlayer.Open(new Uri(musicFilesPath[customAnswerIndex]));
+                    mediaPlayer.Play();
+                    GoBackMusicQuestion.Width = 150;
+                }
             }
         }
 
@@ -1475,9 +1532,15 @@ namespace Wiedzowkonator
         {
             curAnswerType = answerType.fileNameAnswer;
             if (curQuizType == quizType.screenshot || (curQuizType == quizType.mixed && curSubType == subType.screenshot))
+            {
                 serializationData.curAnswerType = SerializationData.answerType.fileNameAnswer;
-            else if (curQuizType == quizType.music)
+                curScreenshotAnswerType = curAnswerType;
+            }
+            else if (curQuizType == quizType.music || (curQuizType == quizType.mixed && curSubType == subType.music))
+            {
                 serializationMusic.curAnswerType = SerializationDataMusic.answerType.fileNameAnswer;
+                curMusicAnswerType = curAnswerType;
+            }
             customAnswerButton.Width = fileNameAnswerButton.Width = noAnswerButton.Width = 0;
             QuizHUDAfterImporting(true);
             curQuizState = quizState.choosingQuestion;
@@ -1485,17 +1548,27 @@ namespace Wiedzowkonator
             SwitchingOffAllFields();
             if (isMixedQuiz)
                 OpenMixedQuiz();
-            else
+            else //TODO - system nie był przewidziany na obsługę również muzyki. Trzeba go w dużej części przepisać
+            {
                 ChoosingPointsType();
+                curQuizType = quizType.mixed;
+                questionCustomizingFinished = true;
+            }
         }
 
         private void noAnswerButton_Click(object sender, RoutedEventArgs e)
         {
             curAnswerType = answerType.noAnswer;
             if (curQuizType == quizType.screenshot || (curQuizType == quizType.mixed && curSubType == subType.screenshot))
+            {
                 serializationData.curAnswerType = SerializationData.answerType.fileNameAnswer;
-            else if (curQuizType == quizType.music)
+                curScreenshotAnswerType = curAnswerType;
+            }
+            else if (curQuizType == quizType.music || (curQuizType == quizType.mixed && curSubType == subType.music))
+            {
                 serializationMusic.curAnswerType = SerializationDataMusic.answerType.fileNameAnswer;
+                curMusicAnswerType = curAnswerType;
+            }
             customAnswerButton.Width = fileNameAnswerButton.Width = noAnswerButton.Width = 0;
             QuizHUDAfterImporting(true);
             curQuizState = quizState.choosingQuestion;
@@ -1504,7 +1577,11 @@ namespace Wiedzowkonator
             if (isMixedQuiz)
                 OpenMixedQuiz();
             else
+            {
                 ChoosingPointsType();
+                curQuizType = quizType.mixed;
+                questionCustomizingFinished = true;
+            }
         }
 
         private void addingCustomAnswers(object sender, KeyEventArgs e)
@@ -1581,13 +1658,12 @@ namespace Wiedzowkonator
                             ChoosingPointsType();
                     }
                 }
-                else if (curQuizType == quizType.music)
+                else if (curQuizType == quizType.music || (curQuizType == quizType.mixed && curSubType == subType.music))
                 {
                     if (artistNameMusic.Text == "" && animeNameMusic.Text == "" && titleMusic.Text == "")
                         MessageBox.Show("Uwaga! Zostawiasz wszystkie puste odpowiedzi.");
                     FileInfo infoToPass = new FileInfo(musicFilesPath[customAnswerIndex]);
                     string newPath;
-                    MessageBox.Show(infoToPass.Name);
 
                     //When file doesn't contain correct answer in its name
                     if (!infoToPass.Name.Contains("@artist_") && !infoToPass.Name.Contains("@title_") && !infoToPass.Name.Contains("@anime_name_")) 
@@ -1600,8 +1676,6 @@ namespace Wiedzowkonator
                         string[] pathPart = infoToPass.FullName.Split(new[] { "@artist_" }, StringSplitOptions.None);
                         newPath = pathPart[0] + "@artist_" + artistNameMusic.Text + "@title_" + titleMusic.Text
                             + "@anime_name_" + animeNameMusic.Text + infoToPass.Extension;
-
-                        MessageBox.Show(animeNameMusic.Text);
                     }
                     if (!File.Exists(newPath))
                     {
@@ -1620,6 +1694,8 @@ namespace Wiedzowkonator
                         animeNameMusic.Text = "";
                         titleMusic.Text = "";
                         FillingCustomMusicQuestions(customAnswerIndex);
+                        mediaPlayer.Open(new Uri(musicFilesPath[customAnswerIndex]));
+                        mediaPlayer.Play();
                     }
                     else
                     {
@@ -1630,10 +1706,9 @@ namespace Wiedzowkonator
                         curQuizState = quizState.choosingQuestion;
 
                         SwitchingOffAllFields();
-                        if (isMixedQuiz)
-                            OpenMixedQuiz();
-                        else
-                            ChoosingPointsType();
+                        ChoosingPointsType();
+                        curQuizType = quizType.mixed;
+                        mediaPlayer.Stop();
                     }
 
                 }
@@ -1679,12 +1754,23 @@ namespace Wiedzowkonator
         private void customAnswerBack_Click(object sender, RoutedEventArgs e)
         {
             customAnswerIndex--;
-            if (customAnswerIndex < screenshots.Length)
+            if (customAnswerIndex < screenshots.Length && customAnswerIndex >= 0)
             {
                 canvasScreenshotQuiz.Children.Clear();
                 canvasScreenshotQuiz.Width = screenshots[customAnswerIndex].Width;
                 canvasScreenshotQuiz.Height = screenshots[customAnswerIndex].Height;
                 canvasScreenshotQuiz.Children.Add(screenshots[customAnswerIndex]);
+                FileInfo info = new FileInfo(bitmapImage[customAnswerIndex].UriSource.LocalPath);
+                if (info.Name.Contains("@correct_answer_"))
+                {
+                    string[] toPass = info.Name.Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
+                    customAnswerAdding.Text = toPass[1].Replace(info.Extension, "");
+                }
+            }
+            else if (customAnswerIndex < 0)
+            {
+                MessageBox.Show("Nie można cofnąć, ponieważ jest to pierwsze pytanie.\rWcześniej nic nie ma ¯\\_(ツ)_/¯");
+                customAnswerIndex = 0;
             }
         }
         #endregion
@@ -1858,6 +1944,8 @@ namespace Wiedzowkonator
             artistNameMusicAnswer.Width = 0;
             titleMusicAnswer.Width = 0;
             animeNameMusicAnswer.Width = 0;
+
+            GoBackMusicQuestion.Width = 0;
             for (int i = 0; i < numberOfParticipants; i++)
             {
                 for (int k = 0; k < 4; k++)
@@ -1948,6 +2036,7 @@ namespace Wiedzowkonator
 
                     participantsModifiers[participantIndex, index].Children.Add(loseImage);
                     participantsModifiers[participantIndex, index].ToolTip = "Podczas następnego nieudanego przejęcia nie tracisz punktów";
+                    index++;
                 }
                 if (lBlocked[i] || lNotLoosing[i] || lDouble[i] || lForced[i])
                 {
@@ -2081,10 +2170,19 @@ namespace Wiedzowkonator
             titleMusicAnswer.Width = 250;
             animeNameMusicAnswer.Width = 250;
 
-            FillingCustomMusicQuestions(lastQuestionIndex);
-            artistNameMusicAnswer.Text = "Wykonawca: " + artistNameMusic.Text.First().ToString().ToUpper() + artistNameMusic.Text.Substring(1);
-            animeNameMusicAnswer.Text = "Anime: " + animeNameMusic.Text.First().ToString().ToUpper() + animeNameMusic.Text.Substring(1); 
-            titleMusicAnswer.Text = "Tytuł utworu: " + titleMusic.Text.First().ToString().ToUpper() + titleMusic.Text.Substring(1);
+            FillingCustomMusicQuestions(mixedIndex);
+            if (artistNameMusic.Text != "")
+                artistNameMusicAnswer.Text = "Wykonawca: " + artistNameMusic.Text.First().ToString().ToUpper() + artistNameMusic.Text.Substring(1);
+            else
+                artistNameMusicAnswer.Text = "Wykonawca: ";
+            if (animeNameMusic.Text != "")
+                animeNameMusicAnswer.Text = "Anime: " + animeNameMusic.Text.First().ToString().ToUpper() + animeNameMusic.Text.Substring(1);
+            else
+                animeNameMusicAnswer.Text = "Anime: ";
+            if (titleMusic.Text != "")
+                titleMusicAnswer.Text = "Tytuł utworu: " + titleMusic.Text.First().ToString().ToUpper() + titleMusic.Text.Substring(1);
+            else
+                titleMusicAnswer.Text = "Tytuł utworu: ";
 
             titleMusic.Text = ""; titleMusic.Width = 0;
             animeNameMusic.Text = ""; animeNameMusic.Width = 0;
@@ -2207,7 +2305,7 @@ namespace Wiedzowkonator
             lotteryVariants[7] = "Podczas następnego nieudanego przejęcia nie tracisz punktów";
 
             Random random = new Random();
-            int randomizing = random.Next(56, 60); //TODO - zmienić potem na numer od 0 do 100
+            int randomizing = random.Next(0, 100); //TODO - zmienić potem na numer od 0 do 100
 
             if (randomizing >= 0 && randomizing <= 55) //Variant 0-1; Adding or substracting points from user
             {
@@ -2314,6 +2412,7 @@ namespace Wiedzowkonator
         /*********************************** MIXED QUIZ METHODS **********************************************/
         void OpenMixedQuiz()
         {
+            questionCustomizingFinished = false;
             int mixedListSize = 0;
             if (isMixedQuiz == false)
             {
@@ -2348,9 +2447,10 @@ namespace Wiedzowkonator
                     mixedQuizIndexes.Add(i);
                     mixedQuizMusic.Add(i);
                 }
-                curQuizType = quizType.mixed;
-                SwitchingOffAllFields();
-                ChoosingPointsType();
+                questionCustomizingFinished = false;
+                CustomScreenshotAnswers();
+                //SwitchingOffAllFields();
+                //ChoosingPointsType();
             }
         }
 
@@ -2765,32 +2865,110 @@ participantsModifiers[11, 0] = modifier12_1; participantsModifiers[11, 1] = modi
             goBack.Width = 0;
 
             int[] pointsList = new int[numberOfParticipants];
-
+            int[] tempPointsList;
+            int newLength = 0;
+            int numberOfEntries = 0;
             for (int i = 0; i < numberOfParticipants; i++)
             {
                 if (participantsNames[i].Text != "" && participantsNames[i].Text != null)
                 {
                     string points = participantsPoints[i].Text.Replace(",0", "");
                     pointsList[i] = int.Parse(points);
+                    newLength++;
                 }
             }
             Array.Sort(pointsList);
             Array.Reverse(pointsList);
+            tempPointsList = new int[newLength];
+            for (int i = 0; i < newLength; i++)
+                tempPointsList[i] = pointsList[i];
+            pointsList = new int[newLength];
+            for (int i = 0; i < newLength; i++)
+                pointsList[i] = tempPointsList[i];
+
+            Array.Sort(pointsList);
+            Array.Reverse(pointsList);
             int currentPositionOfWinners = 1;
-            for (int i = 0; i < numberOfParticipants; i++)
+
+            for (int i = 0; i < pointsList.Length; i++)
             {
-                for (int j = 0; j < numberOfParticipants; j++)
+                for (int j = 0; j < pointsList.Length; j++)
                 {
                     string points = participantsPoints[j].Text.Replace(",0", "");
-                    if (pointsList[i] == int.Parse(points) && participantsNames[j].Text != null && participantsNames[j].Text != "")
+                    if (pointsList[i] == int.Parse(points) && participantsNames[j].Text != null && participantsNames[j].Text != "" && numberOfEntries < pointsList.Length)
                     {
+                        /*
+                        if (i > 0 && pointsList[i] == pointsList[i - 1])
+                        {
+                            currentPositionOfWinners--;
+                            MessageBox.Show("ENTER");
+                        }*/
                         winners.Text += currentPositionOfWinners.ToString() + ". " + participantsNames[j].Text + " ; " + points + "\r";
                         currentPositionOfWinners++;
+                        numberOfEntries++;
                     }
                 }
             }
             MessageBox.Show(winners.Text);
-            #endregion
+            if (curPointsType == pointsType.lottery)
+            {
+                LotteryText.Text = "";
+            }
+        }
+        #endregion
+
+        void DeletingQuickSaves(object sender, RoutedEventArgs e)
+        {
+            //Loading data containing deeper information and values of variables
+            DirectoryInfo directory = new DirectoryInfo(quickSavePath);
+            FileInfo[] pathToCheck = directory.GetFiles();
+            List<FileInfo> screenPaths = new List<FileInfo>();
+            List<FileInfo> musicPaths = new List<FileInfo>();
+            List<FileInfo> textPaths = new List<FileInfo>();
+            List<FileInfo> mixedPaths = new List<FileInfo>();
+
+            for (int i = 0; i < pathToCheck.Length; i++)
+            {
+                if (pathToCheck[i].Extension == ".animescreen") screenPaths.Add(pathToCheck[i]);
+                else if (pathToCheck[i].Extension == ".animetext") textPaths.Add(pathToCheck[i]);
+                else if (pathToCheck[i].Extension == ".animemusic") musicPaths.Add(pathToCheck[i]);
+                else if (pathToCheck[i].Extension == ".animemixed") mixedPaths.Add(pathToCheck[i]);
+            }
+
+            FileInfo pathScreen = (from f in screenPaths
+                           orderby f.LastWriteTime descending
+                           select f).First();
+            FileInfo pathMusic = (from f in musicPaths
+                                orderby f.LastWriteTime descending
+                                select f).First();
+            FileInfo pathText = (from f in textPaths
+                               orderby f.LastWriteTime descending
+                               select f).First();
+            FileInfo pathMixed = (from f in mixedPaths
+                                orderby f.LastWriteTime descending
+                                select f).First();
+
+            screenPaths.Remove(pathScreen);
+            musicPaths.Remove(pathMusic);
+            textPaths.Remove(pathText);
+            mixedPaths.Remove(pathMixed);
+
+            for (int i = 0; i < screenPaths.Count; i++)
+                File.Delete(screenPaths[i].FullName);
+            for (int i = 0; i < musicPaths.Count; i++)
+                File.Delete(musicPaths[i].FullName);
+            for (int i = 0; i < textPaths.Count; i++)
+                File.Delete(textPaths[i].FullName);
+            for (int i = 0; i < mixedPaths.Count; i++)
+                File.Delete(mixedPaths[i].FullName);
+
+            MessageBox.Show("Usunięto pliki szybkiego zapisu. Pozostawiono po jednym najnowszym pliku każdego rodzaju w folderze " + quickSavePath);
+        }
+
+        private void skippingMusicCustomization(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+                SkipMusicQuestion_Click(null, null);
         }
     }
 }

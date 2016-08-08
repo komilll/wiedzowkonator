@@ -15,6 +15,7 @@
                     <MenuItem Header="_Zapisz" Click="Save"/>
                     <MenuItem Header="_Wczytaj" Click="Load"/>
                     <MenuItem Header="_Usuń Końcówki" Click="DeleteEndings"/>
+                    <MenuItem Header="_Wyczyść pliki szybkiego zapisu" Click="DeletingQuickSaves"/>
                 </MenuItem>
 
             </Menu>
@@ -52,6 +53,7 @@
                  VerticalAlignment="Center" Width="250" Margin="193,161,187,106" TextAlignment="Center" KeyDown="questionNumberBox_KeyDown"/>
         <Button x:Name="SkipQuestion" Content="Pokaż odpowiedź" VerticalAlignment="Center" HorizontalAlignment="Center" Width="150" Click="SkipQuestion_Click" Margin="181,199,181,69"/>
         <Button x:Name="SkipMusicQuestion" Content="Dalej" VerticalAlignment="Center" HorizontalAlignment="Center" Width="150" Click="SkipMusicQuestion_Click" Margin="181,199,181,69"/>
+        <Button x:Name="GoBackMusicQuestion" Content="Cofnij" VerticalAlignment="Center" HorizontalAlignment="Center" Width="150" Click="GoBackMusicQuestion_Click" Margin="721,399,401,269"/>
         <TextBlock x:Name="LotteryText" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" Text="Lottery" Height="Auto" Width="350" VerticalAlignment="Center" Margin="600,177,621,497"/>
         <TextBlock x:Name="BonusesText" FontSize="15" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Left" Text="Obecne modyfikatory:" Height="300" Width="250" VerticalAlignment="Center" Margin="236,291,786,98"/>
         <!-- Quiz participants script -->
@@ -77,9 +79,9 @@
         <Button x:Name="customAnswerBack" Content="Cofnij" 
                 HorizontalAlignment="Left" Margin="264,249,0,0" VerticalAlignment="Top" Width="75" Click="customAnswerBack_Click"/>
         <!-- Importing custom music quiz -->
-        <TextBox x:Name="artistNameMusic" HorizontalAlignment="Center" Height="23" TextWrapping="Wrap" Text="Artysta" VerticalAlignment="Center" Width="250" Margin="321,212,701,453"/>
-        <TextBox x:Name="titleMusic" HorizontalAlignment="Center" Height="23" TextWrapping="Wrap" Text="Tytuł utworu" VerticalAlignment="Center" Width="250" Margin="321,248,701,419"/>
-        <TextBox x:Name="animeNameMusic" HorizontalAlignment="Center" Height="23" TextWrapping="Wrap" Text="Tytuł anime" VerticalAlignment="Center" Width="250" Margin="321,284,701,383"/>
+        <TextBox x:Name="artistNameMusic" HorizontalAlignment="Center" Height="23" TextWrapping="Wrap" Text="Artysta" VerticalAlignment="Center" Width="250" Margin="321,212,701,453" KeyDown="skippingMusicCustomization"/>
+        <TextBox x:Name="titleMusic" HorizontalAlignment="Center" Height="23" TextWrapping="Wrap" Text="Tytuł utworu" VerticalAlignment="Center" Width="250" Margin="321,248,701,419" KeyDown="skippingMusicCustomization"/>
+        <TextBox x:Name="animeNameMusic" HorizontalAlignment="Center" Height="23" TextWrapping="Wrap" Text="Tytuł anime" VerticalAlignment="Center" Width="250" Margin="321,284,701,383" KeyDown="skippingMusicCustomization"/>
 
         <TextBlock x:Name="artistNameMusicAnswer" HorizontalAlignment="Center" Height="23" TextWrapping="Wrap" Text="Artysta" VerticalAlignment="Center" Width="250" Margin="321,212,701,453"/>
         <TextBlock x:Name="titleMusicAnswer" HorizontalAlignment="Center" Height="23" TextWrapping="Wrap" Text="Tytuł utworu" VerticalAlignment="Center" Width="250" Margin="321,248,701,419"/>

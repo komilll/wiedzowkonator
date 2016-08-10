@@ -1047,18 +1047,19 @@ namespace Wiedzowkonator
         //Saving current state to file in chosen location
         private void Save(object sender, RoutedEventArgs e)
         {
-            SaveFileDialog fileDialog = new SaveFileDialog();
-            if (fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            SaveFileDialog fileDialog = new SaveFileDialog(); //New dialog
+            if (fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK) //If player has chosen save file path
             {
-                string path = fileDialog.FileName;
+                string path = fileDialog.FileName; //Getting path string
 
                 BinaryFormatter bf = new BinaryFormatter();
                 FileStream stream; //Stream has to be closed separately because I'm using different extensions for each stream and it can't be initialized universally
                 if (curQuizType == quizType.screenshot)
                 {
-                    stream = File.Create(path + ".animescreen");
+                    stream = File.Create(path + ".animescreen"); //Creating file with .animescreen extension
                     SerializationData data = new SerializationData();
 
+                    //Saving all fields to data class instace
                     data.answeredScreenshots = serializationData.answeredScreenshots;
                     for (int i = 0; i < numberOfParticipants; i++)
                     {
@@ -1068,7 +1069,7 @@ namespace Wiedzowkonator
                     data._screenshotsLocalizationPath = screenshotsLocalizationPath;
                     data.curAnswerType = serializationData.curAnswerType = (SerializationData.answerType)curAnswerType;
                     data.curQuizType = serializationData.curQuizType = (SerializationData.quizType)curQuizType;
-                    if (curPointsType == pointsType.lottery)
+                    if (curPointsType == pointsType.lottery) //If it's lottery then lottery variables are saved
                     {
                         data.lForced = lForced;
                         data.lBlocked = lBlocked;
@@ -1078,7 +1079,7 @@ namespace Wiedzowkonator
                         data.lForcedLifeSpan = lForcedLifeSpan;
                         data.lBlockedLifeSpan = lBlockedLifeSpan;
                     }
-                    bf.Serialize(stream, data);
+                    bf.Serialize(stream, data); //Serializing data
                     stream.Close(); //Closing stream to prevent from damaging data
                 }
                 else if (curQuizType == quizType.text)
@@ -1142,27 +1143,26 @@ namespace Wiedzowkonator
         //Loading state of quiz from .anime file
         private void Load(object sender, RoutedEventArgs e)
         {
-            OpenFileDialog fileDialog = new OpenFileDialog();
+            OpenFileDialog fileDialog = new OpenFileDialog(); //New fileDialog
+            //Depending on chosen quiz type, different filters are applied
             if (curQuizType == quizType.screenshot) fileDialog.Filter = "AnimeScreenshot (*.ANIMESCREEN)| *.animescreen";
             else if (curQuizType == quizType.text) fileDialog.Filter = "AnimeText (*.ANIMETEXT)| *.animetext";
             else if (curQuizType == quizType.music) fileDialog.Filter = "AnimeMusic (*.ANIMEMUSIC)| *.animemusic";
             else if (curQuizType == quizType.mixed)
-                LoadMixedQuiz();
+                LoadMixedQuiz(); //Different method for mixed quiz type
 
-            if (curQuizType != quizType.mixed)
-            if (fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            if (curQuizType != quizType.mixed) //Load method is continued only if it's not mixed quiz
+            if (fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK) //If everything went OK
             {
-                string path = fileDialog.FileName;
+                string path = fileDialog.FileName; //Getting file path to string
 
                 BinaryFormatter bf = new BinaryFormatter();
-                FileStream stream = File.Open(path, FileMode.Open);
+                FileStream stream = File.Open(path, FileMode.Open); //Opening file
                 if (curQuizType == quizType.screenshot)
                 {
-                    SerializationData data = (SerializationData)bf.Deserialize(stream);
+                    SerializationData data = (SerializationData)bf.Deserialize(stream); //Deserializing stream
                     serializationData.answeredScreenshots = data.answeredScreenshots;
-                    
-                    //nameFirstParticipant.Text = data.participants[0];
-                    //pointsFirstParticipant.Text = data.points[0];
+                    //Getting all variables and setting them to current instances of program's variables
                     for (int i = 0; i < numberOfParticipants; i++)
                     {
                         participantsPoints[i].Text = data.points[i];
@@ -1194,7 +1194,7 @@ namespace Wiedzowkonator
                         FileInfo info = new FileInfo(nameOfScreenshots[k]);
                         nameOfScreenshots[k] = correctNameOfScreenshot[0] + info.Extension;
                     }
-
+                    //Checking which questions were already answered
                     for (int i = 0; i < serializationData.answeredScreenshots.Count; i++)
                     {
                         for (int j = 0; j < nameOfScreenshots.Length; j++)
@@ -1214,7 +1214,8 @@ namespace Wiedzowkonator
                 }
                 else if (curQuizType == quizType.text)
                 {
-                    SerializationDataText data = (SerializationDataText)bf.Deserialize(stream);
+                    SerializationDataText data = (SerializationDataText)bf.Deserialize(stream); //Deserializing
+                    //Getting variables
                     serializationText.answeredQuestions = data.answeredQuestions;
                     for (int i = 0; i < numberOfParticipants; i++)
                     {
@@ -1231,10 +1232,10 @@ namespace Wiedzowkonator
                         usersModifiers = data.usersModifiers;
                         lForcedLifeSpan = data.lForcedLifeSpan;
                         lBlockedLifeSpan = data.lBlockedLifeSpan;
-                    if (File.Exists(txtFilePath))
+                    if (File.Exists(txtFilePath)) //Making sure that file exists
                     OpeningTextQuiz(txtFilePath); //Loading new quiz from file
                     else MessageBox.Show("Błąd importowania! Proszę zresetować program i upewnić się, że plik " + txtFilePath + " istnieje.");
-
+                    //Checking which questions were already answered
                     for (int i = 0; i < serializationText.answeredQuestions.Count; i++)
                     {
                         for (int j = 0; j < textQuestions.Length; j++)
@@ -1255,7 +1256,8 @@ namespace Wiedzowkonator
                 }
                 else if (curQuizType == quizType.music)
                 {
-                    SerializationDataMusic data = (SerializationDataMusic)bf.Deserialize(stream);
+                    SerializationDataMusic data = (SerializationDataMusic)bf.Deserialize(stream); //Deserializing
+                    //Getting variables
                     serializationMusic.answeredQuestions = data.answeredQuestions;
                     for (int i = 0; i < numberOfParticipants; i++)
                     {
@@ -1272,6 +1274,7 @@ namespace Wiedzowkonator
                         usersModifiers = data.usersModifiers;
                         lForcedLifeSpan = data.lForcedLifeSpan;
                         lBlockedLifeSpan = data.lBlockedLifeSpan;
+                    //Checknig which question were answered
                     for (int i = 0; i < serializationMusic.answeredQuestions.Count; i++)
                     {
                         for (int j = 0; j < musicFilesPath.Length; j++)
@@ -1289,55 +1292,58 @@ namespace Wiedzowkonator
                     }
                 }
                 stream.Close(); //Closing stream to prevent from damaging data
-                    curQuizState = quizState.choosingQuestion;
+                    curQuizState = quizState.choosingQuestion; //After successfully loading everything, program enters Choosing Question phase
             }
         }
 
+        //When user is customizing answer, files get extended names. This names are reverted to basic name by this method
         private void DeleteEndings(object sender, RoutedEventArgs e)
         {
-            OpenFileDialog fileDialog = new OpenFileDialog();
-            fileDialog.Multiselect = true;
-            Stopwatch sw = new Stopwatch();
-            int deletedEndings = 0;
-            if (fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            OpenFileDialog fileDialog = new OpenFileDialog(); //FileDialog
+            fileDialog.Multiselect = true; //Multiple files can be chosen --> there is no filter
+            Stopwatch sw = new Stopwatch(); //Making stopwatch (stoper) to check how long it took to delete endings. It's only for fun ;)
+            int deletedEndings = 0; //Another variable to fun. Checking how many endings were deleted
+            if (fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK) //If everything went OK
             {
-                sw.Start();
-                string[] paths = fileDialog.FileNames;
-                string[] pathParts = new string[2];
-                string readyPath;
+                sw.Start(); //Starting stop watch
+                string[] paths = fileDialog.FileNames; //Getting paths
+                string[] pathParts = new string[2]; //Splitting paths so user can get part without answers
+                string readyPath; //Path that will be passed to create final instance of an object
                 for (int i = 0; i < paths.Length; i++)
                 {
-                    readyPath = "";
+                    readyPath = ""; //Inizializing path with anything
                     FileInfo info = new FileInfo(paths[i]);
-                    if (paths[i].Contains("@correct_answer_"))
+                    if (paths[i].Contains("@correct_answer_")) //If it's screenshot
                         pathParts = paths[i].Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
-                    else if (paths[i].Contains("@artist_"))
+                    else if (paths[i].Contains("@artist_")) //If it's music path
                         pathParts = paths[i].Split(new[] { "@artist_" }, StringSplitOptions.None);
-                    else
+                    else //If it's any other file that was mistakely checked by user
                         pathParts[0] = paths[i].Replace(info.Extension, "");
                     readyPath = pathParts[0] + info.Extension;
 
-                    if (readyPath != "" && !File.Exists(readyPath))
+                    if (readyPath != "" && !File.Exists(readyPath)) //If path isn't empty and file doesn't exist yet
                     {
-                        File.Move(paths[i], readyPath);
-                        deletedEndings++;
+                        File.Move(paths[i], readyPath); //Making new instance with final name
+                        deletedEndings++; //Increasing variable with how many endings were deleted
                     }
                     else
-                        if (File.Exists(readyPath) && readyPath != paths[i])
+                        if (File.Exists(readyPath) && readyPath != paths[i]) //If path exists and final name isn't the same as basic name
                         {
-                            File.Delete(paths[i]);
-                            deletedEndings++;
+                            File.Delete(paths[i]); //Deleting this file
+                            deletedEndings++; //Increasing variable
                         }
                 }
-                sw.Stop();
+                sw.Stop(); //Stopping stoper
+                //Writting down some fun facts. There is no real purpose for this message box but I thought that it would be fun to add something like this :)
                 MessageBox.Show("Operacja zakończona pozytywnie. Usunięto " + deletedEndings + " końcówek w " + sw.ElapsedMilliseconds.ToString() + "ms.");
             }
         }
 
         private void QuickSave() //Saving after all confirmed answer
         {
-            string path = quickSavePath + "quickSave-" + DateTime.Now.ToString("dd/MM/yyyy HH_mm");
+            string path = quickSavePath + "quickSave-" + DateTime.Now.ToString("dd/MM/yyyy HH_mm"); //Path for quickSave contains current data and time
 
+            /** It's basically the same --> every variable is saved like in Save() method **/
             BinaryFormatter bf = new BinaryFormatter();
             FileStream stream;
             if (curQuizType == quizType.screenshot)
@@ -1429,10 +1435,10 @@ namespace Wiedzowkonator
         private void QuickLoad() //Loading at the start of quiz
         {
             //Loading data containing deeper information and values of variables
-            DirectoryInfo directory = new DirectoryInfo(quickSavePath);
-            FileInfo[] pathToCheck = directory.GetFiles();
-            List<FileInfo> extensionPaths = new List<FileInfo>();
-            for (int i = 0; i < pathToCheck.Length; i++)
+            DirectoryInfo directory = new DirectoryInfo(quickSavePath); //Getting directory
+            FileInfo[] pathToCheck = directory.GetFiles(); //Getting all files from directory
+            List<FileInfo> extensionPaths = new List<FileInfo>(); //Initializing FileInfo List
+            for (int i = 0; i < pathToCheck.Length; i++) //Getting all file with currently needed extension
             {
                 if (curQuizType == quizType.screenshot)
                 {
@@ -1452,12 +1458,14 @@ namespace Wiedzowkonator
                 }
             }
 
+            /** This method is basically the same as --> Load() method **/
             if (pathToCheck.Length > 0)
-            {
-                string path = (from f in extensionPaths
+            { 
+                //Getting newest file from needed entension
+                string path = (from f in extensionPaths 
                            orderby f.LastWriteTime descending
                            select f).First().FullName;
-                //MessageBox.Show(path);
+
                 BinaryFormatter bf = new BinaryFormatter();
                 FileStream stream = File.Open(path, FileMode.Open);
                 if (curQuizType == quizType.mixed) stream.Close(); //Instant closing stream to get access in another method if opening mixed Quiz
@@ -1603,16 +1611,15 @@ namespace Wiedzowkonator
         #endregion
         /* Importing new quizes */
         #region Importing new quizes (screenshots & music)
-        private void customAnswerButton_Click(object sender, RoutedEventArgs e)
+        private void customAnswerButton_Click(object sender, RoutedEventArgs e) //Player has chosen custom Answers option
         {
-            //TODO - dać tutaj warunek customizing question, żeby nie było bugów
-            if (questionCustomizingFinished == false)
+            if (questionCustomizingFinished == false) //If there was no entry before
             {
-                questionCustomizingFinished = true;
-                curAnswerType = answerType.customAnswer;
-                customAnswerIndex = 0;
+                questionCustomizingFinished = true; //Making sure that user won't enter this method again
+                curAnswerType = answerType.customAnswer; //Setting answer type
+                customAnswerIndex = 0; //Clearing index to 0
                 SwitchingOffAllFields(); //Clearing all currently open fields to width = 0
-
+                //Screenshot or mixedQuiz + screenshot subtype
                 if (curQuizType == quizType.screenshot || (curQuizType == quizType.mixed && curSubType == subType.screenshot))
                 {
                     curScreenshotAnswerType = curAnswerType;
@@ -1623,27 +1630,30 @@ namespace Wiedzowkonator
                     canvasScreenshotQuiz.Height = screenshots[customAnswerIndex].Height;
                     canvasScreenshotQuiz.Children.Add(screenshots[customAnswerIndex]); //Adding first screenshot to canvas
 
-                    FileInfo file = new FileInfo(bitmapImage[0].UriSource.LocalPath);
-                    if (file.Name.Contains("@correct_answer_"))
+                    FileInfo file = new FileInfo(bitmapImage[0].UriSource.LocalPath); //Getting screenshot name
+                    if (file.Name.Contains("@correct_answer_")) //If this file previously got answer then old answer is being shown on screen
                     {
                         string fileName = file.Name.Replace(file.Extension, "");
                         string[] correctAnswerToPass = fileName.Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
                         customAnswerAdding.Text = correctAnswerToPass[1];
                     }
                     CustomScreenshotAnswersAdding(); //Showing fields to add custom answers
-                    File.Create(quickSavePath + "toDelete.txt").Close();
+                    File.Create(quickSavePath + "toDelete.txt").Close(); //Creating toDelete file that will destroy old files
                 }
+                //Music or mixedQuiz + music subType
                 else if (curQuizType == quizType.music || (curQuizType == quizType.mixed && curSubType == subType.music))
-                {//TODO -- EDIT
+                {
                     curQuizState = quizState.customizingQuestions;
                     curMusicAnswerType = curAnswerType;
                     CustomMusicAnswersAdding();
                     serializationMusic.curAnswerType = SerializationDataMusic.answerType.customAnswer;
-                    customAnswerButton.Width = fileNameAnswerButton.Width = noAnswerButton.Width = 0;
+                    customAnswerButton.Width = fileNameAnswerButton.Width = noAnswerButton.Width = 0; //Switching off buttons
                     customAnswerIndex = 0; //Initializing index position with 0
                     FillingCustomMusicQuestions(customAnswerIndex);
-
-                    File.Create(quickSavePath + "toDelete.txt").Close();
+                    //Making sure to not create another instance of this object (that would propably overwrite old file)
+                    if (!File.Exists(quickSavePath + "toDelete.txt"))
+                        File.Create(quickSavePath + "toDelete.txt").Close();
+                    /** Variables that allow user interact with music to customize them **/
                     MusicHUDShow();
                     mediaPlayer.Open(new Uri(musicFilesPath[customAnswerIndex]));
                     mediaPlayer.Play();
@@ -1652,143 +1662,155 @@ namespace Wiedzowkonator
             }
         }
 
-        private void fileNameAnswerButton_Click(object sender, RoutedEventArgs e)
+        private void fileNameAnswerButton_Click(object sender, RoutedEventArgs e) //User has chosen FileName answerType
         {
-            curAnswerType = answerType.fileNameAnswer;
+            curAnswerType = answerType.fileNameAnswer; //Setting curAnswerType to fileNameAnswer
             if (curQuizType == quizType.screenshot || (curQuizType == quizType.mixed && curSubType == subType.screenshot))
             {
                 serializationData.curAnswerType = SerializationData.answerType.fileNameAnswer;
-                curScreenshotAnswerType = curAnswerType;
+                curScreenshotAnswerType = curAnswerType; //Passing variable in case of mixed quiz
             }
             else if (curQuizType == quizType.music || (curQuizType == quizType.mixed && curSubType == subType.music))
             {
                 serializationMusic.curAnswerType = SerializationDataMusic.answerType.fileNameAnswer;
-                curMusicAnswerType = curAnswerType;
+                curMusicAnswerType = curAnswerType; //Passing variable in case of mixed quiz
             }
-            customAnswerButton.Width = fileNameAnswerButton.Width = noAnswerButton.Width = 0;
+            customAnswerButton.Width = fileNameAnswerButton.Width = noAnswerButton.Width = 0; //Switching off buttons
             QuizHUDAfterImporting(true);
             curQuizState = quizState.choosingQuestion;
 
             SwitchingOffAllFields();
-            if (isMixedQuiz && curQuizType != quizType.music)
-                OpenMixedQuiz();
-            else //TODO - system nie był przewidziany na obsługę również muzyki. Trzeba go w dużej części przepisać
-            {
-                ChoosingPointsType();
-                curQuizType = quizType.mixed;
-                questionCustomizingFinished = true;
-                RandomizingMixedQuizIndexes();
-            }
-        }
-
-        private void noAnswerButton_Click(object sender, RoutedEventArgs e)
-        {
-            curAnswerType = answerType.noAnswer;
-            if (curQuizType == quizType.screenshot || (curQuizType == quizType.mixed && curSubType == subType.screenshot))
-            {
-                serializationData.curAnswerType = SerializationData.answerType.fileNameAnswer;
-                curScreenshotAnswerType = curAnswerType;
-            }
-            else if (curQuizType == quizType.music || (curQuizType == quizType.mixed && curSubType == subType.music))
-            {
-                serializationMusic.curAnswerType = SerializationDataMusic.answerType.fileNameAnswer;
-                curMusicAnswerType = curAnswerType;
-            }
-            customAnswerButton.Width = fileNameAnswerButton.Width = noAnswerButton.Width = 0;
-            QuizHUDAfterImporting(true);
-            curQuizState = quizState.choosingQuestion;
-
-            SwitchingOffAllFields();
-            if (isMixedQuiz && curQuizType != quizType.music)
+            if (isMixedQuiz && curQuizType != quizType.music) //If it's mixedQuiz and it's screenshot entry then program gets another loop for music answers
                 OpenMixedQuiz();
             else
             {
-                ChoosingPointsType();
-                curQuizType = quizType.mixed;
+                if (isMixedQuiz)
+                {
+                    curQuizType = quizType.mixed;
+                    MessageBox.Show("CCCP");
+                    RandomizingMixedQuizIndexes();
+                }
+                ChoosingPointsType(); //Lottery or manual
                 questionCustomizingFinished = true;
-                RandomizingMixedQuizIndexes();
             }
         }
 
-        private void addingCustomAnswers(object sender, KeyEventArgs e)
+        private void noAnswerButton_Click(object sender, RoutedEventArgs e) //User has chosen NoAnswer answerType
         {
-            if (curQuizState == quizState.customizingQuestions && e.Key == Key.Enter)
-                customAnswerConfirm_Click(null, null);
+            curAnswerType = answerType.noAnswer; //Setting curAnswerType to NoAnswer
+            if (curQuizType == quizType.screenshot || (curQuizType == quizType.mixed && curSubType == subType.screenshot))
+            {
+                serializationData.curAnswerType = SerializationData.answerType.noAnswer; //Passing variable in case of mixed quiz
+                curScreenshotAnswerType = curAnswerType;
+            }
+            else if (curQuizType == quizType.music || (curQuizType == quizType.mixed && curSubType == subType.music))
+            {
+                serializationMusic.curAnswerType = SerializationDataMusic.answerType.noAnswer; //Passing variable in case of mixed quiz
+                curMusicAnswerType = curAnswerType;
+            }
+            customAnswerButton.Width = fileNameAnswerButton.Width = noAnswerButton.Width = 0; //Switching off buttons
+            QuizHUDAfterImporting(true);
+            curQuizState = quizState.choosingQuestion;
+
+            SwitchingOffAllFields();
+            if (isMixedQuiz && curQuizType != quizType.music) //If it's mixedQuiz and it's screenshot entry then program gets another loop for music answers
+                OpenMixedQuiz();
+            else
+            {
+                if (isMixedQuiz)
+                {
+                    MessageBox.Show("CCCP");
+                    curQuizType = quizType.mixed;
+                    RandomizingMixedQuizIndexes();
+                }
+                ChoosingPointsType();
+                questionCustomizingFinished = true;
+            }
         }
 
-        private void customAnswerConfirm_Click(object sender, RoutedEventArgs e)
+        private void addingCustomAnswers(object sender, KeyEventArgs e) //Skipping button was pressed, in this case it's >>Key.Enter<<
+        {
+            if (curQuizState == quizState.customizingQuestions && e.Key == Key.Enter)
+                customAnswerConfirm_Click(null, null); //Instead of two separete fuction it starts another method
+        }
+
+        private void customAnswerConfirm_Click(object sender, RoutedEventArgs e) //Skipping button was pressed
         {
             if (curQuizState == quizState.customizingQuestions)
-                customAnswerAdding_Button_or_Enter();
+                customAnswerAdding_Button_or_Enter(); //Instead of two separete fuction it starts another method
         }
 
         void customAnswerAdding_Button_or_Enter()
         {
-            if (curQuizState == quizState.customizingQuestions)
+            if (curQuizState == quizState.customizingQuestions) //Making sure it's correct phase for customization
             {
+                //If it's screenshot customization
                 if (curQuizType == quizType.screenshot || (curQuizType == quizType.mixed && curSubType == subType.screenshot))
                 {
-                    if (customAnswerAdding.Text == "")
+                    if (customAnswerAdding.Text == "") //User is allowed to leave empty answer but it will be communicated to him
                         MessageBox.Show("Uwaga! Zostawiasz pustą odpowiedź.");
-                    FileInfo infoToPass = new FileInfo(bitmapImage[customAnswerIndex].UriSource.LocalPath);
+                    FileInfo infoToPass = new FileInfo(bitmapImage[customAnswerIndex].UriSource.LocalPath); //Getting file name
                     string newPath;
                     if (!infoToPass.Name.Contains("@correct_answer_")) //When file doesn't contain correct answer in its name
                     {
                         newPath = infoToPass.FullName.Replace(infoToPass.Extension, "")
                                     + "@correct_answer_" + customAnswerAdding.Text + infoToPass.Extension;
                     }
-                    else
+                    else //If file name contains "@correct_answer_"
                     {
                         string[] pathPart = infoToPass.FullName.Split(new[] { "@correct_answer_" }, StringSplitOptions.None); ;
                         newPath = pathPart[0] + "@correct_answer_" + customAnswerAdding.Text + infoToPass.Extension;
                     }
-                    if (!File.Exists(newPath))
+                    if (!File.Exists(newPath)) //If file with chosen name doesn't exist yet
                     {
-                        File.Copy(infoToPass.FullName, newPath);
-
+                        File.Copy(infoToPass.FullName, newPath); //Making new file
+                        /** Setting variables to new file instance **/
                         bitmapImage[customAnswerIndex] = new BitmapImage(new Uri(newPath, UriKind.Absolute));
                         screenshots[customAnswerIndex] = new Image();
                         screenshots[customAnswerIndex].Source = bitmapImage[customAnswerIndex];
                         screenshots[customAnswerIndex].Width = bitmapImage[customAnswerIndex].Width;
                         screenshots[customAnswerIndex].Height = bitmapImage[customAnswerIndex].Height;
-
+                        //Adding new line to toDelete.txt file that will delete old instance
                         using (StreamWriter sw = File.AppendText(quickSavePath + "toDelete.txt"))
                             sw.WriteLine(infoToPass.FullName);
                     }
-                    customAnswerIndex++;
-                    if (customAnswerIndex < screenshots.Length)
+                    customAnswerIndex++; //Increasing index to check next screenshot because we're done with previous one
+                    if (customAnswerIndex < screenshots.Length) //If there is next screenshot
                     {
+                        /** Setting new screenshot on screen to let user know what he is customizing **/
                         canvasScreenshotQuiz.Children.Clear();
                         canvasScreenshotQuiz.Width = screenshots[customAnswerIndex].Width;
                         canvasScreenshotQuiz.Height = screenshots[customAnswerIndex].Height;
                         canvasScreenshotQuiz.Children.Add(screenshots[customAnswerIndex]);
-                        customAnswerAdding.Text = "";
-                        infoToPass = new FileInfo(bitmapImage[customAnswerIndex].UriSource.LocalPath);
-                        if (infoToPass.Name.Contains("@correct_answer_"))
+                        customAnswerAdding.Text = ""; //Resetting custom text to empty
+                        infoToPass = new FileInfo(bitmapImage[customAnswerIndex].UriSource.LocalPath); //Getting vanilla file name
+                        if (infoToPass.Name.Contains("@correct_answer_")) //If file name has previously set answer, then this answer is shown again in textbox
                         {
                             string fileName = infoToPass.Name.Replace(infoToPass.Extension, "");
                             string[] correctAnswerToPass = fileName.Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
                             customAnswerAdding.Text = correctAnswerToPass[1];
                         }
                     }
-                    else
+                    else //If there is no more screenshots
                     {
-                        canvasScreenshotQuiz.Children.Clear();
-                        QuizHUDAfterImporting(true);
-                        curQuizState = quizState.choosingQuestion;
+                        canvasScreenshotQuiz.Children.Clear(); //Clearing canvas
+                        QuizHUDAfterImporting(true); //Switching off HUD
+                        curQuizState = quizState.choosingQuestion; //Changing state
 
-                        SwitchingOffAllFields();
-                        if (isMixedQuiz)
+                        SwitchingOffAllFields(); //Clearing fields
+                        if (isMixedQuiz) //If it's mixed quiz then it's opening again
                             OpenMixedQuiz();
-                        else
+                        else //If it's not mixed quiz, then user is choosing points type
                             ChoosingPointsType();
                     }
                 }
+                //Customizing music quiz
                 else if (curQuizType == quizType.music || (curQuizType == quizType.mixed && curSubType == subType.music))
                 {
+                    //If every single textbox is left empty then messagebox alert appers. User can give no answer but every time he's alerted
                     if (artistNameMusic.Text == "" && animeNameMusic.Text == "" && titleMusic.Text == "")
                         MessageBox.Show("Uwaga! Zostawiasz wszystkie puste odpowiedzi.");
-                    FileInfo infoToPass = new FileInfo(musicFilesPath[customAnswerIndex]);
+                    FileInfo infoToPass = new FileInfo(musicFilesPath[customAnswerIndex]); //Getting file name
                     string newPath;
 
                     //When file doesn't contain correct answer in its name
@@ -1797,57 +1819,63 @@ namespace Wiedzowkonator
                         newPath = infoToPass.FullName.Replace(infoToPass.Extension, "") + "@artist_" + artistNameMusic.Text + "@title_" + titleMusic.Text
                             + "@anime_name_" + animeNameMusic.Text + infoToPass.Extension;
                     }
-                    else
+                    else //If file contains correct answer in it's name ("@artist_" etc.)
                     {
                         string[] pathPart = infoToPass.FullName.Split(new[] { "@artist_" }, StringSplitOptions.None);
                         newPath = pathPart[0] + "@artist_" + artistNameMusic.Text + "@title_" + titleMusic.Text
                             + "@anime_name_" + animeNameMusic.Text + infoToPass.Extension;
                     }
-                    if (!File.Exists(newPath))
+                    if (!File.Exists(newPath)) //If file with this name doesn't exist
                     {
-                        File.Copy(infoToPass.FullName, newPath);
+                        File.Copy(infoToPass.FullName, newPath); //Crating new file
 
-                        musicFilesPath[customAnswerIndex] = newPath;
-
+                        musicFilesPath[customAnswerIndex] = newPath; //Swapping names in this variable
+                        //Adding old instance to toDelete file
                         using (StreamWriter sw = File.AppendText(quickSavePath + "toDelete.txt"))
                             sw.WriteLine(infoToPass.FullName);
                     }
-                    customAnswerIndex++;
-                    if (customAnswerIndex < musicFilesPath.Length)
+                    customAnswerIndex++; //Increasing index because we're done with customizing previous music question
+                    if (customAnswerIndex < musicFilesPath.Length) //If there is next music file
                     {
                         //SwitchingOffAllFields();
+                        //Clearing all fields and setting them to empty
                         artistNameMusic.Text = "";
                         animeNameMusic.Text = "";
                         titleMusic.Text = "";
-                        FillingCustomMusicQuestions(customAnswerIndex);
-                        mediaPlayer.Open(new Uri(musicFilesPath[customAnswerIndex]));
-                        mediaPlayer.Play();
+                        FillingCustomMusicQuestions(customAnswerIndex); //If there was previous answers in next question then they're shown in textboxes
+                        mediaPlayer.Open(new Uri(musicFilesPath[customAnswerIndex])); //Opening next music
+                        mediaPlayer.Play(); //Automatically playing next music
                     }
-                    else
+                    else //If there isn't next music file
                     {
+                        /** Clearing all fields and switching off HUD **/
                         artistNameMusic.Text = "";
                         animeNameMusic.Text = "";
                         titleMusic.Text = "";
                         QuizHUDAfterImporting(true);
-                        curQuizState = quizState.choosingQuestion;
+                        curQuizState = quizState.choosingQuestion; //Changing state
 
-                        SwitchingOffAllFields();
-                        ChoosingPointsType();
-                        curQuizType = quizType.mixed;
+                        SwitchingOffAllFields(); //Turning off all fields
+                        ChoosingPointsType(); //Choosing points type
                         mediaPlayer.Stop();
-                        RandomizingMixedQuizIndexes();
+                        if (isMixedQuiz)
+                        {
+                            curQuizType = quizType.mixed;
+                            RandomizingMixedQuizIndexes();
+                        }
                     }
 
                 }
             }
         }
 
-        void FillingCustomMusicQuestions(int customAnswerIndex)
+        void FillingCustomMusicQuestions(int customAnswerIndex) //Filling textboxes in music questions when file name contains "@artist_" and so
         {
-            FileInfo file = new FileInfo(musicFilesPath[customAnswerIndex]);
-            string fileName;
+            FileInfo file = new FileInfo(musicFilesPath[customAnswerIndex]); //Getting file name
+            string fileName; //Temp variable
 
-            string[] correctAnswerToPass = new string[2];
+            string[] correctAnswerToPass = new string[2]; //Splitted variable to get vanilla name and answers part
+            /** Filling textboxes. It's pretty simple and the same as previously shown in code **/
             if (file.Name.Contains("@anime_name_"))
             {
                 fileName = file.Name.Replace(file.Extension, "");
@@ -1878,31 +1906,33 @@ namespace Wiedzowkonator
             }
         }
 
-        private void customAnswerBack_Click(object sender, RoutedEventArgs e)
+        private void customAnswerBack_Click(object sender, RoutedEventArgs e) //Going back when customizing screenshots
         {
-            customAnswerIndex--;
-            if (customAnswerIndex < screenshots.Length && customAnswerIndex >= 0)
+            customAnswerIndex--; //Decreasing index
+            if (customAnswerIndex < screenshots.Length && customAnswerIndex >= 0) //If index is not too big and is greater or equal to 0
             {
+                //Clearing canvas and setting new screenshots as canvas child
                 canvasScreenshotQuiz.Children.Clear();
                 canvasScreenshotQuiz.Width = screenshots[customAnswerIndex].Width;
                 canvasScreenshotQuiz.Height = screenshots[customAnswerIndex].Height;
                 canvasScreenshotQuiz.Children.Add(screenshots[customAnswerIndex]);
-                FileInfo info = new FileInfo(bitmapImage[customAnswerIndex].UriSource.LocalPath);
-                if (info.Name.Contains("@correct_answer_"))
+                FileInfo info = new FileInfo(bitmapImage[customAnswerIndex].UriSource.LocalPath); //Getting prevoius file name
+                if (info.Name.Contains("@correct_answer_")) //If it already contains correct answer then it's shown in textbox
                 {
                     string[] toPass = info.Name.Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
                     customAnswerAdding.Text = toPass[1].Replace(info.Extension, "");
                 }
             }
-            else if (customAnswerIndex < 0)
+            else if (customAnswerIndex < 0) //If it's first question
             {
+                //Alert is shown and index is set to 0
                 MessageBox.Show("Nie można cofnąć, ponieważ jest to pierwsze pytanie.\rWcześniej nic nie ma ¯\\_(ツ)_/¯");
                 customAnswerIndex = 0;
             }
         }
         #endregion
 
-        void QuizHUDAfterImporting(bool show)
+        void QuizHUDAfterImporting(bool show) //TODO --> relict of the past. Currently it's managed with HUD methods below
         {
             if (show)
             {
@@ -1919,61 +1949,63 @@ namespace Wiedzowkonator
             }
         }
 
-        void DeletingScreeshots()
+        void DeletingScreeshots() //Deleting screenshots and music files after customization. Method is run on program start
         {
-            if (File.Exists(quickSavePath + "toDelete.txt"))
+            if (File.Exists(quickSavePath + "toDelete.txt")) //Making sure that toDelete file exists
             {
-                using (StreamReader sr = File.OpenText(quickSavePath + "toDelete.txt"))
+                using (StreamReader sr = File.OpenText(quickSavePath + "toDelete.txt")) //Reading content of toDelete file
                 {
-                    string text = sr.ReadToEnd();
-                    string[] lines = text.Split('\r');
+                    string text = sr.ReadToEnd(); //Reading all lines and setting it to string variable
+                    string[] lines = text.Split('\r'); //Splitting text to lines
                     foreach (string s in lines)
                     {
-                        string toDelete = s.Replace("\\", "/");
-                        toDelete = toDelete.Trim();
-                        if (File.Exists(toDelete))
+                        string toDelete = s.Replace("\\", "/"); //Each line need to get swapped slashes because it's different for windows path and different so save in txt file
+                        toDelete = toDelete.Trim(); //Resetting all white signs before and after line
+                        if (File.Exists(toDelete)) //Making sure that file written in line exists
                             File.Delete(toDelete); //Deleting each file
                     }
                 }
-
-                File.Delete(quickSavePath + "toDelete.txt"); //Deleting file with data
+                File.Delete(quickSavePath + "toDelete.txt"); //Deleting file with data after deleting other files
             }
         }
 
-        void OpeningTextQuiz(string pathToFile)
+        void OpeningTextQuiz(string pathToFile) //Opening text quiz, it's outer method but I have no reason why I've decided to do that
         {
-            using (StreamReader sr = File.OpenText(pathToFile))
+            using (StreamReader sr = File.OpenText(pathToFile)) //Opening file using StreamReader
             {
-                int currentIndex = 0;
-                string text = sr.ReadToEnd();
-                text = text.Trim();
-                string[] lines = text.Split('\r');
+                int currentIndex = 0; //Initializing local index
+                string text = sr.ReadToEnd(); //Read text to end
+                text = text.Trim(); //Deleting white signs before and after text
+                string[] lines = text.Split('\r'); //Splitting text to lines
+                /** Each array length is equal to number of lines divided by 2 because it comes with Question->Answer->Question->Answer **/
                 textTitles = new string[lines.Length / 2];
                 textQuestions = new string[lines.Length / 2];
                 textAnswers = new string[lines.Length / 2];
 
                 foreach (string s in lines)
                 {
-                    s.Trim();
-                    int count = s.Split('\"').Length - 1;
+                    //TODO --> Obecnie chyba nie widać tytuł anime, trzeba to zbadać
+                    s.Trim(); //Deleting white signs before and after words for each line
+                    int count = s.Split('\"').Length - 1; //Getting number of > " < It'll be needed to get title
                     if (currentIndex % 2 == 0)
                     {
                         if (count == 2) //If in line are exactly 2 quotation marks
                         {
                             string[] textToShow = s.Split('\"'); //Splitting text to get title
-                            textTitles[currentIndex / 2] = textToShow[1].Trim();
-                            textQuestions[currentIndex / 2] = textToShow[2].Trim();
+                            textTitles[currentIndex / 2] = textToShow[1].Trim(); //Second part is title
+                            textQuestions[currentIndex / 2] = textToShow[2].Trim(); //Thirg part is question text
                         }
                         else //If there are more or less than 2 quotation marks
                         {
-                            textTitles[currentIndex / 2] = "";
-                            textQuestions[currentIndex / 2] = s.Trim();
+                            textTitles[currentIndex / 2] = ""; //There is no title so it's empty
+                            textQuestions[currentIndex / 2] = s.Trim(); //Question text
                         }
                     }
-                    else if (currentIndex % 2 == 1)
-                        textAnswers[currentIndex / 2] = s.Trim();
-                    currentIndex++;
+                    else if (currentIndex % 2 == 1) //Every other line is answer
+                        textAnswers[currentIndex / 2] = s.Trim(); //Getting anwer with trim
+                    currentIndex++; //Increasing index to calculate when you're getting answer and when question
                 }
+                /** Randomizing questions **/
                 Random random = new Random();
                 List<int> indexes = new List<int>();
                 string[] textTitlesToPass = new string[textTitles.Length];
@@ -2001,8 +2033,7 @@ namespace Wiedzowkonator
 
         #region HUD
         /***************************************** Showing/hiding all fields and managing them ************************************************************/
-
-        void SwitchingOffAllFields()
+        void SwitchingOffAllFields() //Basically it's switches of all fields. Not really switches but sets all width to 0 so they're not visible of clickable
         {
             //Choosing type of quiz
             textQuizButton.Width = 0;
@@ -2087,14 +2118,14 @@ namespace Wiedzowkonator
             }
         }
 
-        void ChoosingPointsType()
+        void ChoosingPointsType() //Showing options --> manual or lottery
         {
             manualQuizButton.Width = 250;
             lotteryQuizButton.Width = 250;
             tilesChoosingQuizButton.Width = 250;
         }
 
-        void ChoosingQuizType()
+        void ChoosingQuizType() //Showing options --> screenshot / music / text / mixed
         {
             textQuizButton.Width = 250;
             screenshotQuizButton.Width = 250;
@@ -2102,7 +2133,7 @@ namespace Wiedzowkonator
             mixedQuizButton.Width = 250;
         }
 
-        void ChoosingQuizOpeningType()
+        void ChoosingQuizOpeningType() //Showing options --> open / load / quickload
         {
             //TODO - Ustalić wartości zależne od długości znaków w przycisku (+ ~15px)
             openQuizButton.Width = 250;
@@ -2110,93 +2141,97 @@ namespace Wiedzowkonator
             quickLoadQuizButton.Width = 250;
         }
 
-        void ChoosingQuestion()
+        void ChoosingQuestion() //Choosing next question number and showing current modifiers
         {
             StartButton.Width = 150;
             questionNumberBox.Width = 132; //This field is focusable (XAML)
-            Keyboard.Focus(questionNumberBox);
+            Keyboard.Focus(questionNumberBox); //Focusing TextBox that takes chosen number of question
             BonusesText.Width = 250;
-            int participantIndex = 0;
-            BonusesText.Text = "Obecne modyfikatory:";
-            for (int i = 0; i < numberOfParticipants; i++)
+            int participantIndex = 0; //It is used to sort icons
+            if (curPointsType == pointsType.lottery)
             {
-                int index = 0;
-                if (lForced[i] == true)
+                BonusesText.Text = "Obecne modyfikatory:";
+                for (int i = 0; i < numberOfParticipants; i++)
                 {
-                    Image forcedImage = new Image();
-                    BitmapImage forcedBitmap = new BitmapImage(new Uri("Icons/forced.png", UriKind.Relative));
-                    forcedImage.Source = forcedBitmap;
-                    forcedImage.Width = forcedBitmap.Width;
-                    forcedImage.Height = forcedBitmap.Height;
-
-                    participantsModifiers[participantIndex, index].Children.Add(forcedImage);
-                    participantsModifiers[participantIndex, index].ToolTip = "Przez następne trzy rundy, jeśli nikt nie odpowie na pytanie, musisz je przejąć";
-                    index++;
-                }
-                if (lDouble[i] == true)
-                {
-                    Image doubleImage = new Image();
-                    BitmapImage doubleBitmap = new BitmapImage(new Uri("Icons/doublePoints.png", UriKind.Relative));
-                    doubleImage.Source = doubleBitmap;
-                    doubleImage.Width = doubleBitmap.Width;
-                    doubleImage.Height = doubleBitmap.Height;
-
-                    participantsModifiers[participantIndex, index].Children.Add(doubleImage);
-                    participantsModifiers[participantIndex, index].ToolTip = "Za następne pytanie na które odpowiesz otrzymujesz 2x punktów";
-                    index++;
-                }
-                if (lBlocked[i] == true)
-                {
-                    Image blockedImage = new Image();
-                    BitmapImage blockedBitmap = new BitmapImage(new Uri("Icons/blocked.png", UriKind.Relative));
-                    blockedImage.Source = blockedBitmap;
-                    blockedImage.Width = blockedBitmap.Width;
-                    blockedImage.Height = blockedBitmap.Height;
-
-                    participantsModifiers[participantIndex, index].Children.Add(blockedImage);
-                    participantsModifiers[participantIndex, index].ToolTip = "Przez trzy tury nie możesz przejmować pytań";
-                    index++;
-                }
-                if (lNotLoosing[i] == true)
-                {
-                    Image loseImage = new Image();
-                    BitmapImage loseBitmap = new BitmapImage(new Uri("Icons/noLosingPoints.png", UriKind.Relative));
-                    loseImage.Source = loseBitmap;
-                    loseImage.Width = loseBitmap.Width;
-                    loseImage.Height = loseBitmap.Height;
-
-                    participantsModifiers[participantIndex, index].Children.Add(loseImage);
-                    participantsModifiers[participantIndex, index].ToolTip = "Podczas następnego nieudanego przejęcia nie tracisz punktów";
-                    index++;
-                }
-                if (lBlocked[i] || lNotLoosing[i] || lDouble[i] || lForced[i])
-                {
-                    participantIndex++;
-                    BonusesText.Text = BonusesText.Text + Environment.NewLine;
-                    for (int k = 0; k < index; k++)
+                    int index = 0;
+                    if (lForced[i] == true)
                     {
-                        BonusesText.Text = BonusesText.Text + "       ";
+                        Image forcedImage = new Image();
+                        BitmapImage forcedBitmap = new BitmapImage(new Uri("Icons/forced.png", UriKind.Relative));
+                        forcedImage.Source = forcedBitmap;
+                        forcedImage.Width = forcedBitmap.Width;
+                        forcedImage.Height = forcedBitmap.Height;
+
+                        participantsModifiers[participantIndex, index].Children.Add(forcedImage);
+                        participantsModifiers[participantIndex, index].ToolTip = "Przez następne trzy rundy, jeśli nikt nie odpowie na pytanie, musisz je przejąć";
+                        index++;
                     }
-                    BonusesText.Text = BonusesText.Text + participantsNames[i].Text;
+                    if (lDouble[i] == true)
+                    {
+                        Image doubleImage = new Image();
+                        BitmapImage doubleBitmap = new BitmapImage(new Uri("Icons/doublePoints.png", UriKind.Relative));
+                        doubleImage.Source = doubleBitmap;
+                        doubleImage.Width = doubleBitmap.Width;
+                        doubleImage.Height = doubleBitmap.Height;
+
+                        participantsModifiers[participantIndex, index].Children.Add(doubleImage);
+                        participantsModifiers[participantIndex, index].ToolTip = "Za następne pytanie na które odpowiesz otrzymujesz 2x punktów";
+                        index++;
+                    }
+                    if (lBlocked[i] == true)
+                    {
+                        Image blockedImage = new Image();
+                        BitmapImage blockedBitmap = new BitmapImage(new Uri("Icons/blocked.png", UriKind.Relative));
+                        blockedImage.Source = blockedBitmap;
+                        blockedImage.Width = blockedBitmap.Width;
+                        blockedImage.Height = blockedBitmap.Height;
+
+                        participantsModifiers[participantIndex, index].Children.Add(blockedImage);
+                        participantsModifiers[participantIndex, index].ToolTip = "Przez trzy tury nie możesz przejmować pytań";
+                        index++;
+                    }
+                    if (lNotLoosing[i] == true)
+                    {
+                        Image loseImage = new Image();
+                        BitmapImage loseBitmap = new BitmapImage(new Uri("Icons/noLosingPoints.png", UriKind.Relative));
+                        loseImage.Source = loseBitmap;
+                        loseImage.Width = loseBitmap.Width;
+                        loseImage.Height = loseBitmap.Height;
+
+                        participantsModifiers[participantIndex, index].Children.Add(loseImage);
+                        participantsModifiers[participantIndex, index].ToolTip = "Podczas następnego nieudanego przejęcia nie tracisz punktów";
+                        index++;
+                    }
+                    if (lBlocked[i] || lNotLoosing[i] || lDouble[i] || lForced[i])
+                    {
+                        participantIndex++;
+                        BonusesText.Text = BonusesText.Text + Environment.NewLine;
+                        for (int k = 0; k < index; k++)
+                        {
+                            BonusesText.Text = BonusesText.Text + "       ";
+                        }
+                        BonusesText.Text = BonusesText.Text + participantsNames[i].Text;
+                    }
                 }
             }
+            else BonusesText.Text = ""; //If it's not lottery quiz then there is empty TextBlock
         }
 
-        void ShowingQuestion()
+        void ShowingQuestion() //Showing text question with skipQuestion button
         {
-            if (curQuizType == quizType.text || curSubType == subType.text)
+            if (curQuizType == quizType.text || (curQuizType == quizType.mixed && curSubType == subType.text))
             {
                 questionText.Width = 250;
                 SkipQuestion.Width = 150;
             }
         }
 
-        void GivingPoints_ShowingAnswers()
+        void GivingPoints_ShowingAnswers() //Showing participants and button to manage points / quiz bonuses (lottery only)
         {
             //TODO -- ogarnąć wartości procentowe
             confirmPoints.Width = 75;
             goBack.Width = 75;
-            //correctAnswer.Width = 0;
+            /** Setting all fields with. If it's lottery type quiz, additional fields are added **/
             for (int i = 0; i < numberOfParticipants; i++)
             {
                 participantsNames[i].Width = 120;
@@ -2211,7 +2246,6 @@ namespace Wiedzowkonator
                 }
                 else if (curPointsType == pointsType.lottery)
                 {
-                    //TODO for testing
                     participantsPlus[i].Width = 33;
                     participantsMinus[i].Width = 33;
                     participantsBonus[i].Width = 30;
@@ -2268,25 +2302,25 @@ namespace Wiedzowkonator
 
             if (curPointsType == pointsType.lottery)
             {
-                StartLottery();
+                StartLottery(); //If it's lottery, then text with random buff/debuff is shown
             }
         }
 
-        void CustomScreenshotAnswers()
+        void CustomScreenshotAnswers() //Showing options --> noAnswer / fileNameAnswer / customAnswer
         {
             noAnswerButton.Width = 800;
             fileNameAnswerButton.Width = 800;
             customAnswerButton.Width = 800;
         }
 
-        void CustomScreenshotAnswersAdding()
+        void CustomScreenshotAnswersAdding() //Showing customization HUD for screenshot
         {
             customAnswerAdding.Width = 120;
             customAnswerConfirm.Width = 75;
             customAnswerBack.Width = 75;
         }
 
-        void CustomMusicAnswersAdding()
+        void CustomMusicAnswersAdding() //Showing customization HUD for music type questions
         {
             //Customizing questions for music type
             artistNameMusic.Width = 250;
@@ -2297,14 +2331,15 @@ namespace Wiedzowkonator
             animeNameMusicHelper.Width = 113;
         }
 
-        void CustomMusicAnswersShowing()
+        void CustomMusicAnswersShowing() //Showing answer when it's custom answer type quiz
         {
             //Getting answer for music type questions
             artistNameMusicAnswer.Width = 250;
             titleMusicAnswer.Width = 250;
             animeNameMusicAnswer.Width = 250;
 
-            FillingCustomMusicQuestions(mixedIndex);
+            FillingCustomMusicQuestions(mixedIndex); //Filling textboxes with text, but that textboxes aren't visible
+            //Then program is getting text from every textbox, setting first letter to upper
             if (artistNameMusic.Text != "")
                 artistNameMusicAnswer.Text = "Wykonawca: " + artistNameMusic.Text.First().ToString().ToUpper() + artistNameMusic.Text.Substring(1);
             else
@@ -2318,12 +2353,13 @@ namespace Wiedzowkonator
             else
                 titleMusicAnswer.Text = "Tytuł utworu: ";
 
+            //Setting used textboxes from customization method to zero with empty text
             titleMusic.Text = ""; titleMusic.Width = 0;
             animeNameMusic.Text = ""; animeNameMusic.Width = 0;
             artistNameMusic.Text = ""; artistNameMusic.Width = 0;
         }
 
-        void MusicHUDShow()
+        void MusicHUDShow() //Showing music HUD
         {
             playAudioButton.Width = 100;
             pauseAudioButton.Width = 100;
@@ -2336,45 +2372,45 @@ namespace Wiedzowkonator
         /**************************** END OF HUD METHODS *****************************/
         #endregion
         /*****************************************************************************/
-        private void textQuizButton_Click(object sender, RoutedEventArgs e)
+        private void textQuizButton_Click(object sender, RoutedEventArgs e) //Text Quiz
         {
             curQuizType = quizType.text;
             SwitchingOffAllFields();
             ChoosingQuizOpeningType();
         }
 
-        private void screenshotQuizButton_Click(object sender, RoutedEventArgs e)
+        private void screenshotQuizButton_Click(object sender, RoutedEventArgs e) //Screenshot Quiz
         {
             curQuizType = quizType.screenshot;
             SwitchingOffAllFields();
             ChoosingQuizOpeningType();
         }
 
-        private void musicQuizButton_Click(object sender, RoutedEventArgs e)
+        private void musicQuizButton_Click(object sender, RoutedEventArgs e) //Music Quiz
         {
             curQuizType = quizType.music;
             SwitchingOffAllFields();
             ChoosingQuizOpeningType();
         }
 
-        private void mixedQuizButton_Click(object sender, RoutedEventArgs e)
+        private void mixedQuizButton_Click(object sender, RoutedEventArgs e) //Mixed Quiz
         {
             curQuizType = quizType.mixed;
             SwitchingOffAllFields();
             ChoosingQuizOpeningType();
         }
 
-        private void openQuizButton_Click(object sender, RoutedEventArgs e)
+        private void openQuizButton_Click(object sender, RoutedEventArgs e) //Importing and setting files for quiz
         {
-            Open(null, null);
-            if (textQuestions != null || screenshots != null || musicFilesPath != null)
+            Open(null, null); //Main import method. There are chosen file for quiz
+            if (textQuestions != null || screenshots != null || musicFilesPath != null) //Making sure that anything was imported
             {
-                if (curQuizType == quizType.screenshot || curQuizType == quizType.music)
+                if (curQuizType == quizType.screenshot || curQuizType == quizType.music) //User can shoose answer type for screenshot and music questions
                 {
                     SwitchingOffAllFields();
                     CustomScreenshotAnswers();
                 }
-                else
+                else //For text questions, user skips this step to choosingPointsType
                 {
                     SwitchingOffAllFields();
                     ChoosingPointsType();
@@ -2382,32 +2418,32 @@ namespace Wiedzowkonator
             }
         }
 
-        private void loadQuizButton_Click(object sender, RoutedEventArgs e)
+        private void loadQuizButton_Click(object sender, RoutedEventArgs e) //Loading saved file in *.anime* extension
         {
-            Load(null, null);
-            if (textQuestions != null || screenshots != null || musicFilesPath != null)
+            Load(null, null); //Main load method
+            if (textQuestions != null || screenshots != null || musicFilesPath != null) //Making sure that anything was loaded
             {
                 SwitchingOffAllFields();
                 ChoosingPointsType();
             }
         }
 
-        private void quickLoadQuizButton_Click(object sender, RoutedEventArgs e)
+        private void quickLoadQuizButton_Click(object sender, RoutedEventArgs e) //Loading saved file in *.anime* extension that was lastly used
         {
             //TODO -- sprawdzanie rodzaju importowanej wiedzówki
             //TODO -- dodanie przycisku, który ładuje ostatnią wiedzówkę, niezależnie jakiego typu była
-            QuickLoad();
-            if (textQuestions != null || screenshots != null || musicFilesPath != null)
+            QuickLoad(); //Main QuickLoad method
+            if (textQuestions != null || screenshots != null || musicFilesPath != null) //Making sure that anything was loaded
             {
                 SwitchingOffAllFields();
                 ChoosingPointsType();
             }
         }
 
-        private void manualQuizButton_Click(object sender, RoutedEventArgs e)
+        private void manualQuizButton_Click(object sender, RoutedEventArgs e) //User is adding or substracting points manually by pressing plus/minus buttons
         {
-            curPointsType = pointsType.manual;
-
+            curPointsType = pointsType.manual; //Setting points type
+            /** Resetting lottery type in case if before load user has chosen lottery type **/
             lForced = new bool[12];
             lBlocked = new bool[12];
             lDouble = new bool[12];
@@ -2420,24 +2456,24 @@ namespace Wiedzowkonator
             ChoosingQuestion();
         }
 
-        private void lotteryQuizButton_Click(object sender, RoutedEventArgs e)
+        private void lotteryQuizButton_Click(object sender, RoutedEventArgs e) //Lottery type --> participants can get different bonuses or debuffs for correct answers
         {
             curPointsType = pointsType.lottery;
             SwitchingOffAllFields();
             ChoosingQuestion();
         }
 
-        private void tilesChoosingQuizButton_Click(object sender, RoutedEventArgs e)
+        private void tilesChoosingQuizButton_Click(object sender, RoutedEventArgs e) //TODO --> Currently there is nothing, better not click this option
         {
             curPointsType = pointsType.tilesChoosing;
             SwitchingOffAllFields();
             ChoosingQuestion();
         }
 
-        void StartLottery()
+        void StartLottery() //Getting random buff/debuff after correct answer
         {
-            LotteryText.Width = 350;
-            string[] lotteryVariants = new string[8];
+            LotteryText.Width = 350; //Setting text that inform participants about bonus to correct width
+            string[] lotteryVariants = new string[8]; //Initializing array
             lotteryVariants[0] = "Dostajesz.punkty";
             lotteryVariants[1] = "Tracisz.punkty";
             lotteryVariants[2] = "Zamieniasz się punktami z pierwszym miejscem";
@@ -2448,8 +2484,9 @@ namespace Wiedzowkonator
             lotteryVariants[7] = "Podczas następnego nieudanego przejęcia nie tracisz punktów";
 
             Random random = new Random();
-            int randomizing = random.Next(0, 100); //TODO - zmienić potem na numer od 0 do 100
-
+            int randomizing = random.Next(0, 100); //Randomizing bonus
+            //TODO --> Polishing liczb, bo obecnie dość często pojawiają się buffy zamiast zwykłych wartości punktowych
+            /** Lottery isn't fully random because it would be awful if chance for swapping was the same as getting points **/
             if (randomizing >= 0 && randomizing <= 55) //Variant 0-1; Adding or substracting points from user
             {
                 randomizing = random.Next(1, 11);
@@ -2515,29 +2552,30 @@ namespace Wiedzowkonator
         }
         #region Music quiz
         /************************************** MUSIC QUIZ METHODS *******************************************/
-        private void playAudioButton_Click(object sender, RoutedEventArgs e)
+        private void playAudioButton_Click(object sender, RoutedEventArgs e) //Starts music playing
         {
             mediaPlayer.Volume = volumeAudioSlider.Value / 10;
             mediaPlayer.Play();
         }
 
-        private void pauseAudioButton_Click(object sender, RoutedEventArgs e)
+        private void pauseAudioButton_Click(object sender, RoutedEventArgs e) //Pause music
         {
             mediaPlayer.Pause();
         }
 
-        private void stopAudioButton_Click(object sender, RoutedEventArgs e)
+        private void stopAudioButton_Click(object sender, RoutedEventArgs e) //Stop music
         {
             mediaPlayer.Stop();
         }
 
-        private void volumeAudioSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        private void volumeAudioSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e) //Manually setting volume
         {
             mediaPlayer.Volume = e.NewValue / 10;
         }
 
-        private void timer_Tick(object sender, EventArgs e)
+        private void timer_Tick(object sender, EventArgs e) //Method used in Start() method
         {
+            //Increasing slider position to visually show that music is playing
             if ((mediaPlayer.Source != null) && (mediaPlayer.NaturalDuration.HasTimeSpan))
             {
                 progressAudioSlider.Minimum = 0;
@@ -2546,19 +2584,20 @@ namespace Wiedzowkonator
             }
         }
 
-        private void progressAudioSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        private void progressAudioSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e) //Manually changing music time
         {
             mediaPlayer.Position = TimeSpan.FromSeconds(progressAudioSlider.Value);
         }
         #endregion
         #region Mixed Quiz
         /*********************************** MIXED QUIZ METHODS **********************************************/
-        void OpenMixedQuiz()
+        void OpenMixedQuiz() //When Mixed Quiz then this method is used instead of normal Open() method
         {
-            questionCustomizingFinished = false;
-            int mixedListSize = 0;
-            if (isMixedQuiz == false)
+            questionCustomizingFinished = false; //Making sure that user can enter in customization
+            int mixedListSize = 0; //Saving current mixedQuizIndexed length; A bit useless but let it stay
+            if (isMixedQuiz == false) //If it's first entry
             {
+                /** Dealing with screenshots importing **/
                 isMixedQuiz = true;
                 curQuizType = quizType.screenshot;
                 while (screenshots == null)
@@ -2572,6 +2611,7 @@ namespace Wiedzowkonator
             else if (isMixedQuiz)
             {
                 //TODO -- na razie będzie na siłę otwierało okno wybieranie plików, do zmiany
+                /** Importing text and music questions **/
                 curQuizType = quizType.text;
                 while (textQuestions == null)
                     Open(null, null);
@@ -2597,12 +2637,13 @@ namespace Wiedzowkonator
             }
         }
 
-        void StartMixedQuiz(int index)
+        void StartMixedQuiz(int index) //It's used instead of normal Start() method
         {
-            correctAnswer.Text = "";
-            if (mixedQuizScreenshot.Contains(index))
+            correctAnswer.Text = ""; //Clearing answer text
+            if (mixedQuizScreenshot.Contains(index)) //Checking if it's screenshot index
             {
                 curSubType = subType.screenshot;
+                /*
                 for (int i = 0; i < mixedQuizScreenshot.Count; i++)
                 {
                     if (mixedQuizScreenshot[i] == index)
@@ -2610,21 +2651,25 @@ namespace Wiedzowkonator
                         mixedIndex = i;
                         break;
                     }
-                }
+                }*/
+                /** Showing screenshot **/
+                mixedIndex = mixedQuizScreenshot.IndexOf(index);
                 canvasScreenshotQuiz.Width = screenshots[mixedIndex].Width;
                 canvasScreenshotQuiz.Height = screenshots[mixedIndex].Height;
 
                 canvasScreenshotQuiz.Children.Add(screenshots[mixedIndex]);
             }
-            else if (mixedQuizText.Contains(index))
+            else if (mixedQuizText.Contains(index)) //Checking if it's text question index
             {
+                /** Showing text question **/
                 curSubType = subType.text;
                 mixedIndex = mixedQuizText.IndexOf(index);
                 questionText.Text = textQuestions[mixedIndex];
                 ShowingQuestion();
             }
-            else if (mixedQuizMusic.Contains(index))
+            else if (mixedQuizMusic.Contains(index)) //Chcecking if it's music question index
             {
+                /** Showing music question **/
                 curSubType = subType.music;
                 mixedIndex = mixedQuizMusic.IndexOf(index);
                 mediaPlayer.Open(new Uri(musicFilesPath[mixedIndex]));
@@ -2632,83 +2677,83 @@ namespace Wiedzowkonator
             }
         }
 
-        void ConfirmPointsMixed()
+        void ConfirmPointsMixed() //After confirming points in mixed quiz
         {
-            for (int i = lastQuestionIndex; i < mixedQuizIndexes.Count; i++)
+            for (int i = lastQuestionIndex; i < mixedQuizIndexes.Count; i++) //Rotating mixedQuizIndexes
                 mixedQuizIndexes[i]--;
-            mixedQuizIndexes.RemoveAt(lastQuestionIndex);
-            for (int i = 0; i < mixedQuizScreenshot.Count; i++)
-                if (mixedQuizScreenshot[i] > lastQuestionIndex)
+            mixedQuizIndexes.RemoveAt(lastQuestionIndex); //Removing last index
+            for (int i = 0; i < mixedQuizScreenshot.Count; i++) //Rotating mixedQuizScreenshot
+                if (mixedQuizScreenshot[i] > lastQuestionIndex) //Only if value is bigger than last index
                     mixedQuizScreenshot[i]--;
-            for (int i = 0; i < mixedQuizText.Count; i++)
-                if (mixedQuizText[i] > lastQuestionIndex)
+            for (int i = 0; i < mixedQuizText.Count; i++) //Rotating mixedQuizText
+                if (mixedQuizText[i] > lastQuestionIndex) //Only if value is bigger than last index
                     mixedQuizText[i]--;
-            for (int i = 0; i < mixedQuizMusic.Count; i++)
-                if (mixedQuizMusic[i] > lastQuestionIndex)
+            for (int i = 0; i < mixedQuizMusic.Count; i++) //Rotating mixedQuizMusic
+                if (mixedQuizMusic[i] > lastQuestionIndex) //Only if value is bigger than last index
                     mixedQuizMusic[i]--;
-
-            if (curSubType == subType.screenshot)
+            
+            if (curSubType == subType.screenshot) //SCREENSHOT
             {
-                screenshots[mixedIndex] = null;
-                FileInfo info = new FileInfo(bitmapImage[mixedIndex].UriSource.LocalPath);
-                string[] nameToPass = info.FullName.Split(new[] { "@correct_answer_" }, StringSplitOptions.None);
+                screenshots[mixedIndex] = null; //Deleting last screenshot (setting to null)
+                FileInfo info = new FileInfo(bitmapImage[mixedIndex].UriSource.LocalPath); //Getting screenshot origin file name
+                string[] nameToPass = info.FullName.Split(new[] { "@correct_answer_" }, StringSplitOptions.None); //Getting original name without correct_asnwer
                 serializationData.answeredScreenshots.Add(nameToPass[0] + info.Extension); //Adding name of completed question
 
-                screenshotsCompleted++;
-                for (int i = mixedIndex; i < screenshots.Length - 1; i++)
+                screenshotsCompleted++; //Increasing number of completed screenshots
+                for (int i = mixedIndex; i < screenshots.Length - 1; i++) //Rotating screenshot and bitmapImage variables
                 {
                     screenshots[i] = screenshots[i + 1];
                     bitmapImage[i] = bitmapImage[i + 1];
                 }
-                if (screenshotsCompleted == screenshots.Length)
+                if (screenshotsCompleted == screenshots.Length) //If there is no more screenshot then list is cleaned
                     mixedQuizScreenshot = new List<int>();
             }
-            else if (curSubType == subType.text)
+            else if (curSubType == subType.text) //TEXT
             {
-                serializationText.answeredQuestions.Add(textQuestions[mixedIndex]);
-                textQuestions[mixedIndex] = null; textAnswers[mixedIndex] = null; textTitles[mixedIndex] = null;
-                textQuestionsCompleted++;
-                for (int i = mixedIndex; i < textQuestions.Length - 1; i++)
+                serializationText.answeredQuestions.Add(textQuestions[mixedIndex]); //Adding completed question text to answeredQuestions variable
+                textQuestions[mixedIndex] = null; textAnswers[mixedIndex] = null; textTitles[mixedIndex] = null; //Setting values to null
+                textQuestionsCompleted++; //Increasing number of completed questions
+                for (int i = mixedIndex; i < textQuestions.Length - 1; i++) //Rotating questions, titles and answers
                 {
                     textQuestions[i] = textQuestions[i + 1];
                     textAnswers[i] = textAnswers[i + 1];
                     textTitles[i] = textTitles[i + 1];
                 }
-                if (textQuestionsCompleted == textQuestions.Length)
+                if (textQuestionsCompleted == textQuestions.Length) //If there is no more text questions then list is cleaned
                     mixedQuizText = new List<int>();
             }
-            else if (curSubType == subType.music)
+            else if (curSubType == subType.music) //MUSIC
             {
-                serializationMusic.answeredQuestions.Add(musicFilesPath[mixedIndex]);
-                musicFilesPath[mixedIndex] = null;
-                musicQuestionsCompleted++;
-                for (int i = mixedIndex; i < musicFilesPath.Length - 1; i++)
+                serializationMusic.answeredQuestions.Add(musicFilesPath[mixedIndex]); //Adding completed music question to answeredQuestions variables
+                musicFilesPath[mixedIndex] = null; //Setting path value to null
+                musicQuestionsCompleted++; //Increasing number of completed music questions
+                for (int i = mixedIndex; i < musicFilesPath.Length - 1; i++) //Rotating music questions paths
                 {
                     musicFilesPath[i] = musicFilesPath[i + 1];
                 }
-                if (musicQuestionsCompleted == musicFilesPath.Length)
+                if (musicQuestionsCompleted == musicFilesPath.Length) //If there is no more music question then list is cleaned
                     mixedQuizMusic = new List<int>();
             }
 
-            if (mixedQuizMusic.Count == 0 && mixedQuizScreenshot.Count == 0 && mixedQuizText.Count == 0)
+            if (mixedQuizMusic.Count == 0 && mixedQuizScreenshot.Count == 0 && mixedQuizText.Count == 0) //If there is no more any questions then it's the end of quiz
             {
-                MessageBox.Show("KONIEC WIEDZÓWKI!");
-                FinishedQuiz();
-                finishedQuiz = true;
+                MessageBox.Show("KONIEC WIEDZÓWKI!"); //Showing message
+                FinishedQuiz(); //Showing points
+                finishedQuiz = true; //Making sure that user won't enter Answering Question phase
             }
         }
 
         void SaveMixedQuiz()
         {
-            SaveFileDialog fileDialog = new SaveFileDialog();
-            if (fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            SaveFileDialog fileDialog = new SaveFileDialog(); //New fileDialog
+            if (fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK) //If correct path was chosen
             {
-                string path = fileDialog.FileName;
+                string path = fileDialog.FileName; //Getting file name
 
                 BinaryFormatter bf = new BinaryFormatter();
-                FileStream stream = File.Create(path + ".animemixed");
+                FileStream stream = File.Create(path + ".animemixed"); //Creating file with save
                 SerializationDataMixed data = new SerializationDataMixed();
-
+                /** Saving variables to chosen file **/
                 data.answeredScreenshots = serializationData.answeredScreenshots;
                 data.answeredText = serializationText.answeredQuestions;
                 data.answeredMusic = serializationMusic.answeredQuestions;
@@ -2734,19 +2779,19 @@ namespace Wiedzowkonator
                     data.lForcedLifeSpan = lForcedLifeSpan;
                     data.lBlockedLifeSpan = lBlockedLifeSpan;
                 }
-                bf.Serialize(stream, data);
-                stream.Close();
+                bf.Serialize(stream, data); //Serializing data
+                stream.Close(); //Closing stream
             }
         }
 
-        void QuickSaveMixedQuiz()
+        void QuickSaveMixedQuiz() //Basically the same as SaveMixedQuiz()
         {
-            string path = quickSavePath + "quickSave-" + DateTime.Now.ToString("dd/MM/yyyy HH_mm");
+            string path = quickSavePath + "quickSave-" + DateTime.Now.ToString("dd/MM/yyyy HH_mm"); //Saving quiz with current data and time
 
             BinaryFormatter bf = new BinaryFormatter();
-            FileStream stream = File.Create(path + ".animemixed");
+            FileStream stream = File.Create(path + ".animemixed"); //Creating file
             SerializationDataMixed data = new SerializationDataMixed();
-
+            /** Saving variables to file **/
             data.answeredScreenshots = serializationData.answeredScreenshots;
             data.answeredText = serializationText.answeredQuestions;
             data.answeredMusic = serializationMusic.answeredQuestions;
@@ -2772,17 +2817,17 @@ namespace Wiedzowkonator
                 data.lForcedLifeSpan = lForcedLifeSpan;
                 data.lBlockedLifeSpan = lBlockedLifeSpan;
             }
-            bf.Serialize(stream, data);
-            stream.Close();
+            bf.Serialize(stream, data); //Serializing data
+            stream.Close(); //Closing stream
         }
 
         void LoadMixedQuiz()
         {
             OpenFileDialog filedialog = new OpenFileDialog();
-            filedialog.Multiselect = false;
-            filedialog.Filter = "AnimeMixed (*.ANIMEMIXED)|*.animemixed";
+            filedialog.Multiselect = false; //Only one file can be chosen
+            filedialog.Filter = "AnimeMixed (*.ANIMEMIXED)|*.animemixed"; //File must have this extension
 
-            if (filedialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            if (filedialog.ShowDialog() == System.Windows.Forms.DialogResult.OK) //If everything went ok file is loaded
             {
                 string path = filedialog.FileName;
                 QuickLoadMixedQuiz(path);
@@ -2792,9 +2837,9 @@ namespace Wiedzowkonator
         void QuickLoadMixedQuiz(string path)
         {
             BinaryFormatter bf = new BinaryFormatter();
-            FileStream stream = File.Open(path, FileMode.Open);
+            FileStream stream = File.Open(path, FileMode.Open); //Open file
             SerializationDataMixed data = (SerializationDataMixed)bf.Deserialize(stream);
-
+            /** Loading variables from file **/
             serializationData.answeredScreenshots = data.answeredScreenshots;
             serializationText.answeredQuestions = data.answeredText;
             serializationMusic.answeredQuestions = data.answeredMusic;
@@ -2821,13 +2866,14 @@ namespace Wiedzowkonator
 
             stream.Close();
             /**************** IMPORTING SCREENSHOT QUIZ DATA *************************************/
-            for (int i = 0; i < data.localizationScreenshot.Length; i++)
+            for (int i = 0; i < data.localizationScreenshot.Length; i++) //Getting screenshot localization from data file
                 screenshotsLocalizationPath[i] = serializationData._screenshotsLocalizationPath[i];
             bitmapImage = new BitmapImage[screenshotsLocalizationPath.Length];
             screenshots = new Image[bitmapImage.Length];
             nameOfScreenshots = new string[bitmapImage.Length];
             for (int k = 0; k < screenshotsLocalizationPath.Length; k++)
             {
+                /** Importing screenshot from saved data **/
                 bitmapImage[k] = new BitmapImage(new Uri(screenshotsLocalizationPath[k], UriKind.Absolute));
                 screenshots[k] = new Image();
                 screenshots[k].Source = bitmapImage[k];
@@ -2840,7 +2886,7 @@ namespace Wiedzowkonator
                 nameOfScreenshots[k] = correctNameOfScreenshot[0] + info.Extension;
             }
             /**************** IMPORTING QUIZ DATA *************************************/
-            txtFilePath = serializationText.txtFileLocalization;
+            txtFilePath = serializationText.txtFileLocalization; //Getting file localization
             if (File.Exists(txtFilePath))
                 OpeningTextQuiz(txtFilePath); //Loading new quiz from file
             else MessageBox.Show("Błąd importowania! Proszę zresetować program i upewnić się, że plik " + txtFilePath + " istnieje.");
@@ -2950,7 +2996,7 @@ namespace Wiedzowkonator
         }
 
         void RandomizingMixedQuizIndexes() //TODO
-        {/*
+        {
             List<int> mixedQuizIndexesTemp = new List<int>();
             int musicLength = mixedQuizMusic.Count;
             int screenLength = mixedQuizScreenshot.Count;
@@ -2964,7 +3010,7 @@ namespace Wiedzowkonator
             {
                 mixedQuizIndexesTemp.Add(mixedQuizIndexes[i]);
             }
-            mixedQuizIndexes = new List<int>();
+            //mixedQuizIndexes = new List<int>();
             Random random = new Random();
             int randomNumber;
             /*
@@ -3002,7 +3048,7 @@ namespace Wiedzowkonator
                 mixedQuizMusic.Add(mixedQuizIndexesTemp[0]);
                 mixedQuizIndexesTemp.Remove(mixedQuizIndexesTemp[0]);
                 
-            }
+            }*/
             //S - Screenshot; M - Music; T - Text
             int t = 0;
             int m = 0;
@@ -3013,7 +3059,7 @@ namespace Wiedzowkonator
                 //MessageBox.Show(randomNumber.ToString());
                 if (randomNumber == 1 && screenLength - s > 0)
                 {
-                    MessageBox.Show("SCREEN" + mixedQuizIndexesTemp[0].ToString());
+                    //MessageBox.Show("SCREEN" + mixedQuizIndexesTemp[0].ToString());
                     //questionRatio = (musicLength + screenLength + textLength - s) / (screenLength - s);
                     // if (s / screenLength >= 1 / 2) randomNumber = random.Next((musicLength + screenLength + textLength) / 3);
                     //else randomNumber = random.Next(0, questionRatio + 1);
@@ -3027,7 +3073,7 @@ namespace Wiedzowkonator
 
                 else if (randomNumber == 2 && textLength - t > 0)
                 {
-                    MessageBox.Show("TEXT" + mixedQuizIndexesTemp[0].ToString());
+                    //MessageBox.Show("TEXT" + mixedQuizIndexesTemp[0].ToString());
                     //questionRatio = (musicLength + screenLength + textLength - t) / (textLength - t);
                     //randomNumber = random.Next(0, questionRatio + 1);
                     //if (t / screenLength >= 1 / 2) randomNumber = random.Next((musicLength + screenLength + textLength) / 3);
@@ -3039,7 +3085,7 @@ namespace Wiedzowkonator
 
                 else if (randomNumber == 3 && musicLength - m > 0)
                 {
-                    MessageBox.Show("MUSIC" + mixedQuizIndexesTemp[0].ToString());
+                    //MessageBox.Show("MUSIC" + mixedQuizIndexesTemp[0].ToString());
                     //questionRatio = (musicLength + screenLength + textLength - m) / (musicLength - m);
                     //randomNumber = random.Next(0, questionRatio + 1);
 
@@ -3051,22 +3097,26 @@ namespace Wiedzowkonator
                     m++;
                 }
             }
-
+            string toShow = "";
             for (int i = 0; i < mixedQuizIndexes.Count - 1; i++)
             {
                 if (mixedQuizScreenshot.Contains(i))
                 {
-                    MessageBox.Show("Screen " + i.ToString());
+                    toShow += "Screen " + i.ToString();
+                    //MessageBox.Show("Screen " + i.ToString());
                 }
                 else if (mixedQuizText.Contains(i))
                 {
-                    MessageBox.Show("Text " + i.ToString());
+                    toShow += "Text " + i.ToString();
+                    //MessageBox.Show("Text " + i.ToString());
                 }
                 else if (mixedQuizMusic.Contains(i))
                 {
-                    MessageBox.Show("Music " + i.ToString());
+                    toShow += "Music " + i.ToString();
+                    //MessageBox.Show("Music " + i.ToString());
                 }
-            }*/
+            }
+            MessageBox.Show(toShow);
         }
         #endregion
         #region Participants initialization
@@ -3074,8 +3124,10 @@ namespace Wiedzowkonator
         /*************** PARTICIPANTS REGION ********************************/
         void InitializingParticipants()
         {
+            //Every field has to be identified by its name so it's the only way to initialize them
             for (int i = 0; i < participantsNames.Length; i++)
             {
+                /** Iniziatializing variables to null **/
                 participantsNames[i] = null;
                 participantsPoints[i] = null;
                 participantsPlus[i] = null;
@@ -3088,6 +3140,7 @@ namespace Wiedzowkonator
                     participantsModifiers[i, k] = null;
                 }
             }
+            /** Assigning fields to variable **/
             participantsNames[0] = nameParticipant1;
             participantsPoints[0] = pointsParticipant1;
             participantsPlus[0] = plusParticipant1;
@@ -3141,7 +3194,7 @@ participantsModifiers[11, 0] = modifier12_1; participantsModifiers[11, 1] = modi
 
             #endregion
 
-            for (int i = 0; i < participantsNames.Length; i++)
+            for (int i = 0; i < participantsNames.Length; i++) //Every name is set to empty and points to 0,0
             {
                 if (participantsNames[i] != null)
                 {
@@ -3151,44 +3204,45 @@ participantsModifiers[11, 0] = modifier12_1; participantsModifiers[11, 1] = modi
             }
         }
 
-        void FinishedQuiz()
+        void FinishedQuiz() //If there is no more question
         {
-            SwitchingOffAllFields();
-            GivingPoints_ShowingAnswers();
-            confirmPoints.Width = 0;
+            SwitchingOffAllFields(); //Switching everything off
+            GivingPoints_ShowingAnswers(); //Showing points screen
+            confirmPoints.Width = 0; //Hiding buttons
             goBack.Width = 0;
 
-            int[] pointsList = new int[numberOfParticipants];
+            int[] pointsList = new int[numberOfParticipants]; //Helping variable to store participants points
             int[] tempPointsList;
-            int newLength = 0;
-            int numberOfEntries = 0;
+            int newLength = 0; //There are 2 variables and newLength gets how many participants are in game
+            int numberOfEntries = 0; //Making sure that "for" loop won't have too much entries
             for (int i = 0; i < numberOfParticipants; i++)
             {
-                if (participantsNames[i].Text != "" && participantsNames[i].Text != null)
+                if (participantsNames[i].Text != "" && participantsNames[i].Text != null) //If team name isn't equal to null or empty
                 {
-                    string points = participantsPoints[i].Text.Replace(",0", "");
-                    pointsList[i] = int.Parse(points);
-                    newLength++;
+                    string points = participantsPoints[i].Text.Replace(",0", ""); //Getting participant points
+                    pointsList[i] = int.Parse(points); //Parsing points to array
+                    newLength++; //Increasing number of taking part in game participants
                 }
             }
-            Array.Sort(pointsList);
-            Array.Reverse(pointsList);
-            tempPointsList = new int[newLength];
-            for (int i = 0; i < newLength; i++)
+            Array.Sort(pointsList); //Sort array
+            Array.Reverse(pointsList); //Reversing - now first place is at 0 index
+            tempPointsList = new int[newLength]; //Initializing new array with number of participants
+            for (int i = 0; i < newLength; i++) //Assigning points list values to temporary array
                 tempPointsList[i] = pointsList[i];
-            pointsList = new int[newLength];
-            for (int i = 0; i < newLength; i++)
+            pointsList = new int[newLength]; //Clearing pointsList array and initializing it with participants number length
+            for (int i = 0; i < newLength; i++) //Getting back points list from temporary array
                 pointsList[i] = tempPointsList[i];
 
-            Array.Sort(pointsList);
-            Array.Reverse(pointsList);
-            int currentPositionOfWinners = 1;
+            Array.Sort(pointsList); //Sorting array again
+            Array.Reverse(pointsList); //Reversing - now first place is at 0 index
+            int currentPositionOfWinners = 1; //Getting player position - 1st, 2nd etc.
 
             for (int i = 0; i < pointsList.Length; i++)
             {
                 for (int j = 0; j < pointsList.Length; j++)
                 {
-                    string points = participantsPoints[j].Text.Replace(",0", "");
+                    string points = participantsPoints[j].Text.Replace(",0", ""); //Getting player points
+                    //If points are equal to pointsList && participant name isn' null or empty && numberOfEntries is correct
                     if (pointsList[i] == int.Parse(points) && participantsNames[j].Text != null && participantsNames[j].Text != "" && numberOfEntries < pointsList.Length)
                     {
                         /*
@@ -3197,25 +3251,27 @@ participantsModifiers[11, 0] = modifier12_1; participantsModifiers[11, 1] = modi
                             currentPositionOfWinners--;
                             MessageBox.Show("ENTER");
                         }*/
+                        //Setting winner name and his points to string
                         winners.Text += currentPositionOfWinners.ToString() + ". " + participantsNames[j].Text + " ; " + points + "\r";
-                        currentPositionOfWinners++;
-                        numberOfEntries++;
+                        currentPositionOfWinners++; //Incresing position
+                        numberOfEntries++; //Incrasing numberOfEntries to make sure that too much entries won't occur
                     }
                 }
             }
-            MessageBox.Show(winners.Text);
-            if (curPointsType == pointsType.lottery)
+            MessageBox.Show(winners.Text); //Showing list with winners
+            if (curPointsType == pointsType.lottery) //Clearing lotteryText because it won't be needed cuz it's end of the quiz
             {
                 LotteryText.Text = "";
             }
         }
         #endregion
 
-        void DeletingQuickSaves(object sender, RoutedEventArgs e)
+        void DeletingQuickSaves(object sender, RoutedEventArgs e) //Deleting files from quicksave folder. Newest files for each extension aren't deleted
         {
             //Loading data containing deeper information and values of variables
-            DirectoryInfo directory = new DirectoryInfo(quickSavePath);
-            FileInfo[] pathToCheck = directory.GetFiles();
+            DirectoryInfo directory = new DirectoryInfo(quickSavePath); //Getting quicksave directory
+            FileInfo[] pathToCheck = directory.GetFiles(); //Getting all files from quicksave directory
+            /** Initializing new lists for each extension **/
             List<FileInfo> screenPaths = new List<FileInfo>();
             List<FileInfo> musicPaths = new List<FileInfo>();
             List<FileInfo> textPaths = new List<FileInfo>();
@@ -3223,12 +3279,13 @@ participantsModifiers[11, 0] = modifier12_1; participantsModifiers[11, 1] = modi
 
             for (int i = 0; i < pathToCheck.Length; i++)
             {
+                /** Getting files for each extension **/
                 if (pathToCheck[i].Extension == ".animescreen") screenPaths.Add(pathToCheck[i]);
                 else if (pathToCheck[i].Extension == ".animetext") textPaths.Add(pathToCheck[i]);
                 else if (pathToCheck[i].Extension == ".animemusic") musicPaths.Add(pathToCheck[i]);
                 else if (pathToCheck[i].Extension == ".animemixed") mixedPaths.Add(pathToCheck[i]);
             }
-
+            /** Getting newest file for each extension **/
             FileInfo pathScreen = (from f in screenPaths
                            orderby f.LastWriteTime descending
                            select f).First();
@@ -3241,12 +3298,12 @@ participantsModifiers[11, 0] = modifier12_1; participantsModifiers[11, 1] = modi
             FileInfo pathMixed = (from f in mixedPaths
                                 orderby f.LastWriteTime descending
                                 select f).First();
-
+            /** Removing newest file from each extension from lists **/
             screenPaths.Remove(pathScreen);
             musicPaths.Remove(pathMusic);
             textPaths.Remove(pathText);
             mixedPaths.Remove(pathMixed);
-
+            /** Deleting all other files **/
             for (int i = 0; i < screenPaths.Count; i++)
                 File.Delete(screenPaths[i].FullName);
             for (int i = 0; i < musicPaths.Count; i++)
@@ -3259,7 +3316,7 @@ participantsModifiers[11, 0] = modifier12_1; participantsModifiers[11, 1] = modi
             MessageBox.Show("Usunięto pliki szybkiego zapisu. Pozostawiono po jednym najnowszym pliku każdego rodzaju w folderze " + quickSavePath);
         }
 
-        private void skippingMusicCustomization(object sender, KeyEventArgs e)
+        private void skippingMusicCustomization(object sender, KeyEventArgs e) //Skipping music customization with >>Key.Enter<<
         {
             if (e.Key == Key.Enter)
                 SkipMusicQuestion_Click(null, null);

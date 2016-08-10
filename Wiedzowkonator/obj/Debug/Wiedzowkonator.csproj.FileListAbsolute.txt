@@ -17,3 +17,5 @@ C:\Users\Kamil\Documents\Visual Studio 2015\Projects\Wiedzowkonator\Wiedzowkonat
 C:\Users\Kamil\Documents\Visual Studio 2015\Projects\Wiedzowkonator\Wiedzowkonator\bin\Debug\Icons\doublePoints.png
 C:\Users\Kamil\Documents\Visual Studio 2015\Projects\Wiedzowkonator\Wiedzowkonator\bin\Debug\Icons\forced.png
 C:\Users\Kamil\Documents\Visual Studio 2015\Projects\Wiedzowkonator\Wiedzowkonator\bin\Debug\Icons\noLosingPoints.png
+C:\Users\Kamil\Documents\Visual Studio 2015\Projects\Wiedzowkonator\Wiedzowkonator\obj\Debug\Lottery_options.g.cs
+C:\Users\Kamil\Documents\Visual Studio 2015\Projects\Wiedzowkonator\Wiedzowkonator\obj\Debug\Lottery_options.baml

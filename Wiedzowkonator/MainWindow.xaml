@@ -86,6 +86,10 @@
         <TextBlock x:Name="artistNameMusicAnswer" HorizontalAlignment="Center" Height="23" TextWrapping="Wrap" Text="Artysta" VerticalAlignment="Center" Width="250" Margin="321,212,701,453"/>
         <TextBlock x:Name="titleMusicAnswer" HorizontalAlignment="Center" Height="23" TextWrapping="Wrap" Text="Tytuł utworu" VerticalAlignment="Center" Width="250" Margin="321,248,701,419"/>
         <TextBlock x:Name="animeNameMusicAnswer" HorizontalAlignment="Center" Height="23" TextWrapping="Wrap" Text="Tytuł anime" VerticalAlignment="Center" Width="250" Margin="321,284,701,383"/>
+
+        <TextBlock x:Name="artistNameMusicHelper" HorizontalAlignment="Center" Height="23" TextWrapping="Wrap" Text="Artysta" VerticalAlignment="Center" Width="113" Margin="246,216,913,451"/>
+        <TextBlock x:Name="titleMusicHelper" HorizontalAlignment="Center" Height="23" TextWrapping="Wrap" Text="Tytuł utworu" VerticalAlignment="Center" Width="113" Margin="246,251,913,416"/>
+        <TextBlock x:Name="animeNameMusicHelper" HorizontalAlignment="Center" Height="23" TextWrapping="Wrap" Text="Tytuł anime" VerticalAlignment="Center" Width="113" Margin="246,287,913,380"/>
         <!--***************** Buffs and debuffs **********************-->
         <Canvas x:Name="modifier1_1" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="236,312,1016,358"/>
         <Canvas x:Name="modifier1_2" HorizontalAlignment="Center" Height="20" VerticalAlignment="Center" Width="20" Margin="256,312,996,358"/>

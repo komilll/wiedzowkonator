@@ -21,6 +21,7 @@ using System.Xml.Serialization;
 using System.Drawing;
 using System.Windows.Resources;
 using System.Diagnostics;
+using System.Collections;
 //
 using Application = System.Windows.Application;
 using MessageBox = System.Windows.Forms.MessageBox;
@@ -156,7 +157,7 @@ namespace Wiedzowkonator
         int screenshotsCompleted; //If user already answered this screenshot it won't be shown again
         static string userName = Environment.UserName; //Name of user logged on Windows account
         static string[] systemDirectoryChunks = Environment.SystemDirectory.ToString().Split('\\'); //Getting system Windows disk (Mostly C:/)
-        string quickSavePath = systemDirectoryChunks[0] + "/Users/" + userName + "/AppData/LocalLow/Wiedzowkonator/"; //Choosing directory path
+        public string quickSavePath = systemDirectoryChunks[0] + "/Users/" + userName + "/AppData/LocalLow/Wiedzowkonator/"; //Choosing directory path
         string[] screenshotsLocalizationPath; //Localizition of directory which contains screenshots
         int customAnswerIndex; //Index that increases after pressing "next"; Help with managing custom answers
         /*** ___________________________ ***/
@@ -195,6 +196,12 @@ namespace Wiedzowkonator
         int[] usersModifiers = new int[16]; //Getting list how many each participant has different lottery bonuses
         int[] lForcedLifeSpan = new int[12]; //Remaining debuff time
         int[] lBlockedLifeSpan = new int[12]; //Remaining debuff time
+        //Lottery stats - loaded from *.ini file
+        public int gainedMinimumPointsLottery = 0; //Minimum points that user will get from lottery - default 0
+        public int gainedMaximumPointsLottery = 5; //Maximum points that user will get from lottery - default 5
+        public int lostMinimumPointsLottery = 0; //Minimum points that user will lose from lottery - default 0
+        public int lostMaximumPointsLottery = 5; //Maximum points that user will lose from lottery - default 5
+
 
         //Enum type that shows which state of quiz is currently in progress
         enum quizState { customizingQuestions, choosingQuestion, answeringQuestion, givingPoints };
@@ -237,10 +244,14 @@ namespace Wiedzowkonator
             InitializingParticipants(); //Getting fields with all participants options and setting them to variables
             curQuizType = quizType.text; //UNKNOWN --> Propably set to avoid being set to enum = 0. Better not touch, seems not to be dangerous
             Application.Current.MainWindow.WindowState = WindowState.Maximized; //Starting fullscreen
+            Application.Current.ShutdownMode = ShutdownMode.OnMainWindowClose; //Making sure that process will be killed on main window closing
             canvasBorder.BorderThickness = new Thickness(2.5f); //Setting border around the whole screen to chosen thickness
             DeletingScreeshots(); //If file "toDelete.txt" exists then saved in this files screenshots are deleted on program start
             SwitchingOffAllFields(); //Setting all unused currently controls off (not really switching off, rather making them "disappear" for a moment)
             ChoosingQuizType();
+            //Setting Viewbox for the first time on start
+            CanvasViewbox.Width = Width;
+            CanvasViewbox.Height = Height;
         }
 
         private void StartClick(object sender, RoutedEventArgs e) //Main method that contains showing screenshots
@@ -275,8 +286,10 @@ namespace Wiedzowkonator
                     curQuizState = quizState.answeringQuestion; //User have chosen question so now he's in "answering" phase
                     if (curQuizType == quizType.screenshot)
                     {
+                        CanvasViewbox.Width = this.Width; //Setting viewbox in case user has changed windows size since last entry
+                        CanvasViewbox.Height = this.Height;
                         //Substracting 1 to let user writting down from "1 to x" instead of "0 to x"
-                        int currentScreenshot = lastScreenshotIndex = int.Parse(questionNumberBox.Text) - 1;
+                        int currentScreenshot = lastScreenshotIndex = lastQuestionIndex = int.Parse(questionNumberBox.Text) - 1;
                         canvasScreenshotQuiz.Width = screenshots[currentScreenshot].Width;
                         canvasScreenshotQuiz.Height = screenshots[currentScreenshot].Height;
 
@@ -2461,13 +2474,16 @@ namespace Wiedzowkonator
             curPointsType = pointsType.lottery;
             SwitchingOffAllFields();
             ChoosingQuestion();
+            LoadingLotteryOptions(true);
         }
 
         private void tilesChoosingQuizButton_Click(object sender, RoutedEventArgs e) //TODO --> Currently there is nothing, better not click this option
         {
-            curPointsType = pointsType.tilesChoosing;
+            /*curPointsType = pointsType.tilesChoosing;
             SwitchingOffAllFields();
             ChoosingQuestion();
+            */
+            MessageBox.Show("- Kiedy Animeterasu?\r- ¯\\_(ツ)_/¯");
         }
 
         void StartLottery() //Getting random buff/debuff after correct answer
@@ -2493,9 +2509,9 @@ namespace Wiedzowkonator
                 if (randomizing >= 1 && randomizing <= 8) //80% chance to get from 0 to 5 points
                 {
                     string[] stringToPass = lotteryVariants[0].Split('.');
-                    randomizing = random.Next(0, 6);
+                    randomizing = random.Next(gainedMinimumPointsLottery, gainedMaximumPointsLottery + 1);
                     if (randomizing == 1) stringToPass[1] = "punkt";
-                    else if (randomizing == 5) stringToPass[1] = "punktów";
+                    else if (randomizing >= 5 && randomizing <= 21) stringToPass[1] = "punktów";
                     LotteryText.Text = stringToPass[0] + " " + randomizing.ToString() + " " + stringToPass[1];
                     curLotteryBonus = 0; //Index of bonus
                     lotteryPointsToPass = randomizing; //Points that player will get for this answer
@@ -2503,9 +2519,9 @@ namespace Wiedzowkonator
                 else
                 {
                     string[] stringToPass = lotteryVariants[1].Split('.');
-                    randomizing = random.Next(0, 6);
+                    randomizing = random.Next(lostMinimumPointsLottery, lostMaximumPointsLottery + 1);
                     if (randomizing == 1) stringToPass[1] = "punkt";
-                    else if (randomizing == 5) stringToPass[1] = "punktów";
+                    else if (randomizing >= 5 && randomizing <= 21) stringToPass[1] = "punktów";
                     LotteryText.Text = stringToPass[0] + " " + randomizing.ToString() + " " + stringToPass[1];
                     curLotteryBonus = 1; //Index of bonus
                     lotteryPointsToPass = randomizing; //Points that player will get for this answer
@@ -2652,6 +2668,8 @@ namespace Wiedzowkonator
                         break;
                     }
                 }*/
+                CanvasViewbox.Width = this.Width; //Setting viewbox in case user has changed windows size since last entry
+                CanvasViewbox.Height = this.Height;
                 /** Showing screenshot **/
                 mixedIndex = mixedQuizScreenshot.IndexOf(index);
                 canvasScreenshotQuiz.Width = screenshots[mixedIndex].Width;
@@ -2691,7 +2709,7 @@ namespace Wiedzowkonator
             for (int i = 0; i < mixedQuizMusic.Count; i++) //Rotating mixedQuizMusic
                 if (mixedQuizMusic[i] > lastQuestionIndex) //Only if value is bigger than last index
                     mixedQuizMusic[i]--;
-            
+
             if (curSubType == subType.screenshot) //SCREENSHOT
             {
                 screenshots[mixedIndex] = null; //Deleting last screenshot (setting to null)
@@ -2705,6 +2723,7 @@ namespace Wiedzowkonator
                     screenshots[i] = screenshots[i + 1];
                     bitmapImage[i] = bitmapImage[i + 1];
                 }
+                mixedQuizScreenshot.RemoveAt(mixedIndex);
                 if (screenshotsCompleted == screenshots.Length) //If there is no more screenshot then list is cleaned
                     mixedQuizScreenshot = new List<int>();
             }
@@ -2719,6 +2738,7 @@ namespace Wiedzowkonator
                     textAnswers[i] = textAnswers[i + 1];
                     textTitles[i] = textTitles[i + 1];
                 }
+                mixedQuizText.RemoveAt(mixedIndex);
                 if (textQuestionsCompleted == textQuestions.Length) //If there is no more text questions then list is cleaned
                     mixedQuizText = new List<int>();
             }
@@ -2731,6 +2751,7 @@ namespace Wiedzowkonator
                 {
                     musicFilesPath[i] = musicFilesPath[i + 1];
                 }
+                mixedQuizMusic.RemoveAt(mixedIndex);
                 if (musicQuestionsCompleted == musicFilesPath.Length) //If there is no more music question then list is cleaned
                     mixedQuizMusic = new List<int>();
             }
@@ -3004,7 +3025,6 @@ namespace Wiedzowkonator
             mixedQuizMusic = new List<int>();
             mixedQuizScreenshot = new List<int>();
             mixedQuizText = new List<int>();
-            int questionRatio = 0;
 
             for (int i = 0; i < mixedQuizIndexes.Count - 1; i++)
             {
@@ -3096,7 +3116,7 @@ namespace Wiedzowkonator
                     mixedQuizIndexesTemp.Remove(mixedQuizIndexesTemp[0]);
                     m++;
                 }
-            }
+            }/*
             string toShow = "";
             for (int i = 0; i < mixedQuizIndexes.Count - 1; i++)
             {
@@ -3116,7 +3136,7 @@ namespace Wiedzowkonator
                     //MessageBox.Show("Music " + i.ToString());
                 }
             }
-            MessageBox.Show(toShow);
+            MessageBox.Show(toShow);*/
         }
         #endregion
         #region Participants initialization
@@ -3320,6 +3340,22 @@ participantsModifiers[11, 0] = modifier12_1; participantsModifiers[11, 1] = modi
         {
             if (e.Key == Key.Enter)
                 SkipMusicQuestion_Click(null, null);
+        }
+
+        void LoadingLotteryOptions(bool instaClose)
+        {
+            Lottery_options lottery = new Lottery_options();
+            MainWindow window = new MainWindow();
+            window = this;
+            lottery.InitializeComponent();
+            if (instaClose == false)
+                lottery.Show();
+            lottery.Start(window, instaClose);
+        }
+
+        private void Lottery_option(object sender, RoutedEventArgs e)
+        {
+            LoadingLotteryOptions(false);
         }
     }
 }

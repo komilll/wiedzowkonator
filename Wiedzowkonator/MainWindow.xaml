@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Wiedzowkonator"
         mc:Ignorable="d"
-        Title="Wiedzówkonator 2k16" Height="720" Width="1280">
+        Title="Wiedzówkonator 2k16" Height="768" Width="1368">
 
     <Grid>
         <DockPanel Height="20"  VerticalAlignment="Top">
@@ -16,6 +16,9 @@
                     <MenuItem Header="_Wczytaj" Click="Load"/>
                     <MenuItem Header="_Usuń Końcówki" Click="DeleteEndings"/>
                     <MenuItem Header="_Wyczyść pliki szybkiego zapisu" Click="DeletingQuickSaves"/>
+                </MenuItem>
+                <MenuItem Header="_Opcje">
+                    <MenuItem Header="_Loteria" Click="Lottery_option"/>       
                 </MenuItem>
 
             </Menu>
@@ -40,10 +43,12 @@
 
         <Button x:Name="manualQuizButton" Content="Ręczne przyznawanie punktów" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" Click="manualQuizButton_Click"/>
         <Button x:Name="lotteryQuizButton" Content="Animcowa loteria" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" Margin="131,164,131,104" Click="lotteryQuizButton_Click"/>
-        <Button x:Name="tilesChoosingQuizButton" Content="Odkrywanie pól" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" Margin="131,199,131,69" Click="tilesChoosingQuizButton_Click"/>
+        <Button x:Name="tilesChoosingQuizButton" Content="Animeterasu" HorizontalAlignment="Center" VerticalAlignment="Center" Width="250" Margin="131,199,131,69" Click="tilesChoosingQuizButton_Click"/>
         <!-- Regular quiz game options -->
         <Border x:Name="canvasBorder" BorderBrush="Black">
-            <Canvas x:Name="canvasScreenshotQuiz" HorizontalAlignment="Center" Height="290" VerticalAlignment="Center" Width="512" MouseDown="SkippingScreenshot"/>
+            <Viewbox x:Name="CanvasViewbox">
+                <Canvas x:Name="canvasScreenshotQuiz" HorizontalAlignment="Center" Height="290" VerticalAlignment="Center" Width="512" MouseDown="SkippingScreenshot"/>
+            </Viewbox>
         </Border>
         <TextBox x:Name="ScreenshotSkipper" Width="0" KeyDown="ScreenshotSkipper_KeyDown"/>
         <Button x:Name="StartButton" Content="Rozpocznij wiedzówkę!" VerticalAlignment="Center" HorizontalAlignment="Center" Width="150" Click="StartClick"/>
@@ -69,7 +74,7 @@
         <!-- Importing new quiz -->
         <Button x:Name="noAnswerButton" Content="1. Nie importuj odpowiedzi do pytań (po zakończonym pytaniu nie będą wyświetlały się poprawne odpowiedzi)" 
                HorizontalAlignment="Center" VerticalAlignment="Center" Width="800" Click="noAnswerButton_Click" Margin="-144,107,-144,161"/>
-        <Button x:Name="fileNameAnswerButton" Content="2. Odpowiedzią na pytanie jest nazwa pliku ze screenshotem"
+        <Button x:Name="fileNameAnswerButton" Content="2. Odpowiedzią na pytanie jest nazwa pliku"
                 HorizontalAlignment="Center" VerticalAlignment="Center" Width="800" Click="fileNameAnswerButton_Click"/>
         <Button x:Name="customAnswerButton" Content="3. Sam ustawię odpowiedzi dla każdego z pytań" 
                  HorizontalAlignment="Center" VerticalAlignment="Center" Width="800" Click="customAnswerButton_Click" Margin="-144,161,-144,107"/>

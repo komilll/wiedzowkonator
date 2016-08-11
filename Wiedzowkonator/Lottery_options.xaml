@@ -5,8 +5,31 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Wiedzowkonator"
         mc:Ignorable="d"
-        Title="Lottery_options" Height="300" Width="300">
+        Title="Opcje animcowej loterii" Height="300" MinHeight="300" MaxHeight="300" Width="400" MinWidth="400" MaxWidth="400">
     <Grid>
+        <Border x:Name="GainedPointsMinBorder" BorderBrush="Black" BorderThickness="1" Margin="219,30,136,216">
+            <TextBox x:Name="GainedPointsMin" HorizontalAlignment="Center" Height="20" TextWrapping="Wrap" Text="" VerticalAlignment="Center" Width="34" TextAlignment="Center" Margin="0,1,1,1"/>
+        </Border>
+        <Border x:Name="GainedPointsMaxBorder" BorderBrush="Black" BorderThickness="1" Margin="271,30,84,216">
+            <TextBox x:Name="GainedPointsMax" HorizontalAlignment="Center" Height="20" TextWrapping="Wrap" Text="" VerticalAlignment="Center" Width="34" TextAlignment="Center" Margin="0,1,1,1"/>
+        </Border>
+        <TextBlock x:Name="GainedPointsText" HorizontalAlignment="Center" Text="  Przedział uzyskiwanych punktów:" Height="22" Width="190" VerticalAlignment="Center" Margin="29,32,173,216" />
+        <TextBlock x:Name="GainedPointsText_" HorizontalAlignment="Center" TextAlignment="Center" Height="Auto" Text="-" VerticalAlignment="Center" Width="15" Margin="256,33,121,221"/>
+
+        <Border x:Name="LosingPointsMinBorder" BorderBrush="Black" BorderThickness="1" Margin="219,63,136,183">
+            <TextBox x:Name="LosingPointsMin" HorizontalAlignment="Center" Height="20" TextWrapping="Wrap" Text="" VerticalAlignment="Center" Width="34" TextAlignment="Center" Margin="0,1,1,1"/>
+        </Border>
+        <Border x:Name="LosingPointsMaxBorder" BorderBrush="Black" BorderThickness="1" Margin="271,63,84,183">
+            <TextBox x:Name="LosingPointsMax" HorizontalAlignment="Center" Height="20" TextWrapping="Wrap" Text="" VerticalAlignment="Center" Width="34" TextAlignment="Center" Margin="0,1,1,1"/>
+        </Border>
+        <TextBlock x:Name="LosingPointsText" HorizontalAlignment="Center" TextWrapping="Wrap" Text="  Przedział traconych punktów:" VerticalAlignment="Center" Width="204" Height="22" Margin="29,65,159,183"/>
+        <TextBlock x:Name="LosingPointsText_" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Text="-" VerticalAlignment="Center" Height="18" Width="14" Margin="256,66,122,186"/>
+        <!-- Percentage lottery values -->
         
+        
+        
+        <Button x:Name="SaveChanges" Content="Zapisz" HorizontalAlignment="Left" VerticalAlignment="Top" Width="76" Margin="162,238,0,0" Click="SaveChanges_Click"/>
+        <Button x:Name="ApplyChanges" Content="Zastosuj" HorizontalAlignment="Left" VerticalAlignment="Top" Width="76" Margin="66,238,0,0" Click="ApplyChanges_Click"/>
+        <Button x:Name="AbortChanges" Content="Anuluj" HorizontalAlignment="Left" VerticalAlignment="Top" Width="76" Margin="256,238,0,0" Click="AbortChanges_Click"/>
     </Grid>
 </Window>
